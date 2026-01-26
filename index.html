@@ -91,6 +91,7 @@
             border-radius: 12px;
             overflow: hidden;
             border: 0.5px solid rgba(255, 255, 255, 0.05);
+            text-align: left;
         }
 
         .ios-input-row {
@@ -98,6 +99,7 @@
             flex-direction: column;
             padding: 10px 16px;
             border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
+            text-align: left;
         }
         .ios-input-row:last-child { border-bottom: none; }
 
@@ -108,6 +110,7 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
             margin-bottom: 2px;
+            text-align: left;
         }
 
         .pill-button {
@@ -170,6 +173,7 @@
             font-size: 15px !important;
             width: 100%;
             outline: none;
+            text-align: left;
         }
         input::placeholder { color: var(--text-secondary); }
 
@@ -269,9 +273,48 @@
             position: absolute; top: 10px; right: 10px;
             box-shadow: 0 2px 10px rgba(255, 59, 48, 0.3); z-index: 5;
         }
+
+        /* iOS Professional Notification Card */
+        #iosNotifyContainer {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-150%);
+            width: calc(100% - 40px);
+            max-width: 400px;
+            z-index: 10000;
+            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        #iosNotifyContainer.active { transform: translateX(-50%) translateY(0); }
+
+        .ios-notification {
+            background: rgba(44, 44, 46, 0.8);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 18px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            border: 0.5px solid rgba(255,255,255,0.1);
+        }
     </style>
 </head>
 <body>
+
+    <!-- iOS Notification Card -->
+    <div id="iosNotifyContainer">
+        <div class="ios-notification">
+            <div id="notifyIconContainer" class="w-10 h-10 rounded-xl flex items-center justify-center">
+                <!-- Icon injected by JS -->
+            </div>
+            <div class="flex-1">
+                <p id="notifyTitle" class="text-[14px] font-bold text-white"></p>
+                <p id="notifyMessage" class="text-[13px] text-zinc-300 leading-tight"></p>
+            </div>
+        </div>
+    </div>
 
     <!-- Loading Screen -->
     <div id="loadingScreen">
@@ -282,7 +325,7 @@
     <!-- Login Screen -->
     <div id="loginScreen" class="hidden">
         <div class="login-logo">
-            <img src="https://i.postimg.cc/4dYs3Twy/logo-512x512.png" alt="Logo" class="w-full h-full object-cover">
+            <img src="https://i.postimg.cc/8sK6LGQG/image.png" alt="Logo" class="w-full h-full object-cover">
         </div>
         <h2 class="text-3xl font-bold tracking-tight mb-2">Selamat Datang Di AHRASTORE.apk</h2>
         <p class="text-[14px] text-zinc-500 mb-10">Silahkan Login Untuk Lanjut</p>
@@ -295,11 +338,16 @@
                 </div>
                 <div class="ios-input-row">
                     <span class="row-label">Password</span>
-                    <input type="password" id="loginPass" placeholder="••••••••">
+                    <div class="flex items-center">
+                        <input type="password" id="loginPass" placeholder="••••••••" class="flex-1">
+                        <button type="button" onclick="toggleLoginPassword()" class="p-1 text-zinc-500">
+                            <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
-            <button onclick="handleEmailAuth('login')" class="pill-button">MASUK</button>
-            <button onclick="handleEmailAuth('signup')" class="pill-button !bg-zinc-800 !text-blue-500">DAFTAR BARU</button>
+            <button id="loginBtn" onclick="handleEmailAuth('login')" class="pill-button">MASUK</button>
+            <button id="signupBtn" onclick="handleEmailAuth('signup')" class="pill-button !bg-zinc-800 !text-blue-500">DAFTAR BARU</button>
             
             <div class="flex items-center gap-4 py-2">
                 <div class="h-[1px] bg-zinc-800 flex-1"></div>
@@ -531,22 +579,101 @@
             }
         });
 
+        // --- LOGIN UI ACTIONS ---
+        window.toggleLoginPassword = () => {
+            const passInput = document.getElementById('loginPass');
+            const eyeIcon = document.getElementById('eyeIcon');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+            } else {
+                passInput.type = 'password';
+                eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+            }
+        };
+
+        // --- iOS Professional Notification System ---
+        window.showIOSNotify = (title, message, isError = true) => {
+            const container = document.getElementById('iosNotifyContainer');
+            const titleEl = document.getElementById('notifyTitle');
+            const msgEl = document.getElementById('notifyMessage');
+            const iconContainer = document.getElementById('notifyIconContainer');
+            
+            titleEl.innerText = title;
+            msgEl.innerText = message;
+            
+            if(isError) {
+                iconContainer.className = "w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/20 text-red-500";
+                iconContainer.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+            } else {
+                iconContainer.className = "w-10 h-10 rounded-xl flex items-center justify-center bg-green-500/20 text-green-500";
+                iconContainer.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+            }
+            
+            container.classList.add('active');
+            setTimeout(() => {
+                container.classList.remove('active');
+            }, 4000);
+        };
+
         // --- AUTH ACTIONS ---
         window.handleEmailAuth = async (type) => {
             const e = document.getElementById('loginEmail').value;
             const p = document.getElementById('loginPass').value;
-            if(!e || !p) return showStatus("Isi data lengkap", true);
+            const btn = type === 'login' ? document.getElementById('loginBtn') : document.getElementById('signupBtn');
+            
+            if(!e || !p) return showIOSNotify("Form Tidak Lengkap", "Silakan isi email dan password Anda.");
+            
+            btn.disabled = true;
+            btn.innerText = "Processing...";
             
             try {
                 if(type === 'login') {
                     await signInWithEmailAndPassword(auth, e, p);
+                    showIOSNotify("Berhasil Masuk", "Selamat datang kembali di AhraStore.", false);
                 } else {
                     await createUserWithEmailAndPassword(auth, e, p);
-                    showStatus("Berhasil daftar!");
+                    showIOSNotify("Pendaftaran Berhasil", "Akun Anda telah dibuat. Silakan login.", false);
                 }
             } catch(err) { 
-                console.error(err);
-                showStatus("Gagal: " + err.message, true); 
+                console.error(err.code);
+                let title = "Autentikasi Gagal";
+                let msg = "Terjadi kesalahan saat memproses data.";
+                
+                switch(err.code) {
+                    case 'auth/email-already-in-use':
+                        title = "Email Terdaftar";
+                        msg = "Email ini sudah digunakan oleh akun lain.";
+                        break;
+                    case 'auth/invalid-email':
+                        title = "Email Tidak Valid";
+                        msg = "Format email yang Anda masukkan salah.";
+                        break;
+                    case 'auth/user-not-found':
+                        title = "Akun Tidak Ada";
+                        msg = "Kami tidak dapat menemukan akun dengan email ini.";
+                        break;
+                    case 'auth/wrong-password':
+                        title = "Password Salah";
+                        msg = "Kata sandi yang Anda masukkan tidak sesuai.";
+                        break;
+                    case 'auth/weak-password':
+                        title = "Password Lemah";
+                        msg = "Password harus minimal 6 karakter.";
+                        break;
+                    case 'auth/network-request-failed':
+                        title = "Koneksi Bermasalah";
+                        msg = "Periksa jaringan internet Anda.";
+                        break;
+                    case 'auth/too-many-requests':
+                        title = "Akses Diblokir";
+                        msg = "Terlalu banyak percobaan. Coba lagi nanti.";
+                        break;
+                }
+                showIOSNotify(title, msg);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = type === 'login' ? "MASUK" : "DAFTAR BARU";
             }
         };
 
@@ -554,14 +681,18 @@
             try { 
                 const provider = new GoogleAuthProvider();
                 await signInWithPopup(auth, provider); 
+                showIOSNotify("Berhasil Login", "Login dengan Google berhasil.", false);
             } catch(e) { 
                 console.error(e);
-                showStatus("Google Login Gagal", true); 
+                showIOSNotify("Google Auth Gagal", "Gagal melakukan autentikasi dengan akun Google."); 
             }
         };
 
         window.handleLogout = () => { 
-            if(confirm("Keluar dari aplikasi?")) signOut(auth); 
+            if(confirm("Keluar dari aplikasi?")) {
+                signOut(auth);
+                showIOSNotify("Logout Berhasil", "Anda telah keluar dari akun.", false);
+            }
         };
 
         // --- FIRESTORE DATABASE LOGIC ---
@@ -578,7 +709,7 @@
                 renderDatabase();
             }, (error) => {
                 console.error(error);
-                showStatus("Error sinkronisasi database", true);
+                showIOSNotify("Database Error", "Gagal sinkronisasi data cloud.");
             });
         }
 
@@ -639,10 +770,13 @@
             } 
             else if (type === 'sold') {
                 await updateDoc(docRef, { isSold: !acc.isSold });
-                showStatus("Status diupdate");
+                showIOSNotify("Status Diperbarui", "Status penjualan akun telah diubah.", false);
             } 
             else if (type === 'delete') {
-                if(confirm("Hapus stok ini permanen dari Cloud?")) await deleteDoc(docRef);
+                if(confirm("Hapus stok ini permanen dari Cloud?")) {
+                    await deleteDoc(docRef);
+                    showIOSNotify("Terhapus", "Data akun telah dihapus dari cloud.", false);
+                }
             }
             else if (type === 'send_admin') {
                  let text = `🚀 <b>DETAIL AKUN (ADMIN)</b>\nJenis: ${acc.type}\n--------------------------------\n`;
@@ -714,7 +848,6 @@
                         document.getElementById('labelTestiAkun').style.color = "white";
                         closeModals();
                     } else {
-                        // Jalankan step 2 (Pilih Angka)
                         openLevelNumberPicker(lvl);
                     }
                 };
@@ -764,7 +897,7 @@
             const harga = document.getElementById('testiHarga').value;
             const akun = document.getElementById('testiAkun').value;
 
-            if(!tanggal || !harga || !akun) return showStatus("Lengkapi form testimoni", true);
+            if(!tanggal || !harga || !akun) return showIOSNotify("Form Testimoni", "Mohon lengkapi semua data testimoni.");
 
             btn.disabled = true; btn.innerText = "Memproses...";
 
@@ -781,7 +914,7 @@
 
             const photo = document.getElementById('testiImage').files[0];
             const formData = new FormData();
-            formData.append('chat_id', '7423591679'); // Ganti dengan ID Channel Testimoni Anda
+            formData.append('chat_id', '7423591679');
             formData.append('parse_mode', 'HTML');
             formData.append('caption', text);
             if(photo) formData.append('photo', photo);
@@ -791,13 +924,13 @@
                     method: 'POST',
                     body: formData
                 });
-                showStatus("Testimoni terkirim!");
+                showIOSNotify("Testimoni Terkirim", "Postingan telah berhasil dikirim ke channel.", false);
                 e.target.reset();
                 document.getElementById('labelTestiTanggal').innerText = "Pilih Tanggal...";
                 document.getElementById('labelTestiAkun').innerText = "Pilih Tingkatan...";
                 document.getElementById('label-testiImage').innerText = "Pilih Foto...";
             } catch(e) {
-                showStatus("Gagal kirim testimoni", true);
+                showIOSNotify("Pengiriman Gagal", "Gagal mengirim data ke Telegram.");
             }
             btn.disabled = false; btn.innerText = "POST TESTIMONI";
         };
@@ -805,7 +938,7 @@
         document.getElementById('formSave').onsubmit = async (e) => {
             e.preventDefault();
             const type = document.getElementById('saveType').value;
-            if(!type) return showStatus("Pilih jenis akun", true);
+            if(!type) return showIOSNotify("Data Tidak Lengkap", "Pilih jenis akun terlebih dahulu.");
             
             const btn = e.target.querySelector('button');
             btn.disabled = true; btn.innerText = "Menyimpan...";
@@ -820,13 +953,13 @@
 
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'stok'), data);
-                showStatus("Data tersimpan di Cloud");
+                showIOSNotify("Berhasil Disimpan", "Akun berhasil didaftarkan ke cloud database.", false);
                 e.target.reset(); 
                 document.getElementById('dynamicFields').innerHTML = "";
                 document.getElementById('labelSaveType').innerText = "Pilih Jenis Akun...";
                 document.getElementById('label-saveImage').innerText = "Pilih Foto...";
                 switchTab('db');
-            } catch(err) { showStatus("Gagal Menginput Data", true); }
+            } catch(err) { showIOSNotify("Input Gagal", "Gagal menyimpan data ke Firestore."); }
             btn.disabled = false; btn.innerText = "SIMPAN KE CLOUD";
         };
 
@@ -860,11 +993,11 @@
                     method: 'POST',
                     body: formData
                 });
-                showStatus("Terkirim ke Telegram");
+                showIOSNotify("Berhasil Dikirim", "Informasi stok akun terkirim ke channel.", false);
                 e.target.reset();
                 document.getElementById('label-stokImage').innerText = "Pilih Foto...";
             } catch (e) {
-                showStatus("Gagal kirim Telegram", true);
+                showIOSNotify("Gagal Kirim", "Terjadi masalah saat menghubungi Telegram.");
             }
             btn.disabled = false; btn.innerText = "KIRIM KE CHANNEL";
         };
@@ -891,12 +1024,6 @@
             }, 300);
         };
         document.getElementById('modalOverlay').onclick = closeModals;
-
-        window.showStatus = (msg, isError = false) => {
-            const el = document.getElementById('statusMsg'); el.innerText = msg;
-            el.className = `mt-6 p-4 rounded-xl text-center text-[13px] font-bold border ${isError ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-green-500/10 text-blue-500 border-blue-500/20'}`;
-            el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 3000);
-        };
 
         window.exportJSON = () => {
             const blob = new Blob([JSON.stringify(accounts, null, 2)], { type: "application/json" });
@@ -954,7 +1081,7 @@
                 formData.append('photo', new Blob([u8arr], {type:mime}), 'img.png');
                 formData.append('caption', text);
             } else { formData.append('text', text); }
-            try { await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${imageBase64?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData }); showStatus("Terkirim"); } catch(e) { showStatus("Error", true); }
+            try { await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${imageBase64?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData }); showIOSNotify("Berhasil", "Data berhasil terkirim ke Telegram.", false); } catch(e) { showIOSNotify("Error", "Gagal mengirim pesan."); }
         }
 
         document.addEventListener('click', (e) => {
