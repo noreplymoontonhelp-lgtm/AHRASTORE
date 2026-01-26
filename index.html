@@ -1291,6 +1291,7 @@
                     const label = document.getElementById('label' + targetId.charAt(0).toUpperCase() + targetId.slice(1));
                     if(label) { label.innerText = opt; label.style.color = "white"; }
                     if (isDynamic && targetId === 'saveType') handleDynamicFields(opt);
+                    if (isDynamic && targetId === 'galverSubtype') handleGalverFields(opt);
                     closeModals();
                 };
                 container.appendChild(btn);
@@ -1320,10 +1321,32 @@
                              <input type="hidden" id="dbLoginVia" required>
                          </div>`;
             } else if (type === "Galver") {
-                html += `<div class="ios-input-row"><span class="row-label">Nama/ID</span><input type="text" id="dbName" placeholder="Nama Akun"></div>
-                         <div class="ios-input-row"><span class="row-label">Password M</span><input type="text" id="dbPassM" placeholder="Password"></div>`;
+                html += `<div class="ios-input-row">
+                             <span class="row-label">Metode Login</span>
+                             <div class="ios-select-trigger !p-0 !bg-transparent !border-none" onclick="openIOSPicker('METODE LOGIN', ['Login Email', 'Login Name'], 'galverSubtype', true)">
+                                 <span id="labelGalverSubtype" class="text-[15px] text-zinc-500">Pilih Metode...</span>
+                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                             </div>
+                             <input type="hidden" id="galverSubtype" required>
+                         </div>
+                         <div id="galverFields"></div>`;
             }
             html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function handleGalverFields(subtype) {
+            const container = document.getElementById('galverFields');
+            if(!container) return;
+            let html = '';
+            if (subtype === 'Login Email') {
+                 html += `<div class="ios-input-row"><span class="row-label">Email Akun</span><input type="text" id="dbEmail" placeholder="Email" required></div>
+                          <div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div>
+                          <div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code"></textarea></div>`;
+            } else if (subtype === 'Login Name') {
+                 html += `<div class="ios-input-row"><span class="row-label">Nama/ID</span><input type="text" id="dbName" placeholder="Nama Akun" required></div>
+                          <div class="ios-input-row"><span class="row-label">Password Moonton</span><input type="text" id="dbPassM" placeholder="Pass Moonton" required></div>`;
+            }
             container.innerHTML = html;
         }
 
