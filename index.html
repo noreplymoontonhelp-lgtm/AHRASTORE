@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AhraStore Pro - Cloud Sync</title>
+    <title>AhraStore Pro - Cloud Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -24,228 +24,52 @@
             margin: 0;
             background-color: var(--bg-dark);
             color: var(--text-main);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             overflow-x: hidden;
-            -webkit-text-size-adjust: 100%;
         }
 
-        .app-container {
-            width: 100%;
-            max-width: 450px;
-            margin: 0 auto;
-            min-height: 100dvh;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--bg-dark);
-            position: relative;
-        }
+        .app-container { width: 100%; max-width: 450px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; background-color: var(--bg-dark); position: relative; }
 
         /* Loading Screen */
-        #loadingScreen {
-            position: fixed;
-            inset: 0;
-            background: var(--bg-dark);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.5s ease;
-        }
-
-        .ios-loader {
-            width: 35px;
-            height: 35px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top: 3px solid var(--accent-blue);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
+        #loadingScreen { position: fixed; inset: 0; background: var(--bg-dark); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
+        .ios-loader { width: 35px; height: 35px; border: 3px solid rgba(255, 255, 255, 0.1); border-top: 3px solid var(--accent-blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* UI Elements */
-        .shizuku-card {
-            background-color: var(--card-bg);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 0.5px solid rgba(255, 255, 255, 0.05);
-        }
+        /* Login Screen */
+        #loginScreen { position: fixed; inset: 0; background: black; z-index: 9000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; }
+        .login-logo { width: 80px; height: 80px; background: var(--accent-blue); border-radius: 22px; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(10, 132, 255, 0.3); }
 
-        .ios-input-group {
-            background-color: var(--card-secondary);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 0.5px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .ios-input-row {
-            display: flex;
-            flex-direction: column;
-            padding: 10px 16px;
-            border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
-        }
+        /* Cards & Inputs */
+        .shizuku-card { background-color: var(--card-bg); border-radius: 14px; padding: 16px; margin-bottom: 16px; border: 0.5px solid rgba(255, 255, 255, 0.05); }
+        .ios-input-group { background-color: var(--card-secondary); border-radius: 12px; overflow: hidden; border: 0.5px solid rgba(255, 255, 255, 0.05); }
+        .ios-input-row { display: flex; flex-direction: column; padding: 10px 16px; border-bottom: 0.5px solid rgba(255, 255, 255, 0.05); }
         .ios-input-row:last-child { border-bottom: none; }
+        .row-label { font-size: 10px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
 
-        .row-label {
-            font-size: 10px;
-            font-weight: 800;
-            color: var(--accent-blue);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 2px;
-        }
-
-        .pill-button {
-            background-color: var(--accent-blue);
-            color: white;
-            border-radius: 12px;
-            padding: 14px 20px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            font-size: 15px;
-            transition: all 0.2s;
-            border: none;
-            width: 100%;
-            cursor: pointer;
-        }
+        .pill-button { background-color: var(--accent-blue); color: white; border-radius: 12px; padding: 14px 20px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 15px; border: none; width: 100%; cursor: pointer; transition: all 0.2s; }
         .pill-button:active { transform: scale(0.96); opacity: 0.8; }
-        .pill-button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .tab-btn {
-            position: relative;
-            padding: 12px 0;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            transition: color 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .tab-btn.tab-active { color: var(--accent-blue); }
-        .tab-btn.tab-active::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 25%; width: 50%; height: 3px;
-            background-color: var(--accent-blue);
-            border-radius: 3px 3px 0 0;
-        }
-
-        input, textarea {
-            background: transparent !important;
-            border: none !important;
-            color: white !important;
-            padding: 0 !important;
-            font-size: 15px !important;
-            width: 100%;
-            outline: none;
-        }
+        
+        input, textarea { background: transparent !important; border: none !important; color: white !important; padding: 0 !important; font-size: 15px !important; width: 100%; outline: none; }
         input::placeholder { color: var(--text-secondary); }
 
-        /* Floating Menus */
-        .ios-popover {
-            position: absolute;
-            background: var(--ios-blur);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border-radius: 14px;
-            z-index: 100;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            border: 0.5px solid rgba(255, 255, 255, 0.1);
-            animation: popIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-            width: 220px;
-        }
-        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        /* Navigation */
+        .tab-btn { position: relative; padding: 12px 0; font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .tab-btn.tab-active { color: var(--accent-blue); }
+        .tab-btn.tab-active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 3px; background-color: var(--accent-blue); border-radius: 3px 3px 0 0; }
 
-        .popover-item {
-            padding: 14px 16px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            text-align: left;
-            background: transparent;
-        }
+        /* Modals & Popovers */
+        .ios-popover { position: absolute; background: var(--ios-blur); backdrop-filter: blur(30px); border-radius: 14px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; flex-direction: column; overflow: hidden; border: 0.5px solid rgba(255, 255, 255, 0.1); width: 200px; }
+        .popover-item { padding: 14px 16px; font-size: 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid rgba(255, 255, 255, 0.1); color: white; background: transparent; text-align: left; }
         .popover-item:last-child { border-bottom: none; }
-        .popover-item:active { background: rgba(255,255,255,0.15); }
-
-        .overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            z-index: 8000;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 8000; display: none; opacity: 0; transition: opacity 0.3s; }
         .overlay.active { display: block; opacity: 1; }
-
-        .bottom-sheet {
-            position: fixed;
-            bottom: 12px; left: 12px; right: 12px;
-            background: var(--ios-blur);
-            backdrop-filter: blur(30px) saturate(180%);
-            border-radius: 20px;
-            z-index: 8500;
-            transform: translateY(120%);
-            transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1);
-            overflow: hidden;
-        }
-        .bottom-sheet.active { transform: translateY(0); }
-
-        .centered-modal {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
-            width: 90%; max-width: 360px;
-            background: var(--ios-blur);
-            backdrop-filter: blur(40px);
-            border-radius: 24px;
-            z-index: 9000;
-            display: none;
-            flex-direction: column;
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 0.5px solid rgba(255, 255, 255, 0.15);
-        }
+        .centered-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 90%; max-width: 360px; background: var(--ios-blur); backdrop-filter: blur(40px); border-radius: 24px; z-index: 9000; display: none; flex-direction: column; opacity: 0; transition: all 0.3s ease; border: 0.5px solid rgba(255, 255, 255, 0.15); }
         .centered-modal.active { display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
+        /* Grid */
         .db-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-        .db-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 12px;
-            border: 0.5px solid rgba(255, 255, 255, 0.05);
-            position: relative;
-            cursor: pointer;
-        }
-        .sold-badge {
-            background: #ff3b30; color: white; font-size: 10px;
-            padding: 2px 8px; border-radius: 6px; font-weight: 800;
-            position: absolute; top: 10px; right: 10px; z-index: 5;
-        }
-
-        /* Login Specific */
-        #loginScreen {
-            position: fixed; inset: 0; background: black; z-index: 9000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 40px; text-align: center;
-        }
-        .login-logo {
-            width: 80px; height: 80px; background: var(--accent-blue);
-            border-radius: 20px; margin-bottom: 24px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 10px 30px rgba(10, 132, 255, 0.3);
-        }
+        .db-card { background: var(--card-bg); border-radius: 16px; padding: 12px; border: 0.5px solid rgba(255, 255, 255, 0.05); position: relative; cursor: pointer; }
+        .sold-badge { background: #ff3b30; color: white; font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 800; position: absolute; top: 10px; right: 10px; z-index: 5; }
     </style>
 </head>
 <body>
@@ -255,17 +79,15 @@
         <p class="mt-6 text-[10px] font-bold text-[#8e8e93] tracking-[0.2em] uppercase">AhraStore</p>
     </div>
 
-    <!-- Firebase Auth / Login Screen -->
     <div id="loginScreen" class="hidden">
         <div class="login-logo">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V9h2v7zm4 0h-2V9h2v7z"/></svg>
         </div>
         <h2 class="text-3xl font-bold tracking-tight mb-2">AhraStore Pro</h2>
-        <p class="text-[14px] text-zinc-500 mb-10">Database Stok Akun Berbasis Cloud</p>
+        <p class="text-[14px] text-zinc-500 mb-10">Penyimpanan Stok Berbasis Cloud</p>
         
-        <div id="authForms" class="w-full max-w-xs space-y-4">
-            <!-- Email Login -->
-            <div class="ios-input-group mb-4">
+        <div class="w-full max-w-xs space-y-4">
+            <div class="ios-input-group">
                 <div class="ios-input-row">
                     <span class="row-label">Email</span>
                     <input type="email" id="loginEmail" placeholder="email@contoh.com">
@@ -275,44 +97,37 @@
                     <input type="password" id="loginPass" placeholder="••••••••">
                 </div>
             </div>
+            <button onclick="handleEmailAuth('login')" class="pill-button">MASUK</button>
+            <button onclick="handleEmailAuth('signup')" class="pill-button !bg-zinc-800 !text-blue-500">DAFTAR BARU</button>
             
-            <button onclick="handleEmailAuth('login')" id="btnLogin" class="pill-button">MASUK</button>
-            <button onclick="handleEmailAuth('signup')" id="btnSignup" class="pill-button !bg-zinc-800 !text-blue-500">DAFTAR AKUN BARU</button>
-            
-            <div class="flex items-center gap-4 my-6">
+            <div class="flex items-center gap-4 py-2">
                 <div class="h-[1px] bg-zinc-800 flex-1"></div>
-                <span class="text-[10px] text-zinc-500 font-bold uppercase">Atau</span>
+                <span class="text-[9px] text-zinc-500 font-bold uppercase">Lainnya</span>
                 <div class="h-[1px] bg-zinc-800 flex-1"></div>
             </div>
 
             <button onclick="handleGoogleAuth()" class="pill-button !bg-white !text-black">
                 <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                Masuk dengan Google
+                Google
             </button>
-            
-            <button onclick="openPhoneModal()" class="pill-button !bg-zinc-800 !text-white">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                Masuk dengan Nomor HP
-            </button>
+            <button onclick="openPhoneModal()" class="pill-button !bg-green-600 !text-white">WhatsApp / SMS OTP</button>
         </div>
     </div>
 
-    <!-- App Content -->
     <div id="app" class="app-container hidden">
         <header class="px-6 py-4 flex justify-between items-end bg-black/80 backdrop-blur-xl sticky top-0 z-40 border-b border-white/5">
             <div>
                 <h1 class="text-2xl font-bold text-white tracking-tight">AhraStore</h1>
-                <div id="userDisplay" class="flex items-center gap-1.5 mt-0.5">
-                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
-                    <span id="userEmailLabel" class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Sync Active</span>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span id="userLabel" class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Syncing...</span>
                 </div>
             </div>
-            <button id="settingsBtn" onclick="toggleAhraPopover('settingsOverlay', this)" class="p-2 text-blue-500">
+            <button id="settingsBtn" onclick="togglePopover('settingsOverlay')" class="p-2 text-blue-500">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0a2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
 
             <div id="settingsOverlay" class="ios-popover" style="top: 75px; right: 20px;">
-                <button onclick="exportDB()" class="popover-item"><span>Export Backup</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
                 <button onclick="handleLogout()" class="popover-item !text-red-500 font-bold"><span>Logout Akun</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
             </div>
         </header>
@@ -320,32 +135,32 @@
         <nav class="flex px-4 bg-black/80 backdrop-blur-xl border-b border-white/5 sticky top-[75px] z-30">
             <button onclick="switchTab('stok')" id="tab-stok" class="tab-btn flex-1 tab-active">Stok</button>
             <button onclick="switchTab('save')" id="tab-save" class="tab-btn flex-1">Simpan</button>
-            <button onclick="switchTab('db')" id="tab-db" class="tab-btn flex-1">Database</button>
+            <button onclick="switchTab('db')" id="tab-db" class="tab-btn flex-1">Cloud Database</button>
         </nav>
 
-        <main id="mainContent" class="p-5 flex-grow pb-28">
+        <main class="p-5 flex-grow pb-28">
             <section id="section-stok">
                 <div class="shizuku-card">
-                    <h2 class="text-[12px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Telegram Fast Post</h2>
+                    <h2 class="text-[11px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Telegram Fast Post</h2>
                     <form id="formStok" class="space-y-4">
                         <div class="ios-input-group">
                             <div class="ios-input-row"><span class="row-label">Bukti Foto</span><input type="file" id="stokImage" accept="image/*" required></div>
                             <div class="ios-input-row"><span class="row-label">Harga</span><input type="text" id="stokHarga" placeholder="Contoh: 50k" required></div>
                         </div>
-                        <button type="submit" class="pill-button mt-2">🚀 KIRIM KE CHANNEL</button>
+                        <button type="submit" class="pill-button mt-2">🚀 POST KE TELEGRAM</button>
                     </form>
                 </div>
             </section>
 
             <section id="section-save" class="hidden">
                 <div class="shizuku-card">
-                    <h2 class="text-[12px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Database Input</h2>
+                    <h2 class="text-[11px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Input Data Cloud</h2>
                     <form id="formSave" class="space-y-4">
                         <div class="ios-input-group">
                             <div class="ios-input-row"><span class="row-label">Foto Akun</span><input type="file" id="saveImage" accept="image/*"></div>
-                            <div class="ios-input-row"><span class="row-label">Nama / ID Akun</span><input type="text" id="dbName" placeholder="Contoh: Akun ML - 50 Skin" required></div>
-                            <div class="ios-input-row"><span class="row-label">Detail Login</span><textarea id="dbKet" placeholder="Email: pass: backup:" class="min-h-[80px]"></textarea></div>
-                            <div class="ios-input-row"><span class="row-label">Harga Jual</span><input type="text" id="dbHarga" placeholder="Rp. 0"></div>
+                            <div class="ios-input-row"><span class="row-label">Nama/Judul Akun</span><input type="text" id="dbName" placeholder="Contoh: Akun ML 100 Skin" required></div>
+                            <div class="ios-input-row"><span class="row-label">Detail Login</span><textarea id="dbKet" placeholder="User: Pass: Backup Code:" class="min-h-[100px]"></textarea></div>
+                            <div class="ios-input-row"><span class="row-label">Harga</span><input type="text" id="dbHarga" placeholder="Rp 0"></div>
                         </div>
                         <button type="submit" class="pill-button mt-4 !bg-blue-600">📥 SIMPAN KE CLOUD</button>
                     </form>
@@ -354,7 +169,7 @@
 
             <section id="section-db" class="hidden">
                 <div class="flex justify-between items-center mb-5 px-1">
-                    <h2 class="text-[12px] font-bold text-zinc-500 uppercase tracking-widest">Katalog Stok Cloud</h2>
+                    <h2 class="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Katalog Cloud</h2>
                     <span id="dbCount" class="text-[10px] bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full font-extrabold">0 Item</span>
                 </div>
                 <div id="databaseGrid" class="db-grid"></div>
@@ -362,41 +177,20 @@
         </main>
     </div>
 
-    <!-- Modals & Pickers -->
-    <div id="modalOverlay" class="overlay"></div>
-    
-    <div id="itemActionMenu" class="ios-popover" style="width: 200px;">
-        <button onclick="handleAction('detail')" class="popover-item"><span>Lihat Detail</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>
-        <button onclick="handleAction('sold')" class="popover-item"><span>Ubah Status Sold</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg></button>
-        <button onclick="handleAction('delete')" class="popover-item !text-red-500"><span>Hapus Data</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
-    </div>
+    <div id="modalOverlay" class="overlay" onclick="closeModals()"></div>
 
-    <div id="iosDetailModal" class="centered-modal">
-        <div class="p-6">
-            <h3 id="modalTitle" class="text-lg font-bold mb-2 text-center">Detail Akun</h3>
-            <div id="modalBody" class="space-y-4 max-h-[60vh] overflow-y-auto"></div>
-        </div>
-        <div class="flex border-t border-white/10">
-            <button onclick="closeModals()" class="flex-1 p-4 text-blue-500 font-bold">Tutup</button>
-        </div>
-    </div>
-
-    <div id="phoneLoginModal" class="centered-modal">
+    <div id="phoneModal" class="centered-modal">
         <div class="p-6">
             <h3 class="text-lg font-bold mb-2 text-center">Login Nomor HP</h3>
-            <div class="ios-input-group mt-4">
-                <div class="ios-input-row">
-                    <span class="row-label">Nomor WhatsApp/HP</span>
-                    <input type="tel" id="phoneNumber" placeholder="+628123...">
+            <div id="recaptcha-container" class="my-4 flex justify-center scale-90"></div>
+            <div class="ios-input-group">
+                <div class="ios-input-row" id="phoneInputRow">
+                    <span class="row-label">Nomor WhatsApp</span>
+                    <input type="tel" id="phoneNumber" placeholder="+628123456789">
                 </div>
-            </div>
-            <div id="recaptcha-container" class="mt-4 flex justify-center scale-90"></div>
-            <div id="otpSection" class="hidden mt-4">
-                <div class="ios-input-group">
-                    <div class="ios-input-row">
-                        <span class="row-label">Kode Verifikasi (OTP)</span>
-                        <input type="text" id="otpCode" placeholder="123456">
-                    </div>
+                <div class="ios-input-row hidden" id="otpInputRow">
+                    <span class="row-label">Kode OTP</span>
+                    <input type="text" id="otpCode" placeholder="123456">
                 </div>
             </div>
         </div>
@@ -406,34 +200,33 @@
         </div>
     </div>
 
-    <div id="statusMsg" class="fixed top-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl hidden z-[10000] font-bold text-sm shadow-2xl"></div>
+    <div id="itemActionMenu" class="ios-popover">
+        <button onclick="itemAction('detail')" class="popover-item"><span>Detail</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>
+        <button onclick="itemAction('sold')" class="popover-item"><span>Status Sold</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg></button>
+        <button onclick="itemAction('delete')" class="popover-item !text-red-500"><span>Hapus</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
+    </div>
 
-    <!-- Firebase Scripts -->
+    <div id="detailModal" class="centered-modal">
+        <div class="p-6">
+            <h3 id="detTitle" class="text-lg font-bold mb-4 text-center"></h3>
+            <div class="ios-input-group">
+                <div class="ios-input-row"><span class="row-label">Harga</span><span id="detHarga" class="text-white"></span></div>
+                <div class="ios-input-row"><span class="row-label">Data Login</span><span id="detLogin" class="text-sm font-mono whitespace-pre-wrap text-zinc-300"></span></div>
+            </div>
+        </div>
+        <div class="p-4 border-t border-white/10"><button onclick="closeModals()" class="pill-button">Tutup</button></div>
+    </div>
+
+    <div id="statusMsg" class="fixed top-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl hidden z-[10000] font-bold text-sm shadow-2xl transition-all"></div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
-            getAuth, 
-            onAuthStateChanged, 
-            signInWithEmailAndPassword, 
-            createUserWithEmailAndPassword, 
-            GoogleAuthProvider, 
-            signInWithPopup, 
-            signOut,
-            RecaptchaVerifier,
-            signInWithPhoneNumber
+            getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, 
+            GoogleAuthProvider, signInWithPopup, signOut, RecaptchaVerifier, signInWithPhoneNumber 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
-            getFirestore, 
-            doc, 
-            setDoc, 
-            getDoc, 
-            collection, 
-            onSnapshot, 
-            addDoc, 
-            deleteDoc, 
-            updateDoc, 
-            query, 
-            orderBy 
+            getFirestore, collection, addDoc, doc, onSnapshot, deleteDoc, updateDoc, query, orderBy 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = JSON.parse(__firebase_config);
@@ -442,19 +235,19 @@
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'ahra-store-pro';
 
-        let currentUser = null;
-        let accountsList = [];
+        let user = null;
+        let accounts = [];
         let activeId = null;
         let confirmationResult = null;
 
-        // --- Auth Persistence & Lifecycle ---
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            if (user) {
+        // --- AUTH OBSERVER ---
+        onAuthStateChanged(auth, (u) => {
+            user = u;
+            if (u) {
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
-                document.getElementById('userEmailLabel').innerText = user.email || user.phoneNumber || "User Pro";
-                initDataListener();
+                document.getElementById('userLabel').innerText = u.email || u.phoneNumber || "User Pro";
+                initDatabase();
             } else {
                 document.getElementById('app').classList.add('hidden');
                 document.getElementById('loginScreen').classList.remove('hidden');
@@ -462,52 +255,42 @@
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.opacity = '0';
                 setTimeout(() => document.getElementById('loadingScreen').style.display = 'none', 500);
-            }, 1000);
+            }, 800);
         });
 
-        // --- Auth Actions ---
+        // --- AUTH HANDLERS ---
         window.handleEmailAuth = async (type) => {
-            const email = document.getElementById('loginEmail').value;
-            const pass = document.getElementById('loginPass').value;
-            if(!email || !pass) return showStatus("Isi email & sandi", true);
-            
+            const e = document.getElementById('loginEmail').value;
+            const p = document.getElementById('loginPass').value;
+            if(!e || !p) return showStatus("Isi data lengkap", true);
             try {
-                if(type === 'login') {
-                    await signInWithEmailAndPassword(auth, email, pass);
-                } else {
-                    await createUserWithEmailAndPassword(auth, email, pass);
-                }
-            } catch(e) { showStatus(e.message, true); }
+                if(type === 'login') await signInWithEmailAndPassword(auth, e, p);
+                else await createUserWithEmailAndPassword(auth, e, p);
+            } catch(err) { showStatus(err.message, true); }
         };
 
         window.handleGoogleAuth = async () => {
-            try {
-                const provider = new GoogleAuthProvider();
-                await signInWithPopup(auth, provider);
-            } catch(e) { showStatus(e.message, true); }
+            try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch(e) { showStatus(e.message, true); }
         };
 
-        window.handleLogout = () => { if(confirm("Logout dari aplikasi?")) signOut(auth); };
-
-        // Phone Auth Logic
         window.openPhoneModal = () => {
             document.getElementById('modalOverlay').classList.add('active');
-            document.getElementById('phoneLoginModal').classList.add('active');
-            if(!window.recaptchaVerifier) {
-                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'normal' });
+            document.getElementById('phoneModal').classList.add('active');
+            if(!window.recaptcha) {
+                window.recaptcha = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'normal' });
             }
         };
 
         window.sendOTP = async () => {
-            const phone = document.getElementById('phoneNumber').value;
-            if(!phone.startsWith('+')) return showStatus("Gunakan format +62", true);
+            const num = document.getElementById('phoneNumber').value;
+            if(!num.startsWith('+')) return showStatus("Gunakan format +62", true);
             try {
-                const appVerifier = window.recaptchaVerifier;
-                confirmationResult = await signInWithPhoneNumber(auth, phone, appVerifier);
-                document.getElementById('otpSection').classList.remove('hidden');
+                confirmationResult = await signInWithPhoneNumber(auth, num, window.recaptcha);
+                document.getElementById('phoneInputRow').classList.add('hidden');
                 document.getElementById('recaptcha-container').classList.add('hidden');
+                document.getElementById('otpInputRow').classList.remove('hidden');
                 const btn = document.getElementById('btnPhoneAction');
-                btn.innerText = "Verifikasi Kode";
+                btn.innerText = "Verifikasi OTP";
                 btn.onclick = verifyOTP;
             } catch(e) { showStatus(e.message, true); }
         };
@@ -517,108 +300,80 @@
             try {
                 await confirmationResult.confirm(code);
                 closeModals();
-            } catch(e) { showStatus("Kode OTP Salah", true); }
+            } catch(e) { showStatus("OTP Salah", true); }
         }
 
-        // --- Firestore Data Logic ---
-        function initDataListener() {
-            if(!currentUser) return;
-            const q = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts');
-            onSnapshot(q, (snapshot) => {
-                accountsList = [];
-                snapshot.forEach(doc => accountsList.push({id: doc.id, ...doc.data()}));
-                // Sort by timestamp local
-                accountsList.sort((a, b) => b.timestamp - a.timestamp);
+        window.handleLogout = () => { if(confirm("Keluar?")) signOut(auth); };
+
+        // --- FIRESTORE DATABASE ---
+        function initDatabase() {
+            const q = query(
+                collection(db, 'artifacts', appId, 'users', user.uid, 'stok'),
+                orderBy('timestamp', 'desc')
+            );
+            onSnapshot(q, (snap) => {
+                accounts = [];
+                snap.forEach(d => accounts.push({id: d.id, ...d.data()}));
                 renderDatabase();
-            }, (err) => console.error("Snapshot error:", err));
-        }
-
-        async function saveToCloud(data) {
-            if(!currentUser) return;
-            try {
-                const colRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts');
-                await addDoc(colRef, data);
-                showStatus("Tersimpan di Cloud");
-            } catch(e) { showStatus("Gagal Simpan", true); }
-        }
-
-        // --- App UI Handlers ---
-        window.switchTab = (tab) => {
-            ['stok', 'save', 'db'].forEach(t => {
-                document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tab);
-                document.getElementById(`tab-${t}`).classList.toggle('tab-active', t === tab);
             });
-            closeAllPopovers();
-        };
-
-        window.toggleAhraPopover = (id, btn) => {
-            const el = document.getElementById(id);
-            const isVisible = el.style.display === 'flex';
-            document.querySelectorAll('.ios-popover').forEach(p => p.style.display = 'none');
-            if(!isVisible) el.style.display = 'flex';
-        };
+        }
 
         function renderDatabase() {
             const grid = document.getElementById('databaseGrid');
             grid.innerHTML = "";
-            document.getElementById('dbCount').innerText = `${accountsList.length} Item`;
+            document.getElementById('dbCount').innerText = `${accounts.length} Item`;
             
-            accountsList.forEach(acc => {
+            accounts.forEach(acc => {
                 const card = document.createElement('div');
                 card.className = "db-card";
                 card.onclick = (e) => {
                     activeId = acc.id;
                     const menu = document.getElementById('itemActionMenu');
                     const rect = card.getBoundingClientRect();
-                    menu.style.top = `${rect.top + window.scrollY + 50}px`;
+                    menu.style.top = `${rect.top + window.scrollY + 40}px`;
                     menu.style.left = `${rect.left}px`;
-                    toggleAhraPopover('itemActionMenu');
+                    menu.style.display = 'flex';
                     e.stopPropagation();
                 };
                 card.innerHTML = `
                     <div class="h-32 bg-zinc-900 rounded-xl mb-3 overflow-hidden relative flex items-center justify-center">
                         ${acc.isSold ? '<div class="sold-badge">SOLD</div>' : ''}
-                        ${acc.image ? `<img src="${acc.image}" class="w-full h-full object-cover ${acc.isSold ? 'grayscale opacity-20' : ''}">` : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2c2c2e" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><polyline points="21 15 16 10 5 21"/></svg>'}
+                        ${acc.image ? `<img src="${acc.image}" class="w-full h-full object-cover ${acc.isSold?'grayscale opacity-30':''}">` : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>'}
                     </div>
-                    <p class="text-[13px] font-bold truncate px-1">${acc.dbName || 'Tanpa Nama'}</p>
-                    <p class="text-[10px] text-blue-500 font-extrabold mt-0.5 px-1">${acc.dbHarga || 'Gratis'}</p>
+                    <p class="text-[13px] font-bold truncate px-1">${acc.dbName}</p>
+                    <p class="text-[10px] text-blue-500 font-extrabold mt-0.5 px-1">${acc.dbHarga || 'Free'}</p>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        window.handleAction = async (type) => {
-            const acc = accountsList.find(a => a.id === activeId);
-            closeAllPopovers();
+        window.itemAction = async (type) => {
+            const acc = accounts.find(a => a.id === activeId);
+            document.getElementById('itemActionMenu').style.display = 'none';
             if(!acc) return;
 
+            const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'stok', activeId);
+
             if(type === 'detail') {
-                document.getElementById('modalTitle').innerText = acc.dbName;
-                document.getElementById('modalBody').innerHTML = `
-                    <div class="ios-input-group">
-                        <div class="ios-input-row"><span class="row-label">Harga</span><span class="text-white">${acc.dbHarga || '-'}</span></div>
-                        <div class="ios-input-row"><span class="row-label">Detail Login</span><span class="text-sm font-mono whitespace-pre-wrap text-zinc-300">${acc.dbKet || '-'}</span></div>
-                        <div class="ios-input-row"><span class="row-label">Status</span><span class="${acc.isSold?'text-red-500':'text-green-500'} font-bold">${acc.isSold?'SOLD':'READY'}</span></div>
-                    </div>
-                `;
+                document.getElementById('detTitle').innerText = acc.dbName;
+                document.getElementById('detHarga').innerText = acc.dbHarga;
+                document.getElementById('detLogin').innerText = acc.dbKet;
                 document.getElementById('modalOverlay').classList.add('active');
-                document.getElementById('iosDetailModal').classList.add('active');
+                document.getElementById('detailModal').classList.add('active');
             } else if(type === 'sold') {
-                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts', activeId);
                 await updateDoc(docRef, { isSold: !acc.isSold });
-                showStatus("Status Diperbarui");
+                showStatus("Status diupdate");
             } else if(type === 'delete') {
-                if(confirm("Hapus data ini permanen dari Cloud?")) {
-                    const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts', activeId);
-                    await deleteDoc(docRef);
-                    showStatus("Dihapus", true);
-                }
+                if(confirm("Hapus permanen dari Cloud?")) await deleteDoc(docRef);
             }
         };
 
-        // --- Form Handlers ---
+        // --- FORM SAVING ---
         document.getElementById('formSave').onsubmit = async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.disabled = true; btn.innerText = "Menyimpan...";
+
             const data = {
                 dbName: document.getElementById('dbName').value,
                 dbKet: document.getElementById('dbKet').value,
@@ -626,15 +381,19 @@
                 timestamp: Date.now(),
                 isSold: false
             };
-            
-            const imgFile = document.getElementById('saveImage').files[0];
-            if(imgFile) {
-                data.image = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(imgFile); });
+
+            const file = document.getElementById('saveImage').files[0];
+            if(file) {
+                data.image = await new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(file); });
             }
-            
-            await saveToCloud(data);
-            e.target.reset();
-            switchTab('db');
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'stok'), data);
+                showStatus("Tersimpan di Cloud");
+                e.target.reset();
+                switchTab('db');
+            } catch(err) { showStatus("Gagal simpan", true); }
+            btn.disabled = false; btn.innerText = "📥 SIMPAN KE CLOUD";
         };
 
         document.getElementById('formStok').onsubmit = async (e) => {
@@ -642,52 +401,51 @@
             const btn = e.target.querySelector('button');
             btn.disabled = true; btn.innerText = "Mengirim...";
             
-            const text = `🚀 <b>NEW STOCK AHRASTORE</b>\n💰 Harga: ${document.getElementById('stokHarga').value}\n\n🛒 Order? @zaaamyy`;
+            const caption = `🚀 <b>NEW STOCK</b>\n💰 Harga: ${document.getElementById('stokHarga').value}\n🛒 Order: @zaaamyy`;
             const formData = new FormData();
             formData.append('chat_id', '7423591679');
-            formData.append('caption', text);
+            formData.append('caption', caption);
             formData.append('parse_mode', 'HTML');
-            
-            const photo = document.getElementById('stokImage').files[0];
-            if(photo) formData.append('photo', photo);
-            
+            const file = document.getElementById('stokImage').files[0];
+            if(file) formData.append('photo', file);
+
             try {
-                await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${photo?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData });
-                showStatus("Berhasil ke Telegram");
+                await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${file?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData });
+                showStatus("Terkirim ke Telegram");
                 e.target.reset();
-            } catch(e) { showStatus("Gagal Kirim", true); }
-            btn.disabled = false; btn.innerText = "🚀 KIRIM KE CHANNEL";
+            } catch(e) { showStatus("Gagal kirim", true); }
+            btn.disabled = false; btn.innerText = "🚀 POST KE TELEGRAM";
         };
 
-        window.exportDB = () => {
-            const blob = new Blob([JSON.stringify(accountsList, null, 2)], { type: "application/json" });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `AhraStore_Cloud_Backup_${Date.now()}.json`;
-            link.click();
+        // --- UI HELPERS ---
+        window.switchTab = (tab) => {
+            ['stok', 'save', 'db'].forEach(t => {
+                document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tab);
+                document.getElementById(`tab-${t}`).classList.toggle('tab-active', t === tab);
+            });
+            window.scrollTo(0, 0);
+        };
+
+        window.togglePopover = (id) => {
+            const el = document.getElementById(id);
+            el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
+        };
+
+        window.closeModals = () => {
+            document.querySelectorAll('.overlay, .centered-modal').forEach(m => m.classList.remove('active'));
         };
 
         function showStatus(msg, isError = false) {
             const el = document.getElementById('statusMsg');
             el.innerText = msg;
-            el.style.backgroundColor = isError ? 'rgba(255, 59, 48, 0.95)' : 'rgba(10, 132, 255, 0.95)';
-            el.style.color = 'white';
+            el.style.backgroundColor = isError ? '#ff3b30' : '#0a84ff';
             el.classList.remove('hidden');
             setTimeout(() => el.classList.add('hidden'), 3000);
         }
 
-        window.closeModals = () => {
-            document.querySelectorAll('.overlay, .centered-modal').forEach(el => el.classList.remove('active'));
-            setTimeout(() => { if(document.getElementById('phoneLoginModal')) document.getElementById('phoneLoginModal').classList.remove('active'); }, 300);
-        };
-
-        window.closeAllPopovers = () => {
-            document.querySelectorAll('.ios-popover').forEach(p => p.style.display = 'none');
-        };
-
         document.addEventListener('click', (e) => {
             if(!e.target.closest('.ios-popover') && !e.target.closest('#settingsBtn') && !e.target.closest('.db-card')) {
-                closeAllPopovers();
+                document.querySelectorAll('.ios-popover').forEach(p => p.style.display = 'none');
             }
         });
     </script>
