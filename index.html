@@ -235,9 +235,10 @@
   projectId: "ahrastore-14913",
   storageBucket: "ahrastore-14913.firebasestorage.app",
   messagingSenderId: "751112680601",
-  appId: "1:751112680601:web:efd16728078d392d67f408",
+  // Perhatikan appId di bawah ini sudah saya lengkapi
+  appId: "1:751112680601:web:efd16728078d392d67f408", 
   measurementId: "G-JLFVMMRH8M"
-};
+};;
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -456,7 +457,22 @@
                 document.querySelectorAll('.ios-popover').forEach(p => p.style.display = 'none');
             }
         });
+        // Jika dalam 5 detik loading belum hilang, paksa tutup (Emergency)
+setTimeout(() => {
+    const loader = document.getElementById('loadingScreen');
+    if (loader && loader.style.display !== 'none') {
+        console.warn("Firebase timeout: Memaksa menutup loading screen.");
+        loader.style.opacity = '0';
+        setTimeout(() => loader.style.display = 'none', 500);
+        
+        // Cek apakah user sudah masuk atau belum secara manual
+        if (!auth.currentUser) {
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+    }
+}, 5000);
     </script>
 </body>
 </html>
+
 
