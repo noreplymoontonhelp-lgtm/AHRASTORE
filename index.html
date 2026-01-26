@@ -471,12 +471,12 @@
   apiKey: "AIzaSyBVk932P_IbgAh6hoZ9HhnPNzdYsthIl04",
   authDomain: "ahrastore-14913.firebaseapp.com",
   projectId: "ahrastore-14913",
-  storageBucket: "ahrastore-14913.firebasestorage.app",
+  storageBucket: "ahrastore-14913.appspot.com",
   messagingSenderId: "751112680601",
   appId: "1:751112680601:web:efd16728078d392d67f408",
   measurementId: "G-JLFVMMRH8M"
-};
-        // Inisialisasi dengan pengamanan
+}; // ❗ TUTUP SATU KALI SAJA
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -791,6 +791,7 @@
     </script>
 </body>
 </html>
+
 
 
 
