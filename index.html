@@ -301,7 +301,7 @@
 
     <div id="loadingScreen">
         <div class="ios-loader"></div>
-        <p class="mt-6 text-[10px] font-bold text-[#8e8e93] tracking-[0.2em] uppercase">AhraStore</p>
+        <p class="mt-6 text-[10px] font-bold text-[#8e8e93] tracking-[0.2em] uppercase">Halo Ahzami</p>
     </div>
 
     <div id="setupScreen" class="fixed inset-0 bg-black z-[4000] hidden flex-col items-center justify-center p-10 text-center">
@@ -408,7 +408,7 @@
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
                         </div>
                         <input type="hidden" id="testiAkun">
-                        <button type="submit" class="pill-button !bg-green-500">✨ POST TESTIMONI</button>
+                        <button type="submit" class="pill-button !bg-green-500">POST TESTIMONI</button>
                     </form>
                 </div>
             </section>
@@ -426,7 +426,7 @@
                         </div>
                         <input type="hidden" id="saveType">
                         <div id="dynamicFields" class="space-y-4"></div>
-                        <button type="submit" class="pill-button mt-4 !bg-blue-600">📥 SIMPAN KE DB</button>
+                        <button type="submit" class="pill-button mt-4 !bg-blue-600">SIMPAN KE DB</button>
                     </form>
                 </div>
             </section>
@@ -459,7 +459,7 @@
         </div>
         <div class="flex border-t border-white/10">
             <button id="modalBtnCancel" onclick="closeModals()" class="flex-1 p-4 text-blue-500 font-medium border-r border-white/10">Tutup</button>
-            <button id="modalBtnAction" class="flex-1 p-4 text-blue-500 font-bold hidden">Simpan</button>
+            <button id="modalBtnAction" class="flex-1 p-4 text-blue-500 font-bold hidden">Input</button>
         </div>
     </div>
 
@@ -845,7 +845,7 @@
                 const res = await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${photo?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData });
                 showStatus(res.ok ? "Terkirim" : "Gagal", !res.ok); if(res.ok) e.target.reset();
             } catch(e) { showStatus("Error", true); }
-            btn.disabled = false; btn.innerText = "🚀 KIRIM KE CHANNEL";
+            btn.disabled = false; btn.innerText = "KIRIM KE CHANNEL";
         };
 
         // Reuse Picker Logic
@@ -928,3 +928,4 @@
     </script>
 </body>
 </html>
+
