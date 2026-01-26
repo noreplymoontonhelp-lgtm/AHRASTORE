@@ -466,50 +466,48 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- KONFIGURASI FIREBASE ---
-        // Pastikan Anda mengisi config ini dari Firebase Console jika tidak menggunakan sistem injeksi otomatis
         const firebaseConfig = {
-  apiKey: "AIzaSyBVk932P_IbgAh6hoZ9HhnPNzdYsthIl04",
-  authDomain: "ahrastore-14913.firebaseapp.com",
-  projectId: "ahrastore-14913",
-  storageBucket: "ahrastore-14913.appspot.com",
-  messagingSenderId: "751112680601",
-  appId: "1:751112680601:web:efd16728078d392d67f408",
-  measurementId: "G-JLFVMMRH8M"
-}; // ❗ TUTUP SATU KALI SAJA
+            apiKey: "AIzaSyBVk932P_IbgAh6hoZ9HhnPNzdYsthIl04",
+            authDomain: "ahrastore-14913.firebaseapp.com",
+            projectId: "ahrastore-14913",
+            storageBucket: "ahrastore-14913.appspot.com",
+            messagingSenderId: "751112680601",
+            appId: "1:751112680601:web:efd16728078d392d67f408",
+            measurementId: "G-JLFVMMRH8M"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = 'ahra-store-pro'; // ID aplikasi Anda
+        const appId = 'ahra-store-pro';
 
         let user = null;
         let accounts = [];
         let activeId = null;
 
-        // --- AUTH OBSERVER (Fungsi yang memindahkan halaman) ---
+        // --- AUTH OBSERVER ---
         onAuthStateChanged(auth, (u) => {
-  user = u;
-  const loader = document.getElementById('loadingScreen');
-  const login = document.getElementById('loginScreen');
-  const appEl = document.getElementById('app');
+            user = u;
+            const loader = document.getElementById('loadingScreen');
+            const login = document.getElementById('loginScreen');
+            const appEl = document.getElementById('app');
 
-  if (u) {
-    login.style.display = 'none';      // ⬅️ penting
-    appEl.style.display = 'flex';      // ⬅️ penting
-    appEl.classList.remove('hidden');
+            if (u) {
+                login.style.display = 'none';
+                appEl.style.display = 'flex';
+                appEl.classList.remove('hidden');
+                document.getElementById('userLabel').innerText = u.email || "User Pro";
+                initDatabase();
+            } else {
+                appEl.style.display = 'none';
+                login.style.display = 'flex';
+            }
 
-    document.getElementById('userLabel').innerText = u.email || "User Pro";
-    initDatabase();
-  } else {
-    appEl.style.display = 'none';
-    login.style.display = 'flex';
-  }
-
-  if (loader) {
-    loader.style.opacity = '0';
-    setTimeout(() => loader.style.display = 'none', 500);
-  }
-});
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }
+        });
 
         // --- AUTH ACTIONS ---
         window.handleEmailAuth = async (type) => {
@@ -543,8 +541,6 @@
         window.handleLogout = () => { 
             if(confirm("Keluar dari aplikasi?")) signOut(auth); 
         };
-
-        // ... Sisa kode database (initDatabase, renderDatabase, dll) tetap sama ...
 
         // --- FIRESTORE DATABASE LOGIC ---
         function initDatabase() {
@@ -650,7 +646,127 @@
             }
         };
 
+        // --- TESTIMONI SPECIFIC PICKERS ---
+        window.openIOSDatePicker = () => {
+            const container = document.getElementById('pickerOptionsContainer');
+            document.getElementById('pickerTitle').innerText = "PILIH TANGGAL";
+            container.innerHTML = "";
+            
+            const dates = [];
+            for(let i=0; i<30; i++){
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                dates.push(d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }));
+            }
+
+            dates.forEach(date => {
+                const btn = document.createElement('button');
+                btn.className = "picker-option";
+                btn.innerText = date;
+                btn.onclick = () => {
+                    document.getElementById('testiTanggal').value = date;
+                    document.getElementById('labelTestiTanggal').innerText = date;
+                    document.getElementById('labelTestiTanggal').style.color = "white";
+                    closeModals();
+                };
+                container.appendChild(btn);
+            });
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('iosPickerSheet').classList.add('active');
+        };
+
+        window.openTestimoniPicker = () => {
+            const levels = ["Junior", "Senior", "Ahli", "Ternama", "Terhormat", "Juragan", "Sultan"];
+            const container = document.getElementById('pickerOptionsContainer');
+            document.getElementById('pickerTitle').innerText = "PILIH TINGKATAN";
+            container.innerHTML = "";
+
+            levels.forEach(lvl => {
+                const btn = document.createElement('button');
+                btn.className = "picker-option";
+                btn.innerText = lvl;
+                btn.onclick = () => {
+                    if(lvl === "Sultan") {
+                        document.getElementById('testiAkun').value = lvl;
+                        document.getElementById('labelTestiAkun').innerText = lvl;
+                        document.getElementById('labelTestiAkun').style.color = "white";
+                        closeModals();
+                    } else {
+                        // Jalankan step 2 (Pilih Angka)
+                        openLevelNumberPicker(lvl);
+                    }
+                };
+                container.appendChild(btn);
+            });
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('iosPickerSheet').classList.add('active');
+        };
+
+        function openLevelNumberPicker(lvlBase) {
+            const container = document.getElementById('pickerOptionsContainer');
+            document.getElementById('pickerTitle').innerText = `PILIH ANGKA ${lvlBase.toUpperCase()}`;
+            container.innerHTML = "";
+
+            [1, 2, 3, 4, 5].forEach(num => {
+                const btn = document.createElement('button');
+                btn.className = "picker-option";
+                btn.innerText = num;
+                btn.onclick = () => {
+                    const finalValue = `${lvlBase} ${num}`;
+                    document.getElementById('testiAkun').value = finalValue;
+                    document.getElementById('labelTestiAkun').innerText = finalValue;
+                    document.getElementById('labelTestiAkun').style.color = "white";
+                    closeModals();
+                };
+                container.appendChild(btn);
+            });
+        }
+
         // --- FORM HANDLERS ---
+        document.getElementById('formTesti').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const tanggal = document.getElementById('testiTanggal').value;
+            const harga = document.getElementById('testiHarga').value;
+            const akun = document.getElementById('testiAkun').value;
+
+            if(!tanggal || !harga || !akun) return showStatus("Lengkapi form testimoni", true);
+
+            btn.disabled = true; btn.innerText = "Memproses...";
+
+            const text = `✨ <b>TESTIMONI TRANSAKSI AHRASTORE</b>\n\n` +
+                         `📅 Tanggal : ${tanggal}\n` +
+                         `ℹ️ Info : Akun ${akun}\n` +
+                         `💸 Harga : ${harga}\n\n` +
+                         `📦 Stok lain nya cek di sini\n` +
+                         `🌐 https://t.me/StokAhraStore2\n` +
+                         `🤝 Grub stok jual beli, taruh stok mu atau cari stok lain di sini\n` +
+                         `🌐 https://t.me/JBAKUNMLBYAHRASTORE\n` +
+                         `🤟 Testimoni? cek\n` +
+                         `🌐 https://t.me/TESTIMONIAHRASTORE`;
+
+            const photo = document.getElementById('testiImage').files[0];
+            const formData = new FormData();
+            formData.append('chat_id', '7423591679'); // Ganti dengan ID Channel Testimoni Anda
+            formData.append('parse_mode', 'HTML');
+            formData.append('caption', text);
+            if(photo) formData.append('photo', photo);
+
+            try {
+                await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${photo?'sendPhoto':'sendMessage'}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                showStatus("Testimoni terkirim!");
+                e.target.reset();
+                document.getElementById('labelTestiTanggal').innerText = "Pilih Tanggal...";
+                document.getElementById('labelTestiAkun').innerText = "Pilih Tingkatan...";
+            } catch(e) {
+                showStatus("Gagal kirim testimoni", true);
+            }
+            btn.disabled = false; btn.innerText = "POST TESTIMONI";
+        };
+
         document.getElementById('formSave').onsubmit = async (e) => {
             e.preventDefault();
             const type = document.getElementById('saveType').value;
@@ -675,56 +791,46 @@
                 document.getElementById('labelSaveType').innerText = "Pilih Jenis Akun...";
                 switchTab('db');
             } catch(err) { showStatus("Gagal Menginput Data", true); }
-            btn.disabled = false; btn.innerText = "INPUT DATA";
+            btn.disabled = false; btn.innerText = "SIMPAN KE CLOUD";
         };
 
         document.getElementById('formStok').onsubmit = async (e) => {
             e.preventDefault();
-const btn = e.target.querySelector('button');
-btn.disabled = true; btn.innerText = "Mengirim...";
+            const btn = e.target.querySelector('button');
+            btn.disabled = true; btn.innerText = "Mengirim...";
+            const harga = document.getElementById('stokHarga').value;
+            const info = document.getElementById('stokInfo').value;
 
+            const text = `‼️NEW ACCOUNT FROM AHRASTORE‼️\n\n` +
+            `💸Price : ${harga}\n` +
+            `ℹ️Info Akun : ${info}\n\n` +
+            `🛒Order? Chat Admin AHRASTORE\n` +
+            `🌐 https://t.me/zaaamyy\n\n` +
+            `📦Stok lain nya cek di sini\n` +
+            `🌐 https://t.me/StokAhraStore2\n` +
+            `🤝Grub stok jual beli, taruh stok mu atau cari stok lain di sini\n` +
+            `🌐 https://t.me/JBAKUNMLBYAHRASTORE\n` +
+            `🤟Testimoni? cek\n` +
+            `🌐 https://t.me/TESTIMONIAHRASTORE`;
 
-const harga = document.getElementById('stokHarga').value;
-const info = document.getElementById('stokInfo').value;
+            const formData = new FormData();
+            formData.append('chat_id', '7423591679');
+            formData.append('caption', text);
+            const photo = document.getElementById('stokImage').files[0];
+            if (photo) formData.append('photo', photo);
 
-
-const text = `‼️NEW ACCOUNT FROM AHRASTORE‼️\n\n` +
-`💸Price : ${harga}\n` +
-`ℹ️Info Akun : ${info}\n\n` +
-`🛒Order? Chat Admin AHRASTORE\n` +
-`🌐 https://t.me/zaaamyy\n\n` +
-`📦Stok lain nya cek di sini\n` +
-`🌐 https://t.me/StokAhraStore2\n` +
-`🤝Grub stok jual beli, taruh stok mu atau cari stok lain di sini\n` +
-`🌐 https://t.me/JBAKUNMLBYAHRASTORE\n` +
-`🤟Testimoni? cek\n` +
-`🌐 https://t.me/TESTIMONIAHRASTORE`;
-
-
-const formData = new FormData();
-formData.append('chat_id', '7423591679');
-formData.append('caption', text);
-
-
-const photo = document.getElementById('stokImage').files[0];
-if (photo) formData.append('photo', photo);
-
-
-try {
-await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${photo ? 'sendPhoto' : 'sendMessage'}`, {
-method: 'POST',
-body: formData
-});
-showStatus("Terkirim ke Telegram");
-e.target.reset();
-} catch (e) {
-showStatus("Gagal kirim Telegram", true);
-}
-
-
-btn.disabled = false;
-btn.innerText = "KIRIM KE CHANNEL";
-};
+            try {
+                await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${photo ? 'sendPhoto' : 'sendMessage'}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                showStatus("Terkirim ke Telegram");
+                e.target.reset();
+            } catch (e) {
+                showStatus("Gagal kirim Telegram", true);
+            }
+            btn.disabled = false; btn.innerText = "KIRIM KE CHANNEL";
+        };
 
         // --- GLOBAL UI UTILS ---
         window.switchTab = (tab) => {
@@ -742,7 +848,10 @@ btn.innerText = "KIRIM KE CHANNEL";
 
         window.closeModals = () => {
             document.querySelectorAll('.overlay, .bottom-sheet, .centered-modal').forEach(m => m.classList.remove('active'));
-            setTimeout(() => { document.getElementById('modalBtnAction').classList.add('hidden'); }, 300);
+            setTimeout(() => { 
+                const btn = document.getElementById('modalBtnAction');
+                if(btn) btn.classList.add('hidden'); 
+            }, 300);
         };
         document.getElementById('modalOverlay').onclick = closeModals;
 
@@ -760,7 +869,6 @@ btn.innerText = "KIRIM KE CHANNEL";
             link.click();
         };
 
-        // UI Pickers & Dynamic Fields (Dikutip dari kode original Anda)
         window.openIOSPicker = (title, options, targetId, isDynamic = false) => {
             const container = document.getElementById('pickerOptionsContainer');
             document.getElementById('pickerTitle').innerText = title;
@@ -812,7 +920,6 @@ btn.innerText = "KIRIM KE CHANNEL";
             try { await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${imageBase64?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData }); showStatus("Terkirim"); } catch(e) { showStatus("Error", true); }
         }
 
-        // Close Popovers on click outside
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.ios-popover') && !e.target.closest('#settingsBtn') && !e.target.closest('.db-card')) {
                 document.querySelectorAll('.ios-popover').forEach(m => m.style.display = 'none');
