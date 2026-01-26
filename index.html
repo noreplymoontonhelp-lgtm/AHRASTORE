@@ -314,7 +314,7 @@
     </div>
 
     <!-- App Container -->
-    <div id="app" class="app-container hidden">
+    <div id="app" class="app-container" style="display:none;">
         <header class="px-6 py-4 flex justify-between items-end bg-black/80 backdrop-blur-xl sticky top-0 z-40 border-b border-white/5">
             <div>
                 <h1 class="text-2xl font-bold text-white tracking-tight">AhraStore</h1>
@@ -488,30 +488,28 @@
 
         // --- AUTH OBSERVER (Fungsi yang memindahkan halaman) ---
         onAuthStateChanged(auth, (u) => {
-            user = u;
-            const loader = document.getElementById('loadingScreen');
-            const loginSection = document.getElementById('loginScreen');
-            const appSection = document.getElementById('app');
+  user = u;
+  const loader = document.getElementById('loadingScreen');
+  const login = document.getElementById('loginScreen');
+  const appEl = document.getElementById('app');
 
-            if (u) {
-                // Jika user berhasil login
-                loginSection.classList.add('hidden');
-                appSection.classList.remove('hidden');
-                document.getElementById('userLabel').innerText = u.email || "User Pro";
-                initDatabase();
-                switchTab('stok'); // Otomatis ke tab stok setelah login
-            } else {
-                // Jika user logout
-                appSection.classList.add('hidden');
-                loginSection.classList.remove('hidden');
-            }
+  if (u) {
+    login.style.display = 'none';      // ⬅️ penting
+    appEl.style.display = 'flex';      // ⬅️ penting
+    appEl.classList.remove('hidden');
 
-            // Animasi menutup loading screen
-            if (loader) {
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.display = 'none', 500);
-            }
-        });
+    document.getElementById('userLabel').innerText = u.email || "User Pro";
+    initDatabase();
+  } else {
+    appEl.style.display = 'none';
+    login.style.display = 'flex';
+  }
+
+  if (loader) {
+    loader.style.opacity = '0';
+    setTimeout(() => loader.style.display = 'none', 500);
+  }
+});
 
         // --- AUTH ACTIONS ---
         window.handleEmailAuth = async (type) => {
@@ -793,3 +791,4 @@
     </script>
 </body>
 </html>
+
