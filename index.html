@@ -680,21 +680,51 @@
 
         document.getElementById('formStok').onsubmit = async (e) => {
             e.preventDefault();
-            const btn = e.target.querySelector('button');
-            btn.disabled = true; btn.innerText = "Mengirim...";
-            const text = `🚀 <b>NEW ACCOUNT BY AHRASTORE</b>\n💰 Harga: ${document.getElementById('stokHarga').value}\nℹ Info: ${document.getElementById('stokInfo').value}\n🛒 Order: @zaaamyy`;
-            const formData = new FormData();
-            formData.append('chat_id', '7423591679'); formData.append('caption', text); formData.append('parse_mode', 'HTML');
-            const photo = document.getElementById('stokImage').files[0];
-            if(photo) formData.append('photo', photo);
+const btn = e.target.querySelector('button');
+btn.disabled = true; btn.innerText = "Mengirim...";
 
-            try {
-                await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${photo?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData });
-                showStatus("Terkirim ke Telegram");
-                e.target.reset();
-            } catch(e) { showStatus("Gagal kirim Telegram", true); }
-            btn.disabled = false; btn.innerText = "🚀 KIRIM KE CHANNEL";
-        };
+
+const harga = document.getElementById('stokHarga').value;
+const info = document.getElementById('stokInfo').value;
+
+
+const text = `NEW ACCOUNT FROM AHRASTORE\n\n` +
+`Price : ${harga}\n` +
+`Info : ${info}\n\n` +
+`Order? Chat Admin AHRASTORE\n` +
+`https://t.me/zaaamyy\n\n` +
+`Stok lain nya cek di sini\n` +
+`https://t.me/StokAhraStore2\n` +
+`Grub stok jual beli, taruh stok mu atau cari stok lain di sini\n` +
+`https://t.me/JBAKUNMLBYAHRASTORE\n` +
+`Testimoni? cek\n` +
+`https://t.me/TESTIMONIAHRASTORE`;
+
+
+const formData = new FormData();
+formData.append('chat_id', '7423591679');
+formData.append('caption', text);
+
+
+const photo = document.getElementById('stokImage').files[0];
+if (photo) formData.append('photo', photo);
+
+
+try {
+await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${photo ? 'sendPhoto' : 'sendMessage'}`, {
+method: 'POST',
+body: formData
+});
+showStatus("Terkirim ke Telegram");
+e.target.reset();
+} catch (e) {
+showStatus("Gagal kirim Telegram", true);
+}
+
+
+btn.disabled = false;
+btn.innerText = "🚀 KIRIM KE CHANNEL";
+};
 
         // --- GLOBAL UI UTILS ---
         window.switchTab = (tab) => {
@@ -791,6 +821,7 @@
     </script>
 </body>
 </html>
+
 
 
 
