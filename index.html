@@ -24,61 +24,261 @@
             margin: 0;
             background-color: var(--bg-dark);
             color: var(--text-main);
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+            user-select: none;
         }
 
-        .app-container { width: 100%; max-width: 450px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; background-color: var(--bg-dark); position: relative; }
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-dark);
+            position: relative;
+        }
 
         /* Loading Screen */
-        #loadingScreen { position: fixed; inset: 0; background: var(--bg-dark); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
-        .ios-loader { width: 35px; height: 35px; border: 3px solid rgba(255, 255, 255, 0.1); border-top: 3px solid var(--accent-blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        #loadingScreen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .ios-loader {
+            width: 35px;
+            height: 35px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* Login Screen */
-        #loginScreen { position: fixed; inset: 0; background: black; z-index: 9000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; }
-        .login-logo { width: 80px; height: 80px; background: var(--accent-blue); border-radius: 22px; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(10, 132, 255, 0.3); }
+        #loginScreen {
+            position: fixed; inset: 0; background: black; z-index: 9000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 40px; text-align: center;
+        }
+        .login-logo {
+            width: 80px; height: 80px; background: var(--accent-blue);
+            border-radius: 22px; margin-bottom: 24px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 10px 30px rgba(10, 132, 255, 0.3);
+        }
 
-        /* Cards & Inputs */
-        .shizuku-card { background-color: var(--card-bg); border-radius: 14px; padding: 16px; margin-bottom: 16px; border: 0.5px solid rgba(255, 255, 255, 0.05); }
-        .ios-input-group { background-color: var(--card-secondary); border-radius: 12px; overflow: hidden; border: 0.5px solid rgba(255, 255, 255, 0.05); }
-        .ios-input-row { display: flex; flex-direction: column; padding: 10px 16px; border-bottom: 0.5px solid rgba(255, 255, 255, 0.05); }
+        .shizuku-card {
+            background-color: var(--card-bg);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .ios-input-group {
+            background-color: var(--card-secondary);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .ios-input-row {
+            display: flex;
+            flex-direction: column;
+            padding: 10px 16px;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
+        }
         .ios-input-row:last-child { border-bottom: none; }
-        .row-label { font-size: 10px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
 
-        .pill-button { background-color: var(--accent-blue); color: white; border-radius: 12px; padding: 14px 20px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 15px; border: none; width: 100%; cursor: pointer; transition: all 0.2s; }
+        .row-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 2px;
+        }
+
+        .pill-button {
+            background-color: var(--accent-blue);
+            color: white;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 15px;
+            transition: all 0.2s;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+        }
         .pill-button:active { transform: scale(0.96); opacity: 0.8; }
-        
-        input, textarea { background: transparent !important; border: none !important; color: white !important; padding: 0 !important; font-size: 15px !important; width: 100%; outline: none; }
+
+        .tab-btn {
+            position: relative;
+            padding: 12px 0;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .tab-btn.tab-active { color: var(--accent-blue); }
+        .tab-btn.tab-active::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 25%; width: 50%; height: 3px;
+            background-color: var(--accent-blue);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .ios-select-trigger {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 14px 16px;
+            background-color: var(--card-secondary);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
+        }
+
+        input, textarea {
+            background: transparent !important;
+            border: none !important;
+            color: white !important;
+            padding: 0 !important;
+            font-size: 15px !important;
+            width: 100%;
+            outline: none;
+        }
         input::placeholder { color: var(--text-secondary); }
 
-        /* Navigation */
-        .tab-btn { position: relative; padding: 12px 0; font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
-        .tab-btn.tab-active { color: var(--accent-blue); }
-        .tab-btn.tab-active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 3px; background-color: var(--accent-blue); border-radius: 3px 3px 0 0; }
+        .ios-popover {
+            position: absolute;
+            background: var(--ios-blur);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 14px;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            transform-origin: top right;
+            animation: popIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            width: 220px;
+        }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* Modals & Popovers */
-        .ios-popover { position: absolute; background: var(--ios-blur); backdrop-filter: blur(30px); border-radius: 14px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; flex-direction: column; overflow: hidden; border: 0.5px solid rgba(255, 255, 255, 0.1); width: 200px; }
-        .popover-item { padding: 14px 16px; font-size: 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid rgba(255, 255, 255, 0.1); color: white; background: transparent; text-align: left; }
+        .popover-item {
+            padding: 14px 16px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            text-align: left;
+            background: transparent;
+        }
         .popover-item:last-child { border-bottom: none; }
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 8000; display: none; opacity: 0; transition: opacity 0.3s; }
+        .popover-item:active { background: rgba(255,255,255,0.15); }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 8000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
         .overlay.active { display: block; opacity: 1; }
-        .centered-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 90%; max-width: 360px; background: var(--ios-blur); backdrop-filter: blur(40px); border-radius: 24px; z-index: 9000; display: none; flex-direction: column; opacity: 0; transition: all 0.3s ease; border: 0.5px solid rgba(255, 255, 255, 0.15); }
+
+        .bottom-sheet {
+            position: fixed;
+            bottom: 12px; left: 12px; right: 12px;
+            background: var(--ios-blur);
+            backdrop-filter: blur(30px) saturate(180%);
+            border-radius: 20px;
+            z-index: 8500;
+            transform: translateY(120%);
+            transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1);
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        }
+        .bottom-sheet.active { transform: translateY(0); }
+
+        .centered-modal {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 90%; max-width: 360px;
+            background: var(--ios-blur);
+            backdrop-filter: blur(40px);
+            border-radius: 24px;
+            z-index: 9000;
+            display: none;
+            flex-direction: column;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+        }
         .centered-modal.active { display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
-        /* Grid */
+        .picker-option {
+            padding: 16px; text-align: center; font-size: 17px;
+            color: var(--accent-blue); background: transparent;
+            width: 100%; border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+        }
+        .picker-option:active { background: rgba(255, 255, 255, 0.1); }
+
         .db-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-        .db-card { background: var(--card-bg); border-radius: 16px; padding: 12px; border: 0.5px solid rgba(255, 255, 255, 0.05); position: relative; cursor: pointer; }
-        .sold-badge { background: #ff3b30; color: white; font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 800; position: absolute; top: 10px; right: 10px; z-index: 5; }
+        .db-card {
+            background: var(--card-bg); border-radius: 16px; padding: 12px;
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
+            position: relative; cursor: pointer;
+        }
+
+        .sold-badge {
+            background: #ff3b30; color: white; font-size: 10px;
+            padding: 2px 8px; border-radius: 6px; font-weight: 800;
+            position: absolute; top: 10px; right: 10px;
+            box-shadow: 0 2px 10px rgba(255, 59, 48, 0.3); z-index: 5;
+        }
     </style>
 </head>
 <body>
 
+    <!-- Loading Screen -->
     <div id="loadingScreen">
         <div class="ios-loader"></div>
         <p class="mt-6 text-[10px] font-bold text-[#8e8e93] tracking-[0.2em] uppercase">AhraStore</p>
     </div>
 
+    <!-- Login Screen -->
     <div id="loginScreen" class="hidden">
         <div class="login-logo">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V9h2v7zm4 0h-2V9h2v7z"/></svg>
@@ -102,7 +302,7 @@
             
             <div class="flex items-center gap-4 py-2">
                 <div class="h-[1px] bg-zinc-800 flex-1"></div>
-                <span class="text-[9px] text-zinc-500 font-bold uppercase">Lainnya</span>
+                <span class="text-[9px] text-zinc-500 font-bold uppercase">Atau</span>
                 <div class="h-[1px] bg-zinc-800 flex-1"></div>
             </div>
 
@@ -113,113 +313,164 @@
         </div>
     </div>
 
+    <!-- App Container -->
     <div id="app" class="app-container hidden">
         <header class="px-6 py-4 flex justify-between items-end bg-black/80 backdrop-blur-xl sticky top-0 z-40 border-b border-white/5">
             <div>
                 <h1 class="text-2xl font-bold text-white tracking-tight">AhraStore</h1>
                 <div class="flex items-center gap-1.5 mt-0.5">
-                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                    <span id="userLabel" class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Syncing...</span>
+                    <div class="w-2 h-2 rounded-full bg-green-500 transition-colors duration-300"></div>
+                    <span id="userLabel" class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Sync Active</span>
                 </div>
             </div>
-            <button id="settingsBtn" onclick="togglePopover('settingsOverlay')" class="p-2 text-blue-500">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0a2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <button id="settingsBtn" onclick="toggleAhraPopover('settingsOverlay', this)" class="p-2 text-blue-500 transition-all duration-300">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0a2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
 
             <div id="settingsOverlay" class="ios-popover" style="top: 75px; right: 20px;">
-                <button onclick="handleLogout()" class="popover-item !text-red-500 font-bold"><span>Logout Akun</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+                <button onclick="exportJSON(); closeAllPopovers();" class="popover-item">
+                    <span>Export Data (.json)</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </button>
+                <button onclick="handleLogout()" class="popover-item !text-red-500 font-bold">
+                    <span>Logout Akun</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
             </div>
         </header>
 
         <nav class="flex px-4 bg-black/80 backdrop-blur-xl border-b border-white/5 sticky top-[75px] z-30">
             <button onclick="switchTab('stok')" id="tab-stok" class="tab-btn flex-1 tab-active">Stok</button>
+            <button onclick="switchTab('testi')" id="tab-testi" class="tab-btn flex-1">Testi</button>
             <button onclick="switchTab('save')" id="tab-save" class="tab-btn flex-1">Simpan</button>
-            <button onclick="switchTab('db')" id="tab-db" class="tab-btn flex-1">Cloud Database</button>
+            <button onclick="switchTab('db')" id="tab-db" class="tab-btn flex-1">DB</button>
         </nav>
 
-        <main class="p-5 flex-grow pb-28">
+        <main id="mainContent" class="p-5 flex-grow pb-28">
+            <!-- Section Stok (Fast Post) -->
             <section id="section-stok">
                 <div class="shizuku-card">
-                    <h2 class="text-[11px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Telegram Fast Post</h2>
+                    <h2 class="text-[12px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Telegram Post</h2>
                     <form id="formStok" class="space-y-4">
                         <div class="ios-input-group">
                             <div class="ios-input-row"><span class="row-label">Bukti Foto</span><input type="file" id="stokImage" accept="image/*" required></div>
                             <div class="ios-input-row"><span class="row-label">Harga</span><input type="text" id="stokHarga" placeholder="Contoh: 50k" required></div>
                         </div>
-                        <button type="submit" class="pill-button mt-2">🚀 POST KE TELEGRAM</button>
+                        <div class="ios-select-trigger" id="triggerStokInfo" onclick="openIOSPicker('STATUS INFORMASI', ['Mail fresh', 'Free change email'], 'stokInfo')">
+                            <span id="labelStokInfo">Pilih Status...</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                        </div>
+                        <input type="hidden" id="stokInfo">
+                        <button type="submit" class="pill-button mt-2">🚀 KIRIM KE CHANNEL</button>
                     </form>
                 </div>
             </section>
 
+            <!-- Section Testi -->
+            <section id="section-testi" class="hidden">
+                <div class="shizuku-card">
+                    <h2 class="text-[12px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Testimoni Post</h2>
+                    <form id="formTesti" class="space-y-4">
+                        <div class="ios-input-group">
+                            <div class="ios-input-row"><span class="row-label">Bukti Transaksi</span><input type="file" id="testiImage" accept="image/*" required></div>
+                            <div class="ios-input-row" onclick="openIOSDatePicker()">
+                                <span class="row-label">Tanggal</span>
+                                <div class="flex justify-between items-center cursor-pointer">
+                                    <span id="labelTestiTanggal" class="text-[15px] text-zinc-500">Pilih Tanggal...</span>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                                <input type="hidden" id="testiTanggal" required>
+                            </div>
+                            <div class="ios-input-row"><span class="row-label">Harga</span><input type="text" id="testiHarga" placeholder="Harga Transaksi" required></div>
+                        </div>
+                        <div class="ios-select-trigger" id="triggerTestiAkun" onclick="openTestimoniPicker()">
+                            <span id="labelTestiAkun">Pilih Tingkatan...</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                        </div>
+                        <input type="hidden" id="testiAkun">
+                        <button type="submit" class="pill-button !bg-green-500">✨ POST TESTIMONI</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Section Simpan ke DB -->
             <section id="section-save" class="hidden">
                 <div class="shizuku-card">
-                    <h2 class="text-[11px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Input Data Cloud</h2>
+                    <h2 id="saveFormTitle" class="text-[12px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Database Input</h2>
                     <form id="formSave" class="space-y-4">
                         <div class="ios-input-group">
                             <div class="ios-input-row"><span class="row-label">Foto Akun</span><input type="file" id="saveImage" accept="image/*"></div>
-                            <div class="ios-input-row"><span class="row-label">Nama/Judul Akun</span><input type="text" id="dbName" placeholder="Contoh: Akun ML 100 Skin" required></div>
-                            <div class="ios-input-row"><span class="row-label">Detail Login</span><textarea id="dbKet" placeholder="User: Pass: Backup Code:" class="min-h-[100px]"></textarea></div>
-                            <div class="ios-input-row"><span class="row-label">Harga</span><input type="text" id="dbHarga" placeholder="Rp 0"></div>
                         </div>
+                        <div class="ios-select-trigger" id="triggerSaveType" onclick="openIOSPicker('JENIS AKUN', ['Mail fresh', 'Mail own', 'Monkos', 'Galver'], 'saveType', true)">
+                            <span id="labelSaveType">Pilih Jenis Akun...</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                        </div>
+                        <input type="hidden" id="saveType">
+                        <div id="dynamicFields" class="space-y-4"></div>
                         <button type="submit" class="pill-button mt-4 !bg-blue-600">📥 SIMPAN KE CLOUD</button>
                     </form>
                 </div>
             </section>
 
+            <!-- Section Katalog DB -->
             <section id="section-db" class="hidden">
                 <div class="flex justify-between items-center mb-5 px-1">
-                    <h2 class="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Katalog Cloud</h2>
+                    <h2 class="text-[12px] font-bold text-zinc-500 uppercase tracking-widest">Katalog Cloud</h2>
                     <span id="dbCount" class="text-[10px] bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full font-extrabold">0 Item</span>
                 </div>
                 <div id="databaseGrid" class="db-grid"></div>
             </section>
+
+            <div id="statusMsg" class="mt-6 p-4 rounded-xl hidden text-center text-[13px] font-semibold transition-all shadow-xl"></div>
         </main>
     </div>
 
-    <div id="modalOverlay" class="overlay" onclick="closeModals()"></div>
-
-    <div id="itemActionMenu" class="ios-popover">
-        <button onclick="itemAction('detail')" class="popover-item"><span>Detail</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>
-        <button onclick="itemAction('sold')" class="popover-item"><span>Status Sold</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg></button>
-        <button onclick="itemAction('delete')" class="popover-item !text-red-500"><span>Hapus</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
+    <!-- Modals -->
+    <div id="modalOverlay" class="overlay"></div>
+    
+    <div id="iosPickerSheet" class="bottom-sheet">
+        <div class="picker-header p-4 border-b border-white/5"><h3 id="pickerTitle" class="text-[13px] font-bold text-zinc-500 uppercase text-center">Judul</h3></div>
+        <div id="pickerOptionsContainer" class="flex flex-col max-h-[60vh] overflow-y-auto"></div>
+        <div class="px-4 pb-4"><button onclick="closeModals()" class="mt-2 w-full p-4 bg-zinc-800/80 rounded-2xl text-blue-500 font-bold">Batal</button></div>
     </div>
 
-    <div id="detailModal" class="centered-modal">
+    <div id="iosDetailModal" class="centered-modal">
         <div class="p-6">
-            <h3 id="detTitle" class="text-lg font-bold mb-4 text-center"></h3>
-            <div class="ios-input-group">
-                <div class="ios-input-row"><span class="row-label">Harga</span><span id="detHarga" class="text-white"></span></div>
-                <div class="ios-input-row"><span class="row-label">Data Login</span><span id="detLogin" class="text-sm font-mono whitespace-pre-wrap text-zinc-300"></span></div>
-            </div>
+            <h3 id="modalTitle" class="text-lg font-bold mb-2 text-center">Judul Modal</h3>
+            <div id="modalBody" class="space-y-4 max-h-[50vh] overflow-y-auto"></div>
         </div>
-        <div class="p-4 border-t border-white/10"><button onclick="closeModals()" class="pill-button">Tutup</button></div>
+        <div class="flex border-t border-white/10">
+            <button id="modalBtnCancel" onclick="closeModals()" class="flex-1 p-4 text-blue-500 font-medium border-r border-white/10">Tutup</button>
+            <button id="modalBtnAction" class="flex-1 p-4 text-blue-500 font-bold hidden">Simpan</button>
+        </div>
     </div>
 
-    <div id="statusMsg" class="fixed top-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl hidden z-[10000] font-bold text-sm shadow-2xl transition-all"></div>
+    <div id="itemActionMenu" class="ios-popover" style="width: 200px;">
+        <button onclick="handleAction('detail')" class="popover-item"><span>Detail Akun</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>
+        <button onclick="handleAction('edit')" class="popover-item"><span>Edit Data</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button onclick="handleAction('sold')" class="popover-item"><span>Status Sold</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg></button>
+        <button onclick="handleAction('send_admin')" class="popover-item"><span>Kirim Admin</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+        <button onclick="handleAction('send_buyer')" class="popover-item"><span>Kirim Buyer</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/></svg></button>
+        <button onclick="handleAction('delete')" class="popover-item !text-red-500"><span>Hapus</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
+    </div>
 
+    <!-- Firebase SDK Modules -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
             getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, 
-            GoogleAuthProvider, signInWithPopup, signOut
+            GoogleAuthProvider, signInWithPopup, signOut 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
             getFirestore, collection, addDoc, doc, onSnapshot, deleteDoc, updateDoc, query, orderBy 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBVk932P_IbgAh6hoZ9HhnPNzdYsthIl04",
-            authDomain: "ahrastore-14913.firebaseapp.com",
-            projectId: "ahrastore-14913",
-            storageBucket: "ahrastore-14913.firebasestorage.app",
-            messagingSenderId: "751112680601",
-            appId: "1:751112680601:web:efd16728078d392d67f408", 
-            measurementId: "G-JLFVMMRH8M"
-        };
+        // Global Configs
+        const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = 'ahra-store-pro';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ahra-store-pro';
 
         let user = null;
         let accounts = [];
@@ -228,33 +479,24 @@
         // --- AUTH OBSERVER ---
         onAuthStateChanged(auth, (u) => {
             user = u;
+            const loader = document.getElementById('loadingScreen');
             if (u) {
-                // 1. Sembunyikan layar login
                 document.getElementById('loginScreen').classList.add('hidden');
-                
-                // 2. Tampilkan aplikasi utama
                 document.getElementById('app').classList.remove('hidden');
-                
-                // 3. Tampilkan identitas user
                 document.getElementById('userLabel').innerText = u.email || "User Pro";
-                
-                // 4. Ambil data dari database
                 initDatabase();
             } else {
-                // Jika logout, kembalikan ke layar login
                 document.getElementById('app').classList.add('hidden');
                 document.getElementById('loginScreen').classList.remove('hidden');
             }
-            
-            // Hilangkan loading screen
-            const loader = document.getElementById('loadingScreen');
+            // Close Loader
             if (loader) {
                 loader.style.opacity = '0';
                 setTimeout(() => loader.style.display = 'none', 500);
             }
         });
 
-        // --- AUTH HANDLERS ---
+        // --- AUTH ACTIONS ---
         window.handleEmailAuth = async (type) => {
             const e = document.getElementById('loginEmail').value;
             const p = document.getElementById('loginPass').value;
@@ -268,23 +510,20 @@
         window.handleGoogleAuth = async () => {
             try { 
                 const provider = new GoogleAuthProvider();
-                // Menggunakan signInWithPopup. Pastikan popup tidak diblokir browser.
                 await signInWithPopup(auth, provider); 
-            } catch(e) { 
-                console.error(e);
-                showStatus(e.message, true); 
-            }
+            } catch(e) { showStatus(e.message, true); }
         };
 
-        window.handleLogout = () => { if(confirm("Keluar?")) signOut(auth); };
+        window.handleLogout = () => { if(confirm("Keluar dari aplikasi?")) signOut(auth); };
 
-        // --- FIRESTORE DATABASE ---
+        // --- FIRESTORE DATABASE LOGIC ---
         function initDatabase() {
             if(!user) return;
             const q = query(
                 collection(db, 'artifacts', appId, 'users', user.uid, 'stok'),
                 orderBy('timestamp', 'desc')
             );
+            
             onSnapshot(q, (snap) => {
                 accounts = [];
                 snap.forEach(d => accounts.push({id: d.id, ...d.data()}));
@@ -307,24 +546,30 @@
                     activeId = acc.id;
                     const menu = document.getElementById('itemActionMenu');
                     const rect = card.getBoundingClientRect();
-                    menu.style.top = `${rect.top + window.scrollY + 40}px`;
-                    menu.style.left = `${rect.left}px`;
+                    const containerRect = document.querySelector('.app-container').getBoundingClientRect();
+                    let topPos = rect.top - containerRect.top + 40;
+                    let leftPos = rect.left - containerRect.left + 20;
+                    if(leftPos + 200 > containerRect.width) leftPos = containerRect.width - 220;
+                    
+                    menu.style.top = `${topPos}px`;
+                    menu.style.left = `${leftPos}px`;
                     menu.style.display = 'flex';
                     e.stopPropagation();
                 };
                 card.innerHTML = `
                     <div class="h-32 bg-zinc-900 rounded-xl mb-3 overflow-hidden relative flex items-center justify-center">
                         ${acc.isSold ? '<div class="sold-badge">SOLD</div>' : ''}
-                        ${acc.image ? `<img src="${acc.image}" class="w-full h-full object-cover ${acc.isSold?'grayscale opacity-30':''}">` : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>'}
+                        ${acc.image ? `<img src="${acc.image}" class="w-full h-full object-cover ${acc.isSold?'grayscale opacity-30':''}">` : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2c2c2e" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'}
                     </div>
-                    <p class="text-[13px] font-bold truncate px-1">${acc.dbName}</p>
-                    <p class="text-[10px] text-blue-500 font-extrabold mt-0.5 px-1">${acc.dbHarga || 'Free'}</p>
+                    <p class="text-[13px] font-bold truncate px-1">${acc.dbEmail || acc.dbName || 'No Name'}</p>
+                    <p class="text-[9px] text-zinc-500 font-bold uppercase mt-0.5 px-1">${acc.type}</p>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        window.itemAction = async (type) => {
+        // Action Handlers
+        window.handleAction = async (type) => {
             const acc = accounts.find(a => a.id === activeId);
             document.getElementById('itemActionMenu').style.display = 'none';
             if(!acc) return;
@@ -332,44 +577,74 @@
             const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'stok', activeId);
 
             if(type === 'detail') {
-                document.getElementById('detTitle').innerText = acc.dbName;
-                document.getElementById('detHarga').innerText = acc.dbHarga;
-                document.getElementById('detLogin').innerText = acc.dbKet;
+                document.getElementById('modalTitle').innerText = "Detail Akun";
+                let html = '<div class="ios-input-group">';
+                const fields = { 'type': 'Jenis', 'dbEmail': 'Email', 'dbPassG': 'Password G', 'dbPassM': 'Password M', 'dbBackup': 'Kode Cadangan', 'dbName': 'Nama/ID', 'dbLoginVia': 'Login Via' };
+                for(let key in fields) {
+                    if(acc[key]) html += `<div class="ios-input-row"><span class="row-label">${fields[key]}</span><span class="text-sm font-medium break-all text-white/90">${acc[key]}</span></div>`;
+                }
+                html += '</div>';
+                document.getElementById('modalBody').innerHTML = html;
+                document.getElementById('modalBtnAction').classList.add('hidden');
                 document.getElementById('modalOverlay').classList.add('active');
-                document.getElementById('detailModal').classList.add('active');
-            } else if(type === 'sold') {
+                document.getElementById('iosDetailModal').classList.add('active');
+            } 
+            else if (type === 'sold') {
                 await updateDoc(docRef, { isSold: !acc.isSold });
                 showStatus("Status diupdate");
-            } else if(type === 'delete') {
-                if(confirm("Hapus permanen dari Cloud?")) await deleteDoc(docRef);
+            } 
+            else if (type === 'delete') {
+                if(confirm("Hapus stok ini permanen dari Cloud?")) await deleteDoc(docRef);
+            }
+            else if (type === 'send_admin') {
+                 let text = `🚀 <b>DETAIL AKUN (ADMIN)</b>\nJenis: ${acc.type}\n--------------------------------\n`;
+                 ['dbEmail', 'dbPassG', 'dbPassM', 'dbLoginVia', 'dbName'].forEach(k => { if(acc[k]) text += `<b>${k.replace('db','')} :</b> <code>${acc[k]}</code>\n`; });
+                 await sendAccountToTelegram('7423591679', text, acc.image);
+            }
+            else if (type === 'send_buyer') {
+                document.getElementById('modalTitle').innerText = "Kirim ke Buyer";
+                const body = document.getElementById('modalBody');
+                body.innerHTML = `<div class="ios-input-group"><div class="ios-input-row"><span class="row-label">Username Buyer</span><input type="text" id="buyerUsername" placeholder="@username" required></div></div>`;
+                const action = document.getElementById('modalBtnAction');
+                action.innerText = "Kirim Data"; action.classList.remove('hidden');
+                action.onclick = async () => {
+                    const buyer = document.getElementById('buyerUsername').value;
+                    if(!buyer) return;
+                    let text = `✨ <b>DETAIL AKUN BY AHRASTORE</b>\nBuyer: ${buyer}\n--------------------------------\n`;
+                    ['dbEmail', 'dbPassG', 'dbPassM', 'dbLoginVia', 'dbName', 'dbBackup'].forEach(k => { if(acc[k]) text += `<b>${k.replace('db','')} :</b> <code>${acc[k]}</code>\n`; });
+                    text += `\n--------------------------------\nStok: @StokAhraStore2`;
+                    closeModals(); await sendAccountToTelegram('7423591679', text, acc.image);
+                };
+                document.getElementById('modalOverlay').classList.add('active');
+                document.getElementById('iosDetailModal').classList.add('active');
             }
         };
 
-        // --- FORM SAVING ---
+        // --- FORM HANDLERS ---
         document.getElementById('formSave').onsubmit = async (e) => {
             e.preventDefault();
+            const type = document.getElementById('saveType').value;
+            if(!type) return showStatus("Pilih jenis akun", true);
+            
             const btn = e.target.querySelector('button');
             btn.disabled = true; btn.innerText = "Menyimpan...";
 
-            const data = {
-                dbName: document.getElementById('dbName').value,
-                dbKet: document.getElementById('dbKet').value,
-                dbHarga: document.getElementById('dbHarga').value,
-                timestamp: Date.now(),
-                isSold: false
-            };
+            const data = { type, timestamp: Date.now(), isSold: false };
+            ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia'].forEach(f => {
+                const el = document.getElementById(f); if(el) data[f] = el.value;
+            });
 
             const file = document.getElementById('saveImage').files[0];
-            if(file) {
-                data.image = await new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(file); });
-            }
+            if(file) data.image = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(file); });
 
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'stok'), data);
-                showStatus("Tersimpan di Cloud");
-                e.target.reset();
+                showStatus("Data tersimpan di Cloud");
+                e.target.reset(); 
+                document.getElementById('dynamicFields').innerHTML = "";
+                document.getElementById('labelSaveType').innerText = "Pilih Jenis Akun...";
                 switchTab('db');
-            } catch(err) { showStatus("Gagal simpan", true); }
+            } catch(err) { showStatus("Gagal simpan ke Cloud", true); }
             btn.disabled = false; btn.innerText = "📥 SIMPAN KE CLOUD";
         };
 
@@ -377,70 +652,112 @@
             e.preventDefault();
             const btn = e.target.querySelector('button');
             btn.disabled = true; btn.innerText = "Mengirim...";
-            
-            const caption = `🚀 <b>NEW STOCK</b>\n💰 Harga: ${document.getElementById('stokHarga').value}\n🛒 Order: @zaaamyy`;
+            const text = `🚀 <b>NEW ACCOUNT BY AHRASTORE</b>\n💰 Harga: ${document.getElementById('stokHarga').value}\nℹ Info: ${document.getElementById('stokInfo').value}\n🛒 Order: @zaaamyy`;
             const formData = new FormData();
-            formData.append('chat_id', '7423591679');
-            formData.append('caption', caption);
-            formData.append('parse_mode', 'HTML');
-            const file = document.getElementById('stokImage').files[0];
-            if(file) formData.append('photo', file);
+            formData.append('chat_id', '7423591679'); formData.append('caption', text); formData.append('parse_mode', 'HTML');
+            const photo = document.getElementById('stokImage').files[0];
+            if(photo) formData.append('photo', photo);
 
             try {
-                await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${file?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData });
+                await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${photo?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData });
                 showStatus("Terkirim ke Telegram");
                 e.target.reset();
-            } catch(e) { showStatus("Gagal kirim", true); }
-            btn.disabled = false; btn.innerText = "🚀 POST KE TELEGRAM";
+            } catch(e) { showStatus("Gagal kirim Telegram", true); }
+            btn.disabled = false; btn.innerText = "🚀 KIRIM KE CHANNEL";
         };
 
-        // --- UI HELPERS ---
+        // --- GLOBAL UI UTILS ---
         window.switchTab = (tab) => {
-            ['stok', 'save', 'db'].forEach(t => {
+            ['stok', 'testi', 'save', 'db'].forEach(t => {
                 document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tab);
                 document.getElementById(`tab-${t}`).classList.toggle('tab-active', t === tab);
             });
-            window.scrollTo(0, 0);
+            window.scrollTo(0,0);
         };
 
-        window.togglePopover = (id) => {
+        window.toggleAhraPopover = (id) => {
             const el = document.getElementById(id);
             el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
         };
 
         window.closeModals = () => {
-            document.querySelectorAll('.overlay, .centered-modal').forEach(m => m.classList.remove('active'));
+            document.querySelectorAll('.overlay, .bottom-sheet, .centered-modal').forEach(m => m.classList.remove('active'));
+            setTimeout(() => { document.getElementById('modalBtnAction').classList.add('hidden'); }, 300);
+        };
+        document.getElementById('modalOverlay').onclick = closeModals;
+
+        window.showStatus = (msg, isError = false) => {
+            const el = document.getElementById('statusMsg'); el.innerText = msg;
+            el.className = `mt-6 p-4 rounded-xl text-center text-[13px] font-bold border ${isError ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-green-500/10 text-blue-500 border-blue-500/20'}`;
+            el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 3000);
         };
 
-        function showStatus(msg, isError = false) {
-            const el = document.getElementById('statusMsg');
-            if(!el) return;
-            el.innerText = msg;
-            el.style.backgroundColor = isError ? '#ff3b30' : '#0a84ff';
-            el.classList.remove('hidden');
-            setTimeout(() => el.classList.add('hidden'), 3000);
+        window.exportJSON = () => {
+            const blob = new Blob([JSON.stringify(accounts, null, 2)], { type: "application/json" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `AhraStore_Cloud_Backup_${Date.now()}.json`;
+            link.click();
+        };
+
+        // UI Pickers & Dynamic Fields (Dikutip dari kode original Anda)
+        window.openIOSPicker = (title, options, targetId, isDynamic = false) => {
+            const container = document.getElementById('pickerOptionsContainer');
+            document.getElementById('pickerTitle').innerText = title;
+            container.innerHTML = "";
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "picker-option"; btn.innerText = opt;
+                btn.onclick = () => {
+                    document.getElementById(targetId).value = opt;
+                    const label = document.getElementById('label' + targetId.charAt(0).toUpperCase() + targetId.slice(1));
+                    if(label) { label.innerText = opt; label.style.color = "white"; }
+                    if (isDynamic && targetId === 'saveType') handleDynamicFields(opt);
+                    closeModals();
+                };
+                container.appendChild(btn);
+            });
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('iosPickerSheet').classList.add('active');
+        };
+
+        function handleDynamicFields(type) {
+            const container = document.getElementById('dynamicFields');
+            let html = '<div class="ios-input-group">';
+            if (type === "Mail fresh" || type === "Mail own") {
+                html += `<div class="ios-input-row"><span class="row-label">Email Akun</span><input type="text" id="dbEmail" placeholder="Email" required></div>
+                         <div class="ios-input-row"><span class="row-label">Password G</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div>
+                         <div class="ios-input-row"><span class="row-label">Password M</span><input type="text" id="dbPassM" placeholder="Pass Moonton" required></div>`;
+                if(type === "Mail own") html += `<div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code"></textarea></div>`;
+            } else if (type === "Monkos") {
+                html += `<div class="ios-input-row"><span class="row-label">Email</span><input type="text" id="dbEmail" placeholder="Email" required></div>
+                         <div class="ios-input-row"><span class="row-label">Login Via</span><input type="text" id="dbLoginVia" placeholder="TikTok/FB/Google"></div>`;
+            } else if (type === "Galver") {
+                html += `<div class="ios-input-row"><span class="row-label">Nama/ID</span><input type="text" id="dbName" placeholder="Nama Akun"></div>
+                         <div class="ios-input-row"><span class="row-label">Password M</span><input type="text" id="dbPassM" placeholder="Password"></div>`;
+            }
+            html += '</div>';
+            container.innerHTML = html;
         }
 
+        async function sendAccountToTelegram(chatId, text, imageBase64) {
+            const formData = new FormData();
+            formData.append('chat_id', chatId); formData.append('parse_mode', 'HTML');
+            if (imageBase64) {
+                const arr = imageBase64.split(','), mime = arr[0].match(/:(.*?);/)[1], bstr = atob(arr[1]);
+                let n = bstr.length; const u8arr = new Uint8Array(n); while(n--){ u8arr[n] = bstr.charCodeAt(n); }
+                formData.append('photo', new Blob([u8arr], {type:mime}), 'img.png');
+                formData.append('caption', text);
+            } else { formData.append('text', text); }
+            try { await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${imageBase64?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData }); showStatus("Terkirim"); } catch(e) { showStatus("Error", true); }
+        }
+
+        // Close Popovers on click outside
         document.addEventListener('click', (e) => {
-            if(!e.target.closest('.ios-popover') && !e.target.closest('#settingsBtn') && !e.target.closest('.db-card')) {
-                document.querySelectorAll('.ios-popover').forEach(p => p.style.display = 'none');
+            if (!e.target.closest('.ios-popover') && !e.target.closest('#settingsBtn') && !e.target.closest('.db-card')) {
+                document.querySelectorAll('.ios-popover').forEach(m => m.style.display = 'none');
             }
         });
-
-        // Emergency Timeout
-        setTimeout(() => {
-            const loader = document.getElementById('loadingScreen');
-            if (loader && loader.style.display !== 'none') {
-                console.warn("Firebase timeout: Memaksa menutup loading screen.");
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.display = 'none', 500);
-                
-                if (!auth.currentUser) {
-                    document.getElementById('loginScreen').classList.remove('hidden');
-                }
-            }
-        }, 5000);
     </script>
 </body>
 </html>
-
