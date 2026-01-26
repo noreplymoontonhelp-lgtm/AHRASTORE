@@ -299,6 +299,52 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.4);
             border: 0.5px solid rgba(255,255,255,0.1);
         }
+
+        /* Toggle Switch Styling */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #3c3c3e;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #30d158;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
     </style>
 </head>
 <body>
@@ -1039,6 +1085,9 @@
                 document.getElementById('modalOverlay').classList.add('active');
                 document.getElementById('iosDetailModal').classList.add('active');
             } 
+            else if (type === 'edit') {
+                openEditModal(acc);
+            }
             else if (type === 'sold') {
                 await updateDoc(docRef, { isSold: !acc.isSold });
                 showIOSNotify("Status Diperbarui", "Status penjualan akun telah diubah.", false);
@@ -1070,6 +1119,191 @@
                 };
                 document.getElementById('modalOverlay').classList.add('active');
                 document.getElementById('iosDetailModal').classList.add('active');
+            }
+        };
+
+        // --- FUNGSI EDIT DATA ---
+        function openEditModal(account) {
+            document.getElementById('modalTitle').innerText = "Edit Data Akun";
+            
+            let html = `
+                <form id="editForm" class="space-y-4">
+                    <div class="ios-input-group">
+                        <div class="ios-input-row">
+                            <span class="row-label">Foto Akun (Opsional)</span>
+                            <label for="editImage" class="flex justify-between items-center cursor-pointer py-1">
+                                <span id="label-editImage" class="text-[15px] ${account.image ? 'text-white' : 'text-zinc-500'}">
+                                    ${account.image ? 'Ganti foto...' : 'Unggah foto...'}
+                                </span>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-500">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                    <circle cx="12" cy="13" r="4"/>
+                                </svg>
+                                <input type="file" id="editImage" accept="image/*" class="hidden" onchange="handleEditImageSelect(this)">
+                            </label>
+                            ${account.image ? `
+                            <div class="mt-2">
+                                <p class="text-[10px] text-zinc-500 mb-1">Foto saat ini:</p>
+                                <img src="${account.image}" class="w-20 h-20 object-cover rounded-lg border border-white/10">
+                            </div>` : ''}
+                        </div>
+                        
+                        <div class="ios-input-row">
+                            <span class="row-label">Jenis Akun</span>
+                            <div class="ios-select-trigger !p-0 !bg-transparent !border-none" onclick="openEditTypePicker()">
+                                <span id="labelEditType" class="text-[15px] ${account.type ? 'text-white' : 'text-zinc-500'}">
+                                    ${account.type || 'Pilih Jenis...'}
+                                </span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5">
+                                    <path d="M6 9l6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <input type="hidden" id="editType" value="${account.type || ''}">
+                        </div>
+                        
+                        <div id="editDynamicFields">
+                            ${generateEditFields(account)}
+                        </div>
+                        
+                        <div class="ios-input-row">
+                            <span class="row-label">Status Sold</span>
+                            <div class="flex items-center justify-between">
+                                <span class="text-[15px]">${account.isSold ? 'Terjual' : 'Tersedia'}</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="editIsSold" ${account.isSold ? 'checked' : ''}>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            `;
+            
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalBtnAction').innerText = "Simpan Perubahan";
+            document.getElementById('modalBtnAction').classList.remove('hidden');
+            document.getElementById('modalBtnAction').onclick = () => saveEditChanges(account.id);
+            
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('iosDetailModal').classList.add('active');
+        }
+
+        function generateEditFields(account) {
+            let html = '';
+            const fields = [
+                { id: 'editDbEmail', label: 'Email Akun', value: account.dbEmail || '' },
+                { id: 'editDbPassG', label: 'Password Google', value: account.dbPassG || '' },
+                { id: 'editDbPassM', label: 'Password Moonton', value: account.dbPassM || '' },
+                { id: 'editDbBackup', label: 'Kode Cadangan', value: account.dbBackup || '' },
+                { id: 'editDbName', label: 'Nama/ID', value: account.dbName || '' },
+                { id: 'editDbLoginVia', label: 'Login Via', value: account.dbLoginVia || '' },
+                { id: 'editDbKet', label: 'Keterangan', value: account.dbKet || '' }
+            ];
+            
+            fields.forEach(field => {
+                if (field.value || field.id === 'editDbEmail') { // Always show email field
+                    html += `
+                        <div class="ios-input-row">
+                            <span class="row-label">${field.label}</span>
+                            <input type="text" id="${field.id}" value="${field.value}" placeholder="${field.label}" class="text-white">
+                        </div>
+                    `;
+                }
+            });
+            
+            return html;
+        }
+
+        window.openEditTypePicker = () => {
+            const types = ['Mail fresh', 'Mail own', 'Monkos', 'Galver'];
+            openIOSPicker('PILIH JENIS AKUN', types, 'editType', false);
+            
+            // Add event listener to update dynamic fields when type changes
+            document.querySelectorAll('#pickerOptionsContainer .picker-option').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    setTimeout(() => {
+                        const newType = document.getElementById('editType').value;
+                        const account = accounts.find(a => a.id === activeId);
+                        if (account && newType !== account.type) {
+                            // Update account object temporarily
+                            account.type = newType;
+                            // Regenerate fields based on new type
+                            const container = document.getElementById('editDynamicFields');
+                            container.innerHTML = generateEditFields(account);
+                        }
+                    }, 100);
+                });
+            });
+        };
+
+        async function saveEditChanges(docId) {
+            const type = document.getElementById('editType').value;
+            const isSold = document.getElementById('editIsSold')?.checked || false;
+            
+            if (!type) {
+                showIOSNotify("Error", "Jenis akun harus diisi.");
+                return;
+            }
+            
+            const btn = document.getElementById('modalBtnAction');
+            btn.disabled = true;
+            btn.innerText = "Menyimpan...";
+            
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'stok', docId);
+                const updates = {
+                    type: type,
+                    isSold: isSold,
+                    updatedAt: Date.now()
+                };
+                
+                // Collect all field values
+                ['editDbEmail', 'editDbPassG', 'editDbPassM', 'editDbBackup', 'editDbName', 'editDbLoginVia', 'editDbKet'].forEach(fieldId => {
+                    const element = document.getElementById(fieldId);
+                    if (element) {
+                        const value = element.value.trim();
+                        const dbField = fieldId.replace('editDb', 'db');
+                        if (value) {
+                            updates[dbField] = value;
+                        } else {
+                            // Remove field if empty
+                            updates[dbField] = null;
+                        }
+                    }
+                });
+                
+                // Handle image if there's a new one
+                const imageInput = document.getElementById('editImage');
+                if (imageInput?.files[0]) {
+                    const reader = new FileReader();
+                    updates.image = await new Promise((resolve) => {
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.readAsDataURL(imageInput.files[0]);
+                    });
+                }
+                
+                await updateDoc(docRef, updates);
+                
+                showIOSNotify("Berhasil", "Data akun berhasil diperbarui.", false);
+                closeModals();
+                
+            } catch (error) {
+                console.error("Error updating document:", error);
+                showIOSNotify("Gagal", "Terjadi kesalahan saat menyimpan perubahan.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Simpan Perubahan";
+            }
+        }
+
+        window.handleEditImageSelect = (input) => {
+            const label = document.getElementById('label-editImage');
+            if (input.files && input.files[0]) {
+                label.innerText = input.files[0].name;
+                label.style.color = "white";
+            } else {
+                label.innerText = "Unggah foto...";
+                label.style.color = "#8e8e93";
             }
         };
 
