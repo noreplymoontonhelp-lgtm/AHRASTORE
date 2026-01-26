@@ -847,7 +847,7 @@
             if(type === 'detail') {
                 document.getElementById('modalTitle').innerText = "Detail Akun";
                 let html = '<div class="ios-input-group">';
-                const fields = { 'type': 'Jenis', 'dbEmail': 'Email', 'dbPassG': 'Password G', 'dbPassM': 'Password M', 'dbBackup': 'Kode Cadangan', 'dbName': 'Nama/ID', 'dbLoginVia': 'Login Via' };
+                const fields = { 'type': 'Jenis', 'dbGalverMethod': 'Metode Login', 'dbEmail': 'Email', 'dbPassG': 'Password G', 'dbPassM': 'Password M', 'dbBackup': 'Kode Cadangan', 'dbName': 'Nama/ID', 'dbLoginVia': 'Login Via' };
                 for(let key in fields) {
                     if(acc[key]) html += `<div class="ios-input-row"><span class="row-label">${fields[key]}</span><span class="text-sm font-medium break-all text-white/90">${acc[key]}</span></div>`;
                 }
@@ -1033,7 +1033,7 @@
             btn.disabled = true; btn.innerText = "Menyimpan...";
 
             const data = { type, timestamp: Date.now(), isSold: false };
-            ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia'].forEach(f => {
+            ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia', 'dbGalverMethod'].forEach(f => {
                 const el = document.getElementById(f); if(el) data[f] = el.value;
             });
 
@@ -1138,6 +1138,7 @@
                     const label = document.getElementById('label' + targetId.charAt(0).toUpperCase() + targetId.slice(1));
                     if(label) { label.innerText = opt; label.style.color = "white"; }
                     if (isDynamic && targetId === 'saveType') handleDynamicFields(opt);
+                    if (isDynamic && targetId === 'dbGalverMethod') handleGalverSubFields(opt);
                     closeModals();
                 };
                 container.appendChild(btn);
@@ -1167,10 +1168,32 @@
                              <input type="hidden" id="dbLoginVia" required>
                          </div>`;
             } else if (type === "Galver") {
-                html += `<div class="ios-input-row"><span class="row-label">Nama/ID</span><input type="text" id="dbName" placeholder="Nama Akun"></div>
-                         <div class="ios-input-row"><span class="row-label">Password M</span><input type="text" id="dbPassM" placeholder="Password"></div>`;
+                html += `<div class="ios-input-row">
+                             <span class="row-label">Metode Login</span>
+                             <div class="ios-select-trigger !p-0 !bg-transparent !border-none" onclick="openIOSPicker('METODE GALVER', ['Login Email', 'Login Name'], 'dbGalverMethod', true)">
+                                 <span id="labelDbGalverMethod" class="text-[15px] text-zinc-500">Pilih Metode...</span>
+                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                             </div>
+                             <input type="hidden" id="dbGalverMethod" required>
+                         </div>
+                         <div id="galverSubFields"></div>`;
             }
             html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function handleGalverSubFields(method) {
+            const container = document.getElementById('galverSubFields');
+            if(!container) return;
+            let html = '';
+            if (method === "Login Email") {
+                html += `<div class="ios-input-row"><span class="row-label">Email Akun</span><input type="text" id="dbEmail" placeholder="Email Akun" required></div>
+                         <div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div>
+                         <div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code"></textarea></div>`;
+            } else if (method === "Login Name") {
+                html += `<div class="ios-input-row"><span class="row-label">Nama/ID</span><input type="text" id="dbName" placeholder="Nama Akun" required></div>
+                         <div class="ios-input-row"><span class="row-label">Password M</span><input type="text" id="dbPassM" placeholder="Password Moonton" required></div>`;
+            }
             container.innerHTML = html;
         }
 
