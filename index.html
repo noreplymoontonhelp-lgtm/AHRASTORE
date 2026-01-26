@@ -3,26 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AhraStore Management - Local Pro</title>
+    <title>AhraStore Management - Firebase Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDK -->
+    
+    <!-- Firebase SDK Modular -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            signInWithCustomToken, 
+            onAuthStateChanged,
+            GoogleAuthProvider,
+            signInWithPopup,
+            RecaptchaVerifier,
+            signInWithPhoneNumber,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
+        // Konfigurasi Firebase Anda
+        const firebaseConfig = {
+            apiKey: "AIzaSyBVk932P_IbgAh6hoZ9HhnPNzdYsthIl04",
+            authDomain: "ahrastore-14913.firebaseapp.com",
+            projectId: "ahrastore-14913",
+            storageBucket: "ahrastore-14913.firebasestorage.app",
+            messagingSenderId: "751112680601",
+            appId: "1:751112680601:web:efd16728078d392d67f408",
+            measurementId: "G-JLFVMMRH8M"
+        };
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ahra-store-pro';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ahrastore-14913';
 
-        // Expose Firebase functions globally to fix "not defined" errors
+        // Ekspos fungsi Firebase secara global
         window.ahraFirebase = { 
-            db, auth, appId, doc, setDoc, getDoc, onSnapshot, 
-            signInAnonymously, signInWithCustomToken 
+            db, auth, appId, doc, setDoc, getDoc, collection, addDoc, 
+            updateDoc, deleteDoc, onSnapshot, query, orderBy,
+            signInAnonymously, signInWithCustomToken, onAuthStateChanged,
+            GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, 
+            signInWithPhoneNumber, createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, signOut
         };
     </script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         
@@ -60,7 +88,6 @@
             position: relative;
         }
 
-        /* Loading Screen */
         #loadingScreen {
             position: fixed;
             inset: 0;
@@ -71,6 +98,33 @@
             align-items: center;
             justify-content: center;
             transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Tampilan Layar Autentikasi */
+        #authScreen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            z-index: 9000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .auth-tab-btn {
+            padding: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .auth-tab-btn.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
         }
 
         .ios-loader {
@@ -131,6 +185,7 @@
             width: 100%;
         }
         .pill-button:active { transform: scale(0.96); opacity: 0.8; }
+        .pill-button:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .tab-btn {
             position: relative;
@@ -177,7 +232,6 @@
         }
         input::placeholder { color: var(--text-secondary); }
 
-        /* Floating Popover Menus */
         .ios-popover {
             position: absolute;
             background: var(--ios-blur);
@@ -299,32 +353,71 @@
 </head>
 <body>
 
+    <!-- Layar Autentikasi -->
+    <div id="authScreen" class="hidden">
+        <div class="w-full max-w-[340px] text-center">
+            <div class="w-20 h-20 bg-blue-600 rounded-3xl mx-auto mb-8 flex items-center justify-center shadow-2xl shadow-blue-600/30">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08s5.97 1.09 6 3.08c-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+            </div>
+            
+            <h2 class="text-2xl font-extrabold tracking-tight mb-2">AhraStore Login</h2>
+            <p class="text-zinc-500 text-[13px] mb-10">Metode masuk untuk database cloud stok.</p>
+
+            <div class="flex mb-6 border-b border-white/5">
+                <button onclick="switchAuthTab('email')" id="auth-tab-email" class="auth-tab-btn flex-1 active">Email</button>
+                <button onclick="switchAuthTab('google')" id="auth-tab-google" class="auth-tab-btn flex-1">Google</button>
+                <button onclick="switchAuthTab('phone')" id="auth-tab-phone" class="auth-tab-btn flex-1">No Telp</button>
+            </div>
+
+            <!-- Login Email -->
+            <div id="auth-content-email" class="space-y-4">
+                <div class="ios-input-group">
+                    <div class="ios-input-row"><span class="row-label">Email</span><input type="email" id="authEmail" placeholder="admin@ahrastore.com"></div>
+                    <div class="ios-input-row"><span class="row-label">Password</span><input type="password" id="authPass" placeholder="••••••••"></div>
+                </div>
+                <button onclick="handleEmailLogin()" id="btnAuthEmail" class="pill-button mt-4">MASUK / DAFTAR</button>
+            </div>
+
+            <!-- Login Google -->
+            <div id="auth-content-google" class="hidden py-4">
+                <button onclick="handleGoogleLogin()" class="pill-button !bg-white !text-black flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                    Lanjutkan dengan Google
+                </button>
+            </div>
+
+            <!-- Login No Telp -->
+            <div id="auth-content-phone" class="hidden space-y-4">
+                <div id="phoneInputArea">
+                    <div class="ios-input-group">
+                        <div class="ios-input-row"><span class="row-label">Nomor Telepon</span><input type="tel" id="authPhone" placeholder="+62812345678"></div>
+                    </div>
+                    <div id="recaptcha-container" class="mt-4"></div>
+                    <button onclick="handlePhoneLogin()" id="btnAuthPhone" class="pill-button mt-4">KIRIM KODE OTP</button>
+                </div>
+                <div id="otpInputArea" class="hidden">
+                    <div class="ios-input-group">
+                        <div class="ios-input-row"><span class="row-label">Kode Verifikasi</span><input type="text" id="authOTP" placeholder="123456"></div>
+                    </div>
+                    <button onclick="handleVerifyOTP()" id="btnVerifyOTP" class="pill-button mt-4">VERIFIKASI OTP</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layar Pemuatan -->
     <div id="loadingScreen">
         <div class="ios-loader"></div>
-        <p class="mt-6 text-[10px] font-bold text-[#8e8e93] tracking-[0.2em] uppercase">AhraStore</p>
+        <p id="loadingText" class="mt-6 text-[10px] font-bold text-[#8e8e93] tracking-[0.2em] uppercase">MENGHUBUNGKAN KE CLOUD...</p>
     </div>
 
-    <div id="setupScreen" class="fixed inset-0 bg-black z-[4000] hidden flex-col items-center justify-center p-10 text-center">
-        <div class="w-20 h-20 bg-blue-600 rounded-2xl mb-8 flex items-center justify-center shadow-2xl shadow-blue-600/20">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V9h2v7zm4 0h-2V9h2v7z"/></svg>
-        </div>
-        <h2 class="text-3xl font-bold tracking-tight mb-2 text-white">AhraStore DB</h2>
-        <p class="text-[14px] text-zinc-500 mb-12">Database stok akun profesional Anda.</p>
-        
-        <div class="w-full max-w-xs space-y-4">
-            <button onclick="createNewDB()" class="pill-button">MULAI DATABASE BARU</button>
-            <button onclick="document.getElementById('setupImportFile').click()" class="pill-button !bg-zinc-800 !text-blue-500">IMPORT DATABASE (.JSON)</button>
-            <input type="file" id="setupImportFile" accept=".json" class="hidden" onchange="handleFileImport(event)">
-        </div>
-    </div>
-
-    <div id="app" class="app-container">
+    <div id="app" class="app-container hidden">
         <header class="px-6 py-4 flex justify-between items-end bg-black/80 backdrop-blur-xl sticky top-0 z-40 border-b border-white/5">
             <div>
                 <h1 class="text-2xl font-bold text-white tracking-tight">AhraStore</h1>
                 <div id="connectionStatus" class="flex items-center gap-1.5 mt-0.5">
-                    <div id="statusDot" class="w-2 h-2 rounded-full bg-green-500 transition-colors duration-300"></div>
-                    <span id="statusLabel" class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Online</span>
+                    <div id="statusDot" class="w-2 h-2 rounded-full bg-yellow-500 transition-colors duration-300"></div>
+                    <span id="statusLabel" class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Menghubungkan</span>
                 </div>
             </div>
             <button id="settingsBtn" onclick="toggleAhraPopover('settingsOverlay', this)" class="p-2 text-blue-500 transition-all duration-300">
@@ -332,22 +425,13 @@
             </button>
 
             <div id="settingsOverlay" class="ios-popover" style="top: 75px; right: 20px;">
-                <button onclick="triggerFileBackup(); closeAllPopovers();" class="popover-item">
+                <button onclick="exportToJSON(); closeAllPopovers();" class="popover-item">
                     <span>Export Database (.json)</span>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 </button>
-                <button onclick="document.getElementById('settingsImportFile').click(); closeAllPopovers();" class="popover-item">
-                    <span>Import Database (.json)</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                </button>
-                <input type="file" id="settingsImportFile" accept=".json" class="hidden" onchange="handleFileImport(event)">
-                <div class="popover-item">
-                    <span>Auto Sync File</span>
-                    <input type="checkbox" id="autoBackupToggle" onchange="toggleAutoBackup()" class="w-4 h-4 accent-blue-500">
-                </div>
-                <button onclick="resetApp(); closeAllPopovers();" class="popover-item !text-red-500 font-bold">
-                    <span>Reset Database</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <button onclick="handleLogout()" class="popover-item !text-red-500 font-bold">
+                    <span>Keluar Akun</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 </button>
             </div>
 
@@ -382,7 +466,7 @@
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
                         </div>
                         <input type="hidden" id="stokInfo">
-                        <button type="submit" class="pill-button mt-2">🚀 KIRIM KE CHANNEL</button>
+                        <button type="submit" id="btnStokSubmit" class="pill-button mt-2">🚀 KIRIM KE CHANNEL</button>
                     </form>
                 </div>
             </section>
@@ -408,7 +492,7 @@
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
                         </div>
                         <input type="hidden" id="testiAkun">
-                        <button type="submit" class="pill-button !bg-green-500">✨ POST TESTIMONI</button>
+                        <button type="submit" id="btnTestiSubmit" class="pill-button !bg-green-500">POST TESTIMONI</button>
                     </form>
                 </div>
             </section>
@@ -426,14 +510,14 @@
                         </div>
                         <input type="hidden" id="saveType">
                         <div id="dynamicFields" class="space-y-4"></div>
-                        <button type="submit" class="pill-button mt-4 !bg-blue-600">📥 SIMPAN KE DB</button>
+                        <button type="submit" id="btnDBSave" class="pill-button mt-4 !bg-blue-600">SIMPAN KE FIREBASE</button>
                     </form>
                 </div>
             </section>
 
             <section id="section-db" class="hidden">
                 <div class="flex justify-between items-center mb-5 px-1">
-                    <h2 class="text-[12px] font-bold text-zinc-500 uppercase tracking-widest">Katalog Stok</h2>
+                    <h2 class="text-[12px] font-bold text-zinc-500 uppercase tracking-widest">Cloud Catalog</h2>
                     <span id="dbCount" class="text-[10px] bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full font-extrabold">0 Item</span>
                 </div>
                 <div id="databaseGrid" class="db-grid"></div>
@@ -464,180 +548,169 @@
     </div>
 
     <script>
-        let ahraDB = { accounts: [], settings: { autoBackup: true } };
-        const FIXED_FILENAME = "AhraStore_Database.json";
+        let accountsData = []; 
         let activeId = null;
         let popoverOpen = null;
+        let confirmationResult = null; // Menyimpan hasil konfirmasi auth telepon
 
         window.onload = async () => {
-            await initAuth();
-            loadFromLocalStorage();
-            updateConnectionStatus();
-            window.addEventListener('online', updateConnectionStatus);
-            window.addEventListener('offline', updateConnectionStatus);
-            
-            setTimeout(() => {
-                document.getElementById('loadingScreen').style.opacity = '0';
-                setTimeout(() => document.getElementById('loadingScreen').style.display = 'none', 500);
-            }, 1200);
+            initApp();
         };
 
-        // --- Firebase Core ---
-        async function initAuth() {
+        async function initApp() {
             if (!window.ahraFirebase) return;
-            const { auth, signInAnonymously, signInWithCustomToken } = window.ahraFirebase;
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
+            const { auth, onAuthStateChanged, db, collection, onSnapshot } = window.ahraFirebase;
+
+            // Pengamat Status Autentikasi
+            onAuthStateChanged(auth, (user) => {
+                const authScreen = document.getElementById('authScreen');
+                const app = document.getElementById('app');
+                
+                if (user) {
+                    authScreen.classList.add('hidden');
+                    app.classList.remove('hidden');
+                    updateConnectionStatus(true);
+                    
+                    // Mendapatkan koleksi tanpa 'orderBy' untuk menghindari error Indeks
+                    const colRef = collection(db, 'accounts');
+                    
+                    onSnapshot(colRef, (snapshot) => {
+                        const rawData = [];
+                        snapshot.forEach(doc => {
+                            rawData.push({ fireId: doc.id, ...doc.data() });
+                        });
+                        
+                        // Urutkan berdasarkan timestamp di memori (sisi browser)
+                        accountsData = rawData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                        
+                        renderDatabase();
+                        hideLoading();
+                    }, (err) => {
+                        console.error("Firestore Error:", err);
+                        showStatus("Error Cloud: " + err.code, true);
+                        hideLoading();
+                    });
                 } else {
-                    await signInAnonymously(auth);
+                    authScreen.classList.remove('hidden');
+                    app.classList.add('hidden');
+                    hideLoading();
                 }
-            } catch (e) { console.error("Auth failed", e); }
+            });
         }
 
-        async function syncToCloud() {
-            if (!window.ahraFirebase) return;
-            const { db, appId, auth, doc, setDoc } = window.ahraFirebase;
-            if (!auth.currentUser) return;
+        // --- PENANGAN AUTH ---
+        function switchAuthTab(tab) {
+            ['email', 'google', 'phone'].forEach(t => {
+                document.getElementById(`auth-tab-${t}`).classList.toggle('active', t === tab);
+                document.getElementById(`auth-content-${t}`).classList.toggle('hidden', t !== tab);
+            });
+        }
+
+        async function handleEmailLogin() {
+            const { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.ahraFirebase;
+            const email = document.getElementById('authEmail').value;
+            const pass = document.getElementById('authPass').value;
+            if(!email || !pass) return showStatus("Email & password diperlukan", true);
+
+            const btn = document.getElementById('btnAuthEmail');
+            btn.disabled = true; btn.innerText = "MEMPROSES...";
+
             try {
-                const docPath = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'backups', 'latest');
-                await setDoc(docPath, { data: JSON.stringify(ahraDB), updatedAt: Date.now() });
-            } catch (e) { console.error(e); }
+                await signInWithEmailAndPassword(auth, email, pass);
+                showStatus("Selamat datang!");
+            } catch (e) {
+                if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential' || e.code === 'auth/invalid-email') {
+                    try {
+                        await createUserWithEmailAndPassword(auth, email, pass);
+                        showStatus("Akun dibuat & berhasil masuk!");
+                    } catch(err) { showStatus(err.message, true); }
+                } else { showStatus(e.message, true); }
+            } finally { btn.disabled = false; btn.innerText = "MASUK / DAFTAR"; }
         }
 
-        // --- Core UI Logic ---
-        function updateConnectionStatus() {
+        async function handleGoogleLogin() {
+            const { auth, GoogleAuthProvider, signInWithPopup } = window.ahraFirebase;
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                showStatus("Login Google Berhasil");
+            } catch (e) { showStatus("Gagal Login Google", true); }
+        }
+
+        async function handlePhoneLogin() {
+            const { auth, RecaptchaVerifier, signInWithPhoneNumber } = window.ahraFirebase;
+            const phone = document.getElementById('authPhone').value;
+            if(!phone || !phone.startsWith('+')) return showStatus("Gunakan format +62", true);
+
+            const btn = document.getElementById('btnAuthPhone');
+            btn.disabled = true; btn.innerText = "MENGIRIM OTP...";
+
+            try {
+                if (!window.recaptchaVerifier) {
+                    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
+                }
+                confirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
+                document.getElementById('phoneInputArea').classList.add('hidden');
+                document.getElementById('otpInputArea').classList.remove('hidden');
+                showStatus("Kode OTP Terkirim!");
+            } catch (e) { 
+                showStatus(e.message, true); 
+                btn.disabled = false; btn.innerText = "KIRIM KODE OTP";
+            }
+        }
+
+        async function handleVerifyOTP() {
+            const code = document.getElementById('authOTP').value;
+            const btn = document.getElementById('btnVerifyOTP');
+            btn.disabled = true; btn.innerText = "VERIFIKASI...";
+            try {
+                await confirmationResult.confirm(code);
+                showStatus("OTP Valid!");
+            } catch (e) { 
+                showStatus("Kode OTP Salah", true); 
+                btn.disabled = false; btn.innerText = "VERIFIKASI OTP";
+            }
+        }
+
+        async function handleLogout() {
+            const { auth, signOut } = window.ahraFirebase;
+            try {
+                await signOut(auth);
+                location.reload();
+            } catch(e) { showStatus("Gagal Logout", true); }
+        }
+
+        function hideLoading() {
+            const loader = document.getElementById('loadingScreen');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }
+        }
+
+        function updateConnectionStatus(isOnline) {
             const dot = document.getElementById('statusDot');
             const label = document.getElementById('statusLabel');
-            if (navigator.onLine) {
-                dot.className = "w-2 h-2 rounded-full bg-green-500 transition-colors duration-300";
-                label.innerText = "Online";
+            if (isOnline) {
+                dot.className = "w-2 h-2 rounded-full bg-green-500";
+                label.innerText = "Cloud Active";
             } else {
-                dot.className = "w-2 h-2 rounded-full bg-red-500 transition-colors duration-300";
-                label.innerText = "Offline";
+                dot.className = "w-2 h-2 rounded-full bg-red-500";
+                label.innerText = "Offline/Error";
             }
-        }
-
-        function toggleAhraPopover(id, btn, event) {
-            const menu = document.getElementById(id);
-            if (!menu) return;
-            const isVisible = menu.style.display === 'flex';
-            closeAllPopovers();
-            if (!isVisible) {
-                menu.style.display = 'flex';
-                popoverOpen = id;
-                if(btn && id === 'settingsOverlay') btn.style.transform = 'rotate(45deg)';
-            }
-            if(event) event.stopPropagation();
-        }
-
-        function closeAllPopovers() {
-            document.querySelectorAll('.ios-popover').forEach(m => m.style.display = 'none');
-            const settingsBtn = document.getElementById('settingsBtn');
-            if(settingsBtn) settingsBtn.style.transform = 'rotate(0deg)';
-            popoverOpen = null;
-        }
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.ios-popover') && !e.target.closest('#settingsBtn')) {
-                closeAllPopovers();
-            }
-        });
-
-        // --- Storage & Automated Backup Logic ---
-        function loadFromLocalStorage() {
-            const saved = localStorage.getItem('ahra_db_local_pro');
-            if (saved) {
-                ahraDB = JSON.parse(saved);
-                document.getElementById('setupScreen').style.display = 'none';
-                document.getElementById('app').style.display = 'flex';
-                document.getElementById('autoBackupToggle').checked = ahraDB.settings?.autoBackup;
-                renderDatabase();
-            } else {
-                document.getElementById('setupScreen').style.display = 'flex';
-                document.getElementById('app').style.display = 'none';
-            }
-        }
-
-        function saveToLocalStorage() { 
-            localStorage.setItem('ahra_db_local_pro', JSON.stringify(ahraDB)); 
-            syncToCloud(); 
-            if (ahraDB.settings?.autoBackup) {
-                triggerFileBackup();
-            }
-        }
-
-        function triggerFileBackup() {
-            if (window.backupTimer) clearTimeout(window.backupTimer);
-            window.backupTimer = setTimeout(() => {
-                const blob = new Blob([JSON.stringify(ahraDB, null, 2)], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = FIXED_FILENAME;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-                showStatus("Database Disinkronkan Otomatis");
-            }, 1500); // Tunda sebentar untuk memastikan data stabil
-        }
-
-        function createNewDB() { 
-            ahraDB = { accounts: [], settings: { autoBackup: true }, createdAt: Date.now() }; 
-            saveToLocalStorage(); 
-            loadFromLocalStorage(); 
-        }
-
-        function handleFileImport(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (data && Array.isArray(data.accounts)) { 
-                        ahraDB = data; 
-                        saveToLocalStorage(); 
-                        loadFromLocalStorage(); 
-                        showStatus("Database Berhasil Diimport"); 
-                        switchTab('db'); 
-                    } else {
-                        showStatus("Format File Tidak Valid", true);
-                    }
-                } catch(err) { 
-                    showStatus("File Rusak / Bukan JSON", true); 
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = "";
-        }
-
-        function toggleAutoBackup() { 
-            ahraDB.settings.autoBackup = document.getElementById('autoBackupToggle').checked; 
-            saveToLocalStorage(); 
-        }
-
-        function resetApp() { if(confirm("Hapus database?")) { localStorage.removeItem('ahra_db_local_pro'); location.reload(); } }
-
-        function showStatus(msg, isError = false) {
-            const el = document.getElementById('statusMsg'); el.innerText = msg;
-            el.className = `mt-6 p-4 rounded-xl text-center text-[13px] font-bold border ${isError ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-green-500/10 text-blue-500 border-blue-500/20'}`;
-            el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 3000);
         }
 
         // --- CATALOG UI ---
         function renderDatabase() {
             const grid = document.getElementById('databaseGrid');
             grid.innerHTML = "";
-            document.getElementById('dbCount').innerText = `${ahraDB.accounts.length} Item`;
+            document.getElementById('dbCount').innerText = `${accountsData.length} Item`;
             
-            ahraDB.accounts.forEach(acc => {
+            accountsData.forEach(acc => {
                 const card = document.createElement('div');
                 card.className = "db-card";
                 card.onclick = (e) => {
-                    activeId = acc.id;
+                    activeId = acc.fireId; 
                     const menu = document.getElementById('itemActionMenu');
                     const rect = card.getBoundingClientRect();
                     const containerRect = document.querySelector('.app-container').getBoundingClientRect();
@@ -660,52 +733,23 @@
             });
         }
 
-        const fieldsMetadata = { 'dbEmail': 'Email Akun', 'dbPassG': 'Password Google', 'dbPassM': 'Password Moonton', 'dbBackup': 'Kode Cadangan', 'dbName': 'Nama / ID Akun', 'dbKet': 'Keterangan Akun', 'dbLoginVia': 'Login Via', 'galverType': 'Sub-Tipe Galver' };
-        function getFieldLabel(key) { return fieldsMetadata[key] || key.replace('db', ''); }
-
-        function handleDynamicFields(type, containerId = 'dynamicFields') {
-            const container = document.getElementById(containerId);
-            let html = '<div class="ios-input-group">';
-            if (type === "Mail fresh") {
-                html += `<div class="ios-input-row"><span class="row-label">Email Akun</span><input type="text" id="dbEmail" placeholder="Email" required></div>
-                         <div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div>
-                         <div class="ios-input-row"><span class="row-label">Password Moonton</span><input type="text" id="dbPassM" placeholder="Pass Moonton" required></div>`;
-            } else if (type === "Mail own") {
-                html += `<div class="ios-input-row"><span class="row-label">Email Akun</span><input type="text" id="dbEmail" placeholder="Email" required></div>
-                         <div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div>
-                         <div class="ios-input-row"><span class="row-label">Password Moonton</span><input type="text" id="dbPassM" placeholder="Pass Moonton" required></div>
-                         <div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code" class="min-h-[60px]"></textarea></div>`;
-            } else if (type === "Monkos") {
-                html += `<div class="ios-input-row"><span class="row-label">Email Moonton</span><input type="text" id="dbEmail" placeholder="Email" required></div>
-                         <div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div>
-                         <div class="ios-input-row"><span class="row-label">Login Via</span><div class="flex justify-between items-center cursor-pointer" id="triggerDbLoginVia" onclick="openIOSPicker('LOGIN VIA', ['TikTok', 'Facebook', 'Google'], 'dbLoginVia')"><span id="labelDbLoginVia" class="text-[15px]">Pilih Login...</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></div><input type="hidden" id="dbLoginVia" required></div>
-                         <div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code" class="min-h-[60px]"></textarea></div>`;
-            } else if (type === "Galver") {
-                html += `<div class="ios-input-row"><span class="row-label">Opsi Galver</span><div class="flex justify-between items-center cursor-pointer" id="triggerGalverType" onclick="openIOSPicker('PILIH TIPE', ['Email', 'Name'], 'galverType', true)"><span id="labelGalverType" class="text-[15px]">Email / Name...</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></div><input type="hidden" id="galverType"></div><div id="galverSubFields"></div>`;
-            }
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-        function handleGalverSubFields(subType) {
-            const container = document.getElementById('galverSubFields');
-            let html = '';
-            if (subType === 'Email') {
-                html = `<div class="ios-input-row"><span class="row-label">Email Akun</span><input type="text" id="dbEmail" placeholder="Email" required></div><div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div><div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code" class="min-h-[60px]"></textarea></div>`;
-            } else if (subType === 'Name') {
-                html = `<div class="ios-input-row"><span class="row-label">Nama/ID Akun</span><input type="text" id="dbName" placeholder="Nama Akun" required></div><div class="ios-input-row"><span class="row-label">Password Moonton</span><input type="text" id="dbPassM" placeholder="Password" required></div>`;
-            }
-            container.innerHTML = html;
-        }
-
-        // --- Actions ---
         async function handleAction(type) {
-            const acc = ahraDB.accounts.find(a => a.id === activeId);
+            const acc = accountsData.find(a => a.fireId === activeId);
+            if(!acc) return;
+            const { db, auth, doc, updateDoc, deleteDoc } = window.ahraFirebase;
+            if (!auth.currentUser) return;
+            
+            // Path Sederhana: 'accounts'
+            const docRef = doc(db, 'accounts', activeId);
             closeAllPopovers();
+
             if (type === 'detail') {
                 document.getElementById('modalTitle').innerText = "Detail Akun";
                 let html = '<div class="ios-input-group">';
-                for(let key in acc) if(!['image', 'id', 'timestamp', 'isSold', 'type', 'galverType'].includes(key)) html += `<div class="ios-input-row"><span class="row-label">${getFieldLabel(key)}</span><span class="text-sm font-medium break-all text-white/90">${acc[key] || '-'}</span></div>`;
+                const ignore = ['image', 'fireId', 'timestamp', 'isSold', 'type', 'galverType'];
+                for(let key in acc) {
+                    if(!ignore.includes(key)) html += `<div class="ios-input-row"><span class="row-label">${getFieldLabel(key)}</span><span class="text-sm font-medium break-all text-white/90">${acc[key] || '-'}</span></div>`;
+                }
                 html += '</div>';
                 document.getElementById('modalBody').innerHTML = html;
                 document.getElementById('modalBtnAction').classList.add('hidden');
@@ -717,6 +761,7 @@
                 const body = document.getElementById('modalBody');
                 body.innerHTML = '<div id="editFields"></div>';
                 handleDynamicFields(acc.type, 'editFields');
+                
                 setTimeout(() => {
                     if (acc.galverType) {
                         const gtInput = document.getElementById('galverType');
@@ -728,21 +773,39 @@
                     ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia'].forEach(f => {
                         const el = body.querySelector('#' + f); if(el) el.value = acc[f] || "";
                     });
-                }, 50);
+                }, 100);
+
                 const action = document.getElementById('modalBtnAction');
                 action.innerText = "Simpan"; action.classList.remove('hidden');
-                action.onclick = () => {
-                    if (acc.type === 'Galver') acc.galverType = body.querySelector('#galverType')?.value;
+                action.onclick = async () => {
+                    const updateData = {};
+                    if (acc.type === 'Galver') updateData.galverType = body.querySelector('#galverType')?.value;
                     ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia'].forEach(f => {
-                        const el = body.querySelector('#' + f); if(el) acc[f] = el.value;
+                        const el = body.querySelector('#' + f); if(el) updateData[f] = el.value;
                     });
-                    saveToLocalStorage(); renderDatabase(); closeModals(); showStatus("Data Diupdate");
+                    try {
+                        await updateDoc(docRef, updateData);
+                        closeModals();
+                        showStatus("Cloud Updated");
+                    } catch(e) { showStatus("Gagal Update Cloud", true); }
                 };
                 document.getElementById('modalOverlay').classList.add('active');
                 document.getElementById('iosDetailModal').classList.add('active');
             }
-            else if (type === 'sold') { acc.isSold = !acc.isSold; saveToLocalStorage(); renderDatabase(); showStatus(acc.isSold ? "Status: SOLD" : "Status: READY"); }
-            else if (type === 'delete') { if(confirm("Hapus stok ini?")) { ahraDB.accounts = ahraDB.accounts.filter(a => a.id !== activeId); saveToLocalStorage(); renderDatabase(); showStatus("Dihapus", true); } }
+            else if (type === 'sold') { 
+                try {
+                    await updateDoc(docRef, { isSold: !acc.isSold });
+                    showStatus(acc.isSold ? "Status: READY" : "Status: SOLD");
+                } catch(e) { showStatus("Gagal Update", true); }
+            }
+            else if (type === 'delete') { 
+                if(confirm("Hapus permanen dari cloud?")) { 
+                    try {
+                        await deleteDoc(docRef);
+                        showStatus("Dihapus dari Cloud", true);
+                    } catch(e) { showStatus("Gagal Hapus", true); }
+                } 
+            }
             else if (type === 'send_admin') {
                 let text = `🚀 <b>DETAIL AKUN (ADMIN)</b>\n<b>Jenis :</b> ${acc.type} ${acc.galverType ? `(${acc.galverType})` : ''}\n--------------------------------\n`;
                 if (acc.dbEmail) text += `<b>Email :</b> <code>${acc.dbEmail}</code>\n`;
@@ -769,14 +832,76 @@
                     if (acc.dbLoginVia) text += `<b>Login Via :</b> <code>${acc.dbLoginVia}</code>\n`;
                     if (acc.dbBackup) text += `<b>Kode cadangan :</b>\n<code>${acc.dbBackup}</code>\n`;
                     if (acc.dbName) text += `<b>Nama/ID :</b> <code>${acc.dbName}</code>\n--------------------------------\n\n<b>Stok:</b> https://t.me/StokAhraStore2\n<b>Grup:</b> https://t.me/JBAKUNMLBYAHRASTORE\n<b>Testi:</b> https://t.me/TESTIMONIAHRASTORE`;
-                    closeModals(); await sendAccountToTelegram('7423591679', text, acc.image);
+                    closeModals(); 
+                    await sendAccountToTelegram('7423591679', text, acc.image);
                 };
                 document.getElementById('modalOverlay').classList.add('active');
                 document.getElementById('iosDetailModal').classList.add('active');
             }
         }
 
-        // --- Core Utils ---
+        document.getElementById('formSave').onsubmit = async (e) => {
+            e.preventDefault();
+            const { db, auth, collection, addDoc } = window.ahraFirebase;
+            if (!auth.currentUser) return showStatus("Harap login dahulu", true);
+            const type = document.getElementById('saveType').value;
+            if(!type) return showStatus("Pilih jenis akun", true);
+            const btn = document.getElementById('btnDBSave');
+            btn.disabled = true; btn.innerText = "MENYIMPAN KE CLOUD...";
+            
+            const data = { 
+                type: type, 
+                timestamp: Date.now(), 
+                isSold: false, 
+                galverType: document.getElementById('galverType')?.value || null 
+            };
+            
+            ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia'].forEach(f => {
+                const el = document.getElementById(f); if(el) data[f] = el.value;
+            });
+            const imgFile = document.getElementById('saveImage').files[0];
+            if(imgFile) data.image = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(imgFile); });
+            
+            try {
+                // Simpan ke koleksi sederhana 'accounts'
+                await addDoc(collection(db, 'accounts'), data);
+                showStatus("Data Tersimpan di Cloud");
+                e.target.reset(); 
+                document.getElementById('dynamicFields').innerHTML = ""; 
+                const label = document.getElementById('labelSaveType'); 
+                label.innerText = "Pilih Jenis Akun..."; 
+                label.style.color = "var(--text-secondary)";
+            } catch(err) { 
+                console.error(err);
+                showStatus("Gagal Simpan ke Firebase", true); 
+            }
+            btn.disabled = false; btn.innerText = "SIMPAN KE FIREBASE";
+        };
+
+        function toggleAhraPopover(id, btn, event) {
+            const menu = document.getElementById(id);
+            if (!menu) return;
+            const isVisible = menu.style.display === 'flex';
+            closeAllPopovers();
+            if (!isVisible) {
+                menu.style.display = 'flex';
+                popoverOpen = id;
+                if(btn && id === 'settingsOverlay') btn.style.transform = 'rotate(45deg)';
+            }
+            if(event) event.stopPropagation();
+        }
+
+        function closeAllPopovers() {
+            document.querySelectorAll('.ios-popover').forEach(m => m.style.display = 'none');
+            const settingsBtn = document.getElementById('settingsBtn');
+            if(settingsBtn) settingsBtn.style.transform = 'rotate(0deg)';
+            popoverOpen = null;
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.ios-popover') && !e.target.closest('#settingsBtn')) closeAllPopovers();
+        });
+
         function switchTab(tab) {
             ['stok', 'testi', 'save', 'db'].forEach(t => {
                 const section = document.getElementById(`section-${t}`);
@@ -787,68 +912,39 @@
             closeAllPopovers(); window.scrollTo(0, 0);
         }
 
-        async function dataURLtoBlob(dataurl) {
-            const arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1], bstr = atob(arr[1]); 
-            let n = bstr.length; const u8arr = new Uint8Array(n);
-            while(n--){ u8arr[n] = bstr.charCodeAt(n); }
-            return new Blob([u8arr], {type:mime});
+        function showStatus(msg, isError = false) {
+            const el = document.getElementById('statusMsg'); el.innerText = msg;
+            el.className = `mt-6 p-4 rounded-xl text-center text-[13px] font-bold border ${isError ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-green-500/10 text-blue-500 border-blue-500/20'}`;
+            el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 3000);
         }
 
-        async function sendAccountToTelegram(chatId, text, imageBase64) {
-            const formData = new FormData();
-            formData.append('chat_id', chatId); formData.append('parse_mode', 'HTML');
-            let endpoint = 'sendMessage';
-            if (imageBase64) {
-                endpoint = 'sendPhoto';
-                try {
-                    const blob = await dataURLtoBlob(imageBase64);
-                    formData.append('photo', blob, 'account.png');
-                    formData.append('caption', text);
-                } catch (e) { endpoint = 'sendMessage'; formData.append('text', text); }
-            } else { formData.append('text', text); }
-            try {
-                const res = await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${endpoint}`, { method: 'POST', body: formData });
-                showStatus(res.ok ? "Pesan Terkirim" : "Gagal Kirim", !res.ok);
-            } catch(e) { showStatus("Error Koneksi", true); }
+        const fieldsMetadata = { 'dbEmail': 'Email Akun', 'dbPassG': 'Password Google', 'dbPassM': 'Password Moonton', 'dbBackup': 'Kode Cadangan', 'dbName': 'Nama / ID Akun', 'dbKet': 'Keterangan Akun', 'dbLoginVia': 'Login Via', 'galverType': 'Sub-Tipe Galver' };
+        function getFieldLabel(key) { return fieldsMetadata[key] || key.replace('db', ''); }
+
+        function handleDynamicFields(type, containerId = 'dynamicFields') {
+            const container = document.getElementById(containerId);
+            let html = '<div class="ios-input-group">';
+            if (type === "Mail fresh") {
+                html += `<div class="ios-input-row"><span class="row-label">Email Akun</span><input type="text" id="dbEmail" placeholder="Email" required></div><div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div><div class="ios-input-row"><span class="row-label">Password Moonton</span><input type="text" id="dbPassM" placeholder="Pass Moonton" required></div>`;
+            } else if (type === "Mail own") {
+                html += `<div class="ios-input-row"><span class="row-label">Email Akun</span><input type="text" id="dbEmail" placeholder="Email" required></div><div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div><div class="ios-input-row"><span class="row-label">Password Moonton</span><input type="text" id="dbPassM" placeholder="Pass Moonton" required></div><div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code" class="min-h-[60px]"></textarea></div>`;
+            } else if (type === "Monkos") {
+                html += `<div class="ios-input-row"><span class="row-label">Email Moonton</span><input type="text" id="dbEmail" placeholder="Email" required></div><div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div><div class="ios-input-row"><span class="row-label">Login Via</span><div class="flex justify-between items-center cursor-pointer" id="triggerDbLoginVia" onclick="openIOSPicker('LOGIN VIA', ['TikTok', 'Facebook', 'Google'], 'dbLoginVia')"><span id="labelDbLoginVia" class="text-[15px]">Pilih Login...</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></div><input type="hidden" id="dbLoginVia" required></div><div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code" class="min-h-[60px]"></textarea></div>`;
+            } else if (type === "Galver") {
+                html += `<div class="ios-input-row"><span class="row-label">Opsi Galver</span><div class="flex justify-between items-center cursor-pointer" id="triggerGalverType" onclick="openIOSPicker('PILIH TIPE', ['Email', 'Name'], 'galverType', true)"><span id="labelGalverType" class="text-[15px]">Email / Name...</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></div><input type="hidden" id="galverType"></div><div id="galverSubFields"></div>`;
+            }
+            html += '</div>';
+            container.innerHTML = html;
         }
 
-        function closeModals() {
-            document.querySelectorAll('.overlay, .bottom-sheet, .centered-modal').forEach(el => el.classList.remove('active'));
-            setTimeout(() => { document.getElementById('modalBtnAction').classList.add('hidden'); }, 300);
+        function handleGalverSubFields(subType) {
+            const container = document.getElementById('galverSubFields');
+            let html = '';
+            if (subType === 'Email') html = `<div class="ios-input-row"><span class="row-label">Email Akun</span><input type="text" id="dbEmail" placeholder="Email" required></div><div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div><div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code" class="min-h-[60px]"></textarea></div>`;
+            else if (subType === 'Name') html = `<div class="ios-input-row"><span class="row-label">Nama/ID Akun</span><input type="text" id="dbName" placeholder="Nama Akun" required></div><div class="ios-input-row"><span class="row-label">Password Moonton</span><input type="text" id="dbPassM" placeholder="Password" required></div>`;
+            container.innerHTML = html;
         }
-        document.getElementById('modalOverlay').onclick = closeModals;
 
-        // --- Form Handlers ---
-        document.getElementById('formSave').onsubmit = async (e) => {
-            e.preventDefault();
-            const type = document.getElementById('saveType').value;
-            if(!type) { showStatus("Pilih jenis akun", true); return; }
-            const data = { id: Date.now().toString(), type: type, timestamp: Date.now(), isSold: false, galverType: document.getElementById('galverType')?.value || null };
-            ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia'].forEach(f => {
-                const el = document.getElementById(f); if(el) data[f] = el.value;
-            });
-            const imgFile = document.getElementById('saveImage').files[0];
-            if(imgFile) data.image = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(imgFile); });
-            ahraDB.accounts.unshift(data); 
-            saveToLocalStorage(); renderDatabase(); showStatus("Data Disimpan");
-            e.target.reset(); document.getElementById('dynamicFields').innerHTML = ""; 
-            const label = document.getElementById('labelSaveType'); label.innerText = "Pilih Jenis Akun..."; label.style.color = "var(--text-secondary)";
-        };
-
-        document.getElementById('formStok').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button'); btn.disabled = true; btn.innerText = "MENGIRIM...";
-            const text = `🚀 <b>NEW ACCOUNT FROM AHRASTORE</b> 🚀\n\n💰 <b>Price :</b> ${document.getElementById('stokHarga').value}\nℹ : ${document.getElementById('stokInfo').value}\n\n🛒 <b>Order? Pm Admin AHRASTORE</b>\n🔗 https://t.me/zaaamyy\n\n📦 <b>Stok lain nya cek di sini</b>\n🔗 https://t.me/StokAhraStore2\n\n🤝 <b>Grub jual beli:</b>\n🔗 https://t.me/JBAKUNMLBYAHRASTORE\n\n📝 <b>Testimoni? cek</b>\n🔗 https://t.me/TESTIMONIAHRASTORE`;
-            const formData = new FormData(); formData.append('chat_id', '7423591679'); formData.append('caption', text); formData.append('parse_mode', 'HTML');
-            const photo = document.getElementById('stokImage').files[0]; if(photo) formData.append('photo', photo);
-            try {
-                const res = await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${photo?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData });
-                showStatus(res.ok ? "Terkirim" : "Gagal", !res.ok); if(res.ok) e.target.reset();
-            } catch(e) { showStatus("Error", true); }
-            btn.disabled = false; btn.innerText = "🚀 KIRIM KE CHANNEL";
-        };
-
-        // Reuse Picker Logic
         function openIOSPicker(title, options, targetId, isDynamic = false) {
             const container = document.getElementById('pickerOptionsContainer');
             document.getElementById('pickerTitle').innerText = title;
@@ -877,7 +973,6 @@
         function openIOSDatePicker() {
             const container = document.getElementById('modalBody');
             document.getElementById('modalTitle').innerText = "Pilih Tanggal";
-            document.getElementById('modalSubTitle').classList.add('hidden');
             container.innerHTML = `<div class="ios-input-group !bg-black/20"><input type="date" id="iosDateInput" class="!text-center !text-xl !p-4" style="height: 150px;"></div>`;
             const action = document.getElementById('modalBtnAction');
             action.innerText = "Setel"; action.classList.remove('hidden');
@@ -925,6 +1020,73 @@
             const label = document.getElementById('labelTestiAkun');
             label.innerText = val; label.style.color = "white";
         }
+
+        function closeModals() {
+            document.querySelectorAll('.overlay, .bottom-sheet, .centered-modal').forEach(el => el.classList.remove('active'));
+            setTimeout(() => { document.getElementById('modalBtnAction').classList.add('hidden'); }, 300);
+        }
+        document.getElementById('modalOverlay').onclick = closeModals;
+
+        async function sendAccountToTelegram(chatId, text, imageBase64) {
+            const formData = new FormData();
+            formData.append('chat_id', chatId); formData.append('parse_mode', 'HTML');
+            let endpoint = 'sendMessage';
+            if (imageBase64) {
+                endpoint = 'sendPhoto';
+                try {
+                    const blob = await (await fetch(imageBase64)).blob();
+                    formData.append('photo', blob, 'account.png');
+                    formData.append('caption', text);
+                } catch (e) { endpoint = 'sendMessage'; formData.append('text', text); }
+            } else formData.append('text', text);
+            try {
+                const res = await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${endpoint}`, { method: 'POST', body: formData });
+                showStatus(res.ok ? "Pesan Terkirim" : "Gagal Kirim", !res.ok);
+            } catch(e) { showStatus("Error Koneksi", true); }
+        }
+
+        function exportToJSON() {
+            const blob = new Blob([JSON.stringify({accounts: accountsData}, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url; link.download = `AhraStore_Cloud_Backup_${new Date().toLocaleDateString()}.json`;
+            link.click(); URL.revokeObjectURL(url);
+        }
+
+        document.getElementById('formStok').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnStokSubmit');
+            btn.disabled = true; btn.innerText = "MENGIRIM...";
+            const text = `🚀 <b>NEW ACCOUNT FROM AHRASTORE</b> 🚀\n\n💰 <b>Price :</b> ${document.getElementById('stokHarga').value}\nℹ : ${document.getElementById('stokInfo').value}\n\n🛒 <b>Order? Pm Admin AHRASTORE</b>\n🔗 https://t.me/zaaamyy\n\n📦 <b>Stok lain nya cek di sini</b>\n🔗 https://t.me/StokAhraStore2\n\n🤝 <b>Grub jual beli:</b>\n🔗 https://t.me/JBAKUNMLBYAHRASTORE\n\n📝 <b>Testimoni? cek</b>\n🔗 https://t.me/TESTIMONIAHRASTORE`;
+            const photo = document.getElementById('stokImage').files[0];
+            const formData = new FormData();
+            formData.append('chat_id', '7423591679'); formData.append('caption', text); formData.append('parse_mode', 'HTML');
+            if(photo) formData.append('photo', photo);
+            try {
+                const res = await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${photo?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData });
+                showStatus(res.ok ? "Terkirim ke Channel" : "Gagal", !res.ok);
+                if(res.ok) e.target.reset();
+            } catch(e) { showStatus("Error Koneksi", true); }
+            btn.disabled = false; btn.innerText = "KIRIM KE CHANNEL";
+        };
+
+        document.getElementById('formTesti').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnTestiSubmit');
+            btn.disabled = true; btn.innerText = "MENGIRIM TESTI...";
+            const tanggal = document.getElementById('testiTanggal').value.split('-').reverse().join('/');
+            const text = `✅ <b>TESTIMONI AHRASTORE</b> ✅\n\n📅 <b>Tanggal:</b> ${tanggal}\n💰 <b>Harga:</b> ${document.getElementById('testiHarga').value}\n👤 <b>Tingkatan:</b> ${document.getElementById('testiAkun').value}\n\n🙏 <b>Terima kasih telah order di AhraStore!</b>\n🔗 https://t.me/TESTIMONIAHRASTORE`;
+            const photo = document.getElementById('testiImage').files[0];
+            const formData = new FormData();
+            formData.append('chat_id', '7423591679'); formData.append('caption', text); formData.append('parse_mode', 'HTML');
+            if(photo) formData.append('photo', photo);
+            try {
+                const res = await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${photo?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData });
+                showStatus(res.ok ? "Testimoni Terkirim" : "Gagal", !res.ok);
+                if(res.ok) e.target.reset();
+            } catch(e) { showStatus("Error", true); }
+            btn.disabled = false; btn.innerText = "POST TESTIMONI";
+        };
     </script>
 </body>
 </html>
