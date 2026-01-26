@@ -229,16 +229,24 @@
         onAuthStateChanged(auth, (u) => {
             user = u;
             if (u) {
+                // 1. Sembunyikan layar login
                 document.getElementById('loginScreen').classList.add('hidden');
+                
+                // 2. Tampilkan aplikasi utama
                 document.getElementById('app').classList.remove('hidden');
+                
+                // 3. Tampilkan identitas user
                 document.getElementById('userLabel').innerText = u.email || "User Pro";
+                
+                // 4. Ambil data dari database
                 initDatabase();
             } else {
+                // Jika logout, kembalikan ke layar login
                 document.getElementById('app').classList.add('hidden');
                 document.getElementById('loginScreen').classList.remove('hidden');
             }
             
-            // Tutup loading screen
+            // Hilangkan loading screen
             const loader = document.getElementById('loadingScreen');
             if (loader) {
                 loader.style.opacity = '0';
@@ -435,3 +443,4 @@
     </script>
 </body>
 </html>
+
