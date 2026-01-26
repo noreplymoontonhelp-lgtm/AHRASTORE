@@ -187,16 +187,17 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             display: none;
             flex-direction: column;
-            overflow: hidden;
+            overflow-y: auto;
             border: 0.5px solid rgba(255, 255, 255, 0.1);
             transform-origin: top right;
             animation: popIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-            width: 220px;
+            width: 280px;
+            max-height: 80vh;
         }
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .popover-item {
-            padding: 14px 16px;
+            padding: 12px 16px;
             font-size: 14px;
             display: flex;
             align-items: center;
@@ -385,26 +386,78 @@
     <!-- App Container -->
     <div id="app" class="app-container" style="display:none;">
         <header class="px-6 py-4 flex justify-between items-end bg-black/80 backdrop-blur-xl sticky top-0 z-40 border-b border-white/5">
-            <div>
-                <h1 id="welcomeHeader" class="text-2xl font-bold text-white tracking-tight">Halo User</h1>
-                <div class="flex items-center gap-1.5 mt-0.5">
-                    <div id="statusDot" class="w-2 h-2 rounded-full bg-green-500 transition-colors duration-300"></div>
-                    <span id="connectionLabel" class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Online</span>
+            <div class="flex items-center gap-3">
+                <div id="avatarHeader" class="w-12 h-12 rounded-full bg-zinc-800 border border-white/10 overflow-hidden flex items-center justify-center flex-shrink-0">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <div>
+                    <h1 id="welcomeHeader" class="text-2xl font-bold text-white tracking-tight">Halo User</h1>
+                    <div class="flex items-center gap-1.5 mt-0.5">
+                        <div id="statusDot" class="w-2 h-2 rounded-full bg-green-500 transition-colors duration-300"></div>
+                        <span id="connectionLabel" class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Online</span>
+                    </div>
                 </div>
             </div>
-            <button id="settingsBtn" onclick="toggleAhraPopover('settingsOverlay', this)" class="p-2 text-blue-500 transition-all duration-300">
+            <button id="settingsBtn" onclick="toggleAhraPopover('settingsOverlay')" class="p-2 text-blue-500 transition-all duration-300">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0a2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
 
-            <div id="settingsOverlay" class="ios-popover" style="top: 75px; right: 20px;">
-                <button onclick="exportJSON(); closeAllPopovers();" class="popover-item">
-                    <span>Export Data (.json)</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                </button>
-                <button onclick="handleLogout()" class="popover-item !text-red-500 font-bold">
-                    <span>Logout Akun</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                </button>
+            <!-- expanded Settings Popover -->
+            <div id="settingsOverlay" class="ios-popover p-4" style="top: 75px; right: 20px;">
+                <div class="mb-4">
+                    <h3 class="text-[10px] font-bold text-zinc-500 uppercase mb-2 ml-1">Profil Pengguna</h3>
+                    <div class="ios-input-group">
+                        <div class="ios-input-row">
+                            <span class="row-label">Username</span>
+                            <input type="text" id="editUsername" placeholder="Username Baru">
+                        </div>
+                        <div class="ios-input-row">
+                            <span class="row-label">Foto Profil</span>
+                            <label for="editAvatar" class="flex justify-between items-center cursor-pointer py-1">
+                                <span id="labelEditAvatar" class="text-[13px] text-zinc-500 truncate">Pilih Foto...</span>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-500"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                <input type="file" id="editAvatar" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'labelEditAvatar')">
+                            </label>
+                        </div>
+                    </div>
+                    <button onclick="updateProfileSettings()" class="w-full mt-2 py-2 bg-blue-500/10 text-blue-500 text-[12px] font-bold rounded-lg active:scale-95 transition-all">SIMPAN PROFIL</button>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="text-[10px] font-bold text-zinc-500 uppercase mb-2 ml-1">Keamanan Akun</h3>
+                    <div class="ios-input-group">
+                        <div class="ios-input-row">
+                            <span class="row-label">Password Lama</span>
+                            <input type="password" id="oldPass" placeholder="Konfirmasi Dulu">
+                        </div>
+                        <div class="ios-input-row">
+                            <span class="row-label">Password Baru</span>
+                            <input type="password" id="newPass" placeholder="Minimal 6 Karakter">
+                        </div>
+                    </div>
+                    <button onclick="updateSecuritySettings()" class="w-full mt-2 py-2 bg-blue-500/10 text-blue-500 text-[12px] font-bold rounded-lg active:scale-95 transition-all">GANTI PASSWORD</button>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="text-[10px] font-bold text-zinc-500 uppercase mb-2 ml-1">Informasi Akun</h3>
+                    <div class="ios-input-group">
+                        <div class="ios-input-row">
+                            <span class="row-label">Email Terdaftar</span>
+                            <span id="displayEmail" class="text-[13px] text-zinc-400 font-medium py-1 truncate">email@user.com</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-white/5 space-y-1">
+                    <button onclick="exportJSON(); closeAllPopovers();" class="popover-item !border-none !py-2.5 rounded-lg active:bg-zinc-800">
+                        <span class="text-zinc-400">Export Cloud (.json)</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-zinc-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    </button>
+                    <button onclick="handleLogout()" class="popover-item !text-red-500 font-bold !border-none !py-2.5 rounded-lg active:bg-red-500/10">
+                        <span>Logout Akun</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -549,7 +602,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
             getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, 
-            GoogleAuthProvider, signInWithPopup, signOut 
+            GoogleAuthProvider, signInWithPopup, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
             getFirestore, collection, addDoc, doc, onSnapshot, deleteDoc, updateDoc, query, orderBy, getDoc, setDoc 
@@ -583,13 +636,11 @@
             const appEl = document.getElementById('app');
 
             if (u) {
-                // Check user profile for username
                 await checkUserProfile(u);
-                
                 login.style.display = 'none';
                 appEl.style.display = 'flex';
                 appEl.classList.remove('hidden');
-                
+                document.getElementById('displayEmail').innerText = u.email;
                 updateConnectionStatus(true);
                 initDatabase();
             } else {
@@ -608,18 +659,24 @@
         // --- PROFILE SYSTEM ---
         async function checkUserProfile(u) {
             try {
-                // RULE 1: /artifacts/{appId}/users/{userId}/{collectionName}
                 const profileRef = doc(db, 'artifacts', appId, 'users', u.uid, 'settings', 'profile');
-                const profileSnap = await getDoc(profileRef);
-
-                if (profileSnap.exists()) {
-                    const data = profileSnap.data();
-                    document.getElementById('welcomeHeader').innerText = `Halo ${data.username || 'User'}`;
-                } else {
-                    // Show Username Setup Modal
-                    document.getElementById('modalOverlay').classList.add('active');
-                    document.getElementById('setupUsernameModal').classList.add('active');
-                }
+                
+                onSnapshot(profileRef, (doc) => {
+                    if (doc.exists()) {
+                        const data = doc.data();
+                        document.getElementById('welcomeHeader').innerText = `Halo ${data.username || 'User'}`;
+                        document.getElementById('editUsername').value = data.username || "";
+                        
+                        if (data.avatar) {
+                            document.getElementById('avatarHeader').innerHTML = `<img src="${data.avatar}" class="w-full h-full object-cover">`;
+                        } else {
+                            document.getElementById('avatarHeader').innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+                        }
+                    } else {
+                        document.getElementById('modalOverlay').classList.add('active');
+                        document.getElementById('setupUsernameModal').classList.add('active');
+                    }
+                });
             } catch (err) {
                 console.error("Profile check failed:", err);
             }
@@ -627,31 +684,64 @@
 
         window.saveInitialUsername = async () => {
             const username = document.getElementById('newUsername').value.trim();
-            const btn = document.getElementById('saveUsernameBtn');
+            if (!username || username.length < 3) return showIOSNotify("Username Terlalu Pendek", "Gunakan minimal 3 karakter.");
             
-            if (!username || username.length < 3) {
-                return showIOSNotify("Username Terlalu Pendek", "Gunakan minimal 3 karakter.");
-            }
+            try {
+                const profileRef = doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'profile');
+                await setDoc(profileRef, { username, createdAt: Date.now() });
+                document.getElementById('setupUsernameModal').classList.remove('active');
+                document.getElementById('modalOverlay').classList.remove('active');
+                showIOSNotify("Selamat Datang", `Halo ${username}!`, false);
+            } catch (err) { showIOSNotify("Gagal", "Gagal menyimpan username."); }
+        };
 
-            btn.disabled = true;
-            btn.innerText = "Menyimpan...";
+        // --- NEW PROFILE SETTINGS LOGIC ---
+        window.updateProfileSettings = async () => {
+            const newName = document.getElementById('editUsername').value.trim();
+            if (!newName) return showIOSNotify("Input Kosong", "Username tidak boleh kosong.");
+
+            const file = document.getElementById('editAvatar').files[0];
+            let avatarData = null;
+            if (file) {
+                avatarData = await new Promise(r => { 
+                    const fr = new FileReader(); 
+                    fr.onload = () => r(fr.result); 
+                    fr.readAsDataURL(file); 
+                });
+            }
 
             try {
                 const profileRef = doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'profile');
-                await setDoc(profileRef, {
-                    username: username,
-                    createdAt: Date.now()
+                const updateData = { username: newName };
+                if (avatarData) updateData.avatar = avatarData;
+                
+                await updateDoc(profileRef, updateData).catch(async () => {
+                    await setDoc(profileRef, updateData);
                 });
+                
+                showIOSNotify("Profil Diperbarui", "Username dan foto profil berhasil disimpan.", false);
+                document.getElementById('editAvatar').value = "";
+                document.getElementById('labelEditAvatar').innerText = "Pilih Foto...";
+            } catch (e) { showIOSNotify("Error", "Gagal memperbarui profil."); }
+        };
 
-                document.getElementById('welcomeHeader').innerText = `Halo ${username}`;
-                document.getElementById('setupUsernameModal').classList.remove('active');
-                document.getElementById('modalOverlay').classList.remove('active');
-                showIOSNotify("Profil Diperbarui", `Halo ${username}, selamat datang!`, false);
-            } catch (err) {
-                showIOSNotify("Gagal Simpan", "Terjadi kesalahan saat menyimpan profil.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "SIMPAN PROFIL";
+        window.updateSecuritySettings = async () => {
+            const oldPass = document.getElementById('oldPass').value;
+            const newPass = document.getElementById('newPass').value;
+
+            if (!oldPass || !newPass) return showIOSNotify("Lengkapi Data", "Silakan masukkan password lama dan baru.");
+            if (newPass.length < 6) return showIOSNotify("Password Pendek", "Password minimal 6 karakter.");
+
+            try {
+                const credential = EmailAuthProvider.credential(user.email, oldPass);
+                await reauthenticateWithCredential(user, credential);
+                await updatePassword(user, newPass);
+                
+                showIOSNotify("Password Diganti", "Keamanan akun Anda telah diperbarui.", false);
+                document.getElementById('oldPass').value = "";
+                document.getElementById('newPass').value = "";
+            } catch (e) {
+                showIOSNotify("Gagal Ganti Password", "Password lama salah atau terjadi gangguan jaringan.");
             }
         };
 
@@ -685,16 +775,12 @@
             }
         };
 
-        // --- iOS Professional Notification System ---
         window.showIOSNotify = (title, message, isError = true) => {
             const container = document.getElementById('iosNotifyContainer');
             const titleEl = document.getElementById('notifyTitle');
             const msgEl = document.getElementById('notifyMessage');
             const iconContainer = document.getElementById('notifyIconContainer');
-            
-            titleEl.innerText = title;
-            msgEl.innerText = message;
-            
+            titleEl.innerText = title; msgEl.innerText = message;
             if(isError) {
                 iconContainer.className = "w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/20 text-red-500";
                 iconContainer.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
@@ -702,69 +788,28 @@
                 iconContainer.className = "w-10 h-10 rounded-xl flex items-center justify-center bg-green-500/20 text-green-500";
                 iconContainer.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
             }
-            
-            container.classList.add('active');
-            setTimeout(() => {
-                container.classList.remove('active');
-            }, 4000);
+            container.classList.add('active'); setTimeout(() => container.classList.remove('active'), 4000);
         };
 
-        // --- AUTH ACTIONS ---
         window.handleEmailAuth = async (type) => {
             const e = document.getElementById('loginEmail').value;
             const p = document.getElementById('loginPass').value;
             const btn = type === 'login' ? document.getElementById('loginBtn') : document.getElementById('signupBtn');
-            
             if(!e || !p) return showIOSNotify("Form Tidak Lengkap", "Silakan isi email dan password Anda.");
-            
-            btn.disabled = true;
-            btn.innerText = "Processing...";
-            
+            btn.disabled = true; btn.innerText = "Processing...";
             try {
-                if(type === 'login') {
-                    await signInWithEmailAndPassword(auth, e, p);
-                } else {
-                    await createUserWithEmailAndPassword(auth, e, p);
-                }
+                if(type === 'login') await signInWithEmailAndPassword(auth, e, p);
+                else await createUserWithEmailAndPassword(auth, e, p);
             } catch(err) { 
-                console.error(err.code);
-                let title = "Autentikasi Gagal";
-                let msg = "Terjadi kesalahan saat memproses data.";
-                
+                let title = "Autentikasi Gagal"; let msg = "Cek kembali data Anda.";
                 switch(err.code) {
-                    case 'auth/email-already-in-use':
-                        title = "Email Terdaftar";
-                        msg = "Email ini sudah digunakan oleh akun lain.";
-                        break;
-                    case 'auth/invalid-email':
-                        title = "Email Tidak Valid";
-                        msg = "Format email yang Anda masukkan salah.";
-                        break;
-                    case 'auth/user-not-found':
-                        title = "Akun Tidak Ada";
-                        msg = "Kami tidak dapat menemukan akun dengan email ini.";
-                        break;
-                    case 'auth/wrong-password':
-                        title = "Password Salah";
-                        msg = "Kata sandi yang Anda masukkan tidak sesuai.";
-                        break;
-                    case 'auth/weak-password':
-                        title = "Password Lemah";
-                        msg = "Password harus minimal 6 karakter.";
-                        break;
-                    case 'auth/network-request-failed':
-                        title = "Koneksi Bermasalah";
-                        msg = "Periksa jaringan internet Anda.";
-                        break;
-                    case 'auth/too-many-requests':
-                        title = "Akses Diblokir";
-                        msg = "Terlalu banyak percobaan. Coba lagi nanti.";
-                        break;
+                    case 'auth/email-already-in-use': title = "Email Terdaftar"; msg = "Email ini sudah digunakan."; break;
+                    case 'auth/wrong-password': title = "Password Salah"; msg = "Kata sandi tidak sesuai."; break;
+                    case 'auth/user-not-found': title = "Akun Tidak Ada"; msg = "Email belum terdaftar."; break;
                 }
                 showIOSNotify(title, msg);
             } finally {
-                btn.disabled = false;
-                btn.innerText = type === 'login' ? "MASUK" : "DAFTAR BARU";
+                btn.disabled = false; btn.innerText = type === 'login' ? "MASUK" : "DAFTAR BARU";
             }
         };
 
@@ -772,41 +817,31 @@
             try { 
                 const provider = new GoogleAuthProvider();
                 await signInWithPopup(auth, provider); 
-            } catch(e) { 
-                console.error(e);
-                showIOSNotify("Google Auth Gagal", "Gagal melakukan autentikasi dengan akun Google."); 
-            }
+            } catch(e) { showIOSNotify("Auth Gagal", "Gagal masuk dengan Google."); }
         };
 
         window.handleLogout = () => { 
             if(confirm("Keluar dari aplikasi?")) {
                 signOut(auth);
-                showIOSNotify("Logout Berhasil", "Anda telah keluar dari akun.", false);
+                closeAllPopovers();
+                showIOSNotify("Logout Berhasil", "Anda telah keluar.", false);
             }
         };
 
         // --- FIRESTORE DATABASE LOGIC ---
         function initDatabase() {
             if(!user) return;
-            const q = query(
-                collection(db, 'artifacts', appId, 'users', user.uid, 'stok'),
-                orderBy('timestamp', 'desc')
-            );
-            
+            const q = query(collection(db, 'artifacts', appId, 'users', user.uid, 'stok'), orderBy('timestamp', 'desc'));
             onSnapshot(q, (snap) => {
                 accounts = [];
                 snap.forEach(d => accounts.push({id: d.id, ...d.data()}));
                 renderDatabase();
-            }, (error) => {
-                console.error(error);
             });
         }
 
         function renderDatabase() {
             const grid = document.getElementById('databaseGrid');
-            grid.innerHTML = "";
-            document.getElementById('dbCount').innerText = `${accounts.length} Item`;
-            
+            grid.innerHTML = ""; document.getElementById('dbCount').innerText = `${accounts.length} Item`;
             accounts.forEach(acc => {
                 const card = document.createElement('div');
                 card.className = "db-card";
@@ -815,12 +850,8 @@
                     const menu = document.getElementById('itemActionMenu');
                     const rect = card.getBoundingClientRect();
                     const containerRect = document.querySelector('.app-container').getBoundingClientRect();
-                    let topPos = rect.top - containerRect.top + 40;
-                    let leftPos = rect.left - containerRect.left + 20;
-                    if(leftPos + 200 > containerRect.width) leftPos = containerRect.width - 220;
-                    
-                    menu.style.top = `${topPos}px`;
-                    menu.style.left = `${leftPos}px`;
+                    menu.style.top = `${rect.top - containerRect.top + 40}px`;
+                    menu.style.left = `${Math.min(rect.left - containerRect.left + 20, containerRect.width - 220)}px`;
                     menu.style.display = 'flex';
                     e.stopPropagation();
                 };
@@ -836,145 +867,39 @@
             });
         }
 
-        // Action Handlers
         window.handleAction = async (type) => {
             const acc = accounts.find(a => a.id === activeId);
             document.getElementById('itemActionMenu').style.display = 'none';
             if(!acc) return;
-
             const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'stok', activeId);
-
             if(type === 'detail') {
                 document.getElementById('modalTitle').innerText = "Detail Akun";
                 let html = '<div class="ios-input-group">';
-                const fields = { 'type': 'Jenis', 'dbGalverMethod': 'Metode Login', 'dbEmail': 'Email', 'dbPassG': 'Password G', 'dbPassM': 'Password M', 'dbBackup': 'Kode Cadangan', 'dbName': 'Nama/ID', 'dbLoginVia': 'Login Via' };
-                for(let key in fields) {
-                    if(acc[key]) html += `<div class="ios-input-row"><span class="row-label">${fields[key]}</span><span class="text-sm font-medium break-all text-white/90">${acc[key]}</span></div>`;
-                }
+                const fields = { 'type': 'Jenis', 'dbGalverMethod': 'Metode Login', 'dbEmail': 'Email', 'dbPassG': 'Password G', 'dbPassM': 'Moonton', 'dbBackup': 'Backup', 'dbName': 'Nama', 'dbLoginVia': 'Via' };
+                for(let key in fields) if(acc[key]) html += `<div class="ios-input-row"><span class="row-label">${fields[key]}</span><span class="text-[13px] break-all">${acc[key]}</span></div>`;
                 html += '</div>';
                 document.getElementById('modalBody').innerHTML = html;
-                document.getElementById('modalBtnAction').classList.add('hidden');
                 document.getElementById('modalOverlay').classList.add('active');
                 document.getElementById('iosDetailModal').classList.add('active');
-            } 
-            else if (type === 'sold') {
+            } else if (type === 'sold') {
                 await updateDoc(docRef, { isSold: !acc.isSold });
-                showIOSNotify("Status Diperbarui", "Status penjualan akun telah diubah.", false);
-            } 
-            else if (type === 'delete') {
-                if(confirm("Hapus stok ini permanen dari Cloud?")) {
-                    await deleteDoc(docRef);
-                    showIOSNotify("Terhapus", "Data akun telah dihapus dari cloud.", false);
-                }
-            }
-            else if (type === 'send_admin') {
-                 let text = `🚀 <b>DETAIL AKUN (ADMIN)</b>\nJenis: ${acc.type}\n--------------------------------\n`;
+                showIOSNotify("Berhasil", "Status updated.", false);
+            } else if (type === 'delete') {
+                if(confirm("Hapus stok ini?")) { await deleteDoc(docRef); showIOSNotify("Terhapus", "Data cloud dibersihkan.", false); }
+            } else if (type === 'send_admin') {
+                 let text = `🚀 <b>DETAIL AKUN</b>\nJenis: ${acc.type}\n--------------------------------\n`;
                  ['dbEmail', 'dbPassG', 'dbPassM', 'dbLoginVia', 'dbName'].forEach(k => { if(acc[k]) text += `<b>${k.replace('db','')} :</b> <code>${acc[k]}</code>\n`; });
-                 await sendAccountToTelegram('7423591679', text, acc.image);
-            }
-            else if (type === 'send_buyer') {
-                document.getElementById('modalTitle').innerText = "Kirim ke Buyer";
-                const body = document.getElementById('modalBody');
-                body.innerHTML = `<div class="ios-input-group"><div class="ios-input-row"><span class="row-label">Username Buyer</span><input type="text" id="buyerUsername" placeholder="@username" required></div></div>`;
-                const action = document.getElementById('modalBtnAction');
-                action.innerText = "Kirim Data"; action.classList.remove('hidden');
-                action.onclick = async () => {
-                    const buyer = document.getElementById('buyerUsername').value;
-                    if(!buyer) return;
-                    let text = `✨ <b>DETAIL AKUN BY AHRASTORE</b>\nBuyer: ${buyer}\n--------------------------------\n`;
-                    ['dbEmail', 'dbPassG', 'dbPassM', 'dbLoginVia', 'dbName', 'dbBackup'].forEach(k => { if(acc[k]) text += `<b>${k.replace('db','')} :</b> <code>${acc[k]}</code>\n`; });
-                    text += `\n--------------------------------\nStok: @StokAhraStore2`;
-                    closeModals(); await sendAccountToTelegram('7423591679', text, acc.image);
-                };
-                document.getElementById('modalOverlay').classList.add('active');
-                document.getElementById('iosDetailModal').classList.add('active');
+                 await sendToTelegram('7423591679', text, acc.image);
             }
         };
-
-        // --- TESTIMONI SPECIFIC PICKERS ---
-        window.openIOSDatePicker = () => {
-            const container = document.getElementById('pickerOptionsContainer');
-            document.getElementById('pickerTitle').innerText = "PILIH TANGGAL";
-            container.innerHTML = "";
-            
-            const dates = [];
-            for(let i=0; i<30; i++){
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                dates.push(d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }));
-            }
-
-            dates.forEach(date => {
-                const btn = document.createElement('button');
-                btn.className = "picker-option";
-                btn.innerText = date;
-                btn.onclick = () => {
-                    document.getElementById('testiTanggal').value = date;
-                    document.getElementById('labelTestiTanggal').innerText = date;
-                    document.getElementById('labelTestiTanggal').style.color = "white";
-                    closeModals();
-                };
-                container.appendChild(btn);
-            });
-            document.getElementById('modalOverlay').classList.add('active');
-            document.getElementById('iosPickerSheet').classList.add('active');
-        };
-
-        window.openTestimoniPicker = () => {
-            const levels = ["Junior", "Senior", "Ahli", "Ternama", "Terhormat", "Juragan", "Sultan"];
-            const container = document.getElementById('pickerOptionsContainer');
-            document.getElementById('pickerTitle').innerText = "PILIH TINGKATAN";
-            container.innerHTML = "";
-
-            levels.forEach(lvl => {
-                const btn = document.createElement('button');
-                btn.className = "picker-option";
-                btn.innerText = lvl;
-                btn.onclick = () => {
-                    if(lvl === "Sultan") {
-                        document.getElementById('testiAkun').value = lvl;
-                        document.getElementById('labelTestiAkun').innerText = lvl;
-                        document.getElementById('labelTestiAkun').style.color = "white";
-                        closeModals();
-                    } else {
-                        openLevelNumberPicker(lvl);
-                    }
-                };
-                container.appendChild(btn);
-            });
-            document.getElementById('modalOverlay').classList.add('active');
-            document.getElementById('iosPickerSheet').classList.add('active');
-        };
-
-        function openLevelNumberPicker(lvlBase) {
-            const container = document.getElementById('pickerOptionsContainer');
-            document.getElementById('pickerTitle').innerText = `PILIH ANGKA ${lvlBase.toUpperCase()}`;
-            container.innerHTML = "";
-
-            [1, 2, 3, 4, 5].forEach(num => {
-                const btn = document.createElement('button');
-                btn.className = "picker-option";
-                btn.innerText = num;
-                btn.onclick = () => {
-                    const finalValue = `${lvlBase} ${num}`;
-                    document.getElementById('testiAkun').value = finalValue;
-                    document.getElementById('labelTestiAkun').innerText = finalValue;
-                    document.getElementById('labelTestiAkun').style.color = "white";
-                    closeModals();
-                };
-                container.appendChild(btn);
-            });
-        }
 
         // --- FILE UI UTILS ---
         window.handleFileSelect = (input, labelId) => {
             const label = document.getElementById(labelId);
             if (input.files && input.files[0]) {
-                label.innerText = input.files[0].name;
-                label.style.color = "white";
+                label.innerText = input.files[0].name; label.style.color = "white";
             } else {
-                label.innerText = "Pilih Foto...";
-                label.style.color = "#8e8e93";
+                label.innerText = "Pilih Foto..."; label.style.color = "#8e8e93";
             }
         };
 
@@ -982,113 +907,33 @@
         document.getElementById('formTesti').onsubmit = async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
-            const tanggal = document.getElementById('testiTanggal').value;
-            const harga = document.getElementById('testiHarga').value;
-            const akun = document.getElementById('testiAkun').value;
-
-            if(!tanggal || !harga || !akun) return showIOSNotify("Form Testimoni", "Mohon lengkapi semua data testimoni.");
-
-            btn.disabled = true; btn.innerText = "Memproses...";
-
-            const text = `✨ <b>TESTIMONI TRANSAKSI AHRASTORE</b>\n\n` +
-                         `📅 Tanggal : ${tanggal}\n` +
-                         `ℹ️ Info : Akun ${akun}\n` +
-                         `💸 Harga : ${harga}\n\n` +
-                         `📦 Stok lain nya cek di sini\n` +
-                         `🌐 https://t.me/StokAhraStore2\n` +
-                         `🤝 Grub stok jual beli, taruh stok mu atau cari stok lain di sini\n` +
-                         `🌐 https://t.me/JBAKUNMLBYAHRASTORE\n` +
-                         `🤟 Testimoni? cek\n` +
-                         `🌐 https://t.me/TESTIMONIAHRASTORE`;
-
+            const tgl = document.getElementById('testiTanggal').value;
+            const hrg = document.getElementById('testiHarga').value;
+            const akn = document.getElementById('testiAkun').value;
+            if(!tgl || !hrg || !akn) return showIOSNotify("Form Testimoni", "Lengkapi semua data.");
+            btn.disabled = true; btn.innerText = "Processing...";
+            const text = `✨ <b>TESTIMONI TRANSAKSI AHRASTORE</b>\n\n📅 Tanggal : ${tgl}\nℹ️ Info : Akun ${akn}\n💸 Harga : ${hrg}\n\n📦 Stok lain: @StokAhraStore2`;
             const photo = document.getElementById('testiImage').files[0];
-            const formData = new FormData();
-            formData.append('chat_id', '7423591679');
-            formData.append('parse_mode', 'HTML');
-            formData.append('caption', text);
-            if(photo) formData.append('photo', photo);
-
-            try {
-                await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${photo?'sendPhoto':'sendMessage'}`, {
-                    method: 'POST',
-                    body: formData
-                });
-                showIOSNotify("Testimoni Terkirim", "Postingan telah berhasil dikirim ke channel.", false);
-                e.target.reset();
-                document.getElementById('labelTestiTanggal').innerText = "Pilih Tanggal...";
-                document.getElementById('labelTestiAkun').innerText = "Pilih Tingkatan...";
-                document.getElementById('label-testiImage').innerText = "Pilih Foto...";
-            } catch(e) {
-                showIOSNotify("Pengiriman Gagal", "Gagal mengirim data ke Telegram.");
-            }
+            try { await sendToTelegram('7423591679', text, photo); showIOSNotify("Terkirim", "Berhasil post testimoni.", false); e.target.reset(); } 
+            catch(e) { showIOSNotify("Error", "Gagal kirim."); }
             btn.disabled = false; btn.innerText = "POST TESTIMONI";
         };
 
         document.getElementById('formSave').onsubmit = async (e) => {
             e.preventDefault();
             const type = document.getElementById('saveType').value;
-            if(!type) return showIOSNotify("Data Tidak Lengkap", "Pilih jenis akun terlebih dahulu.");
-            
+            if(!type) return showIOSNotify("Input Kosong", "Pilih jenis akun.");
             const btn = e.target.querySelector('button');
-            btn.disabled = true; btn.innerText = "Menyimpan...";
-
+            btn.disabled = true; btn.innerText = "Saving...";
             const data = { type, timestamp: Date.now(), isSold: false };
             ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia', 'dbGalverMethod'].forEach(f => {
                 const el = document.getElementById(f); if(el) data[f] = el.value;
             });
-
-            const file = document.getElementById('saveImage').files[0];
-            if(file) data.image = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(file); });
-
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'stok'), data);
-                showIOSNotify("Berhasil Disimpan", "Akun berhasil didaftarkan ke cloud database.", false);
-                e.target.reset(); 
-                document.getElementById('dynamicFields').innerHTML = "";
-                document.getElementById('labelSaveType').innerText = "Pilih Jenis Akun...";
-                document.getElementById('label-saveImage').innerText = "Pilih Foto...";
-                switchTab('db');
-            } catch(err) { showIOSNotify("Input Gagal", "Gagal menyimpan data ke Firestore."); }
+            const imgFile = document.getElementById('saveImage').files[0];
+            if(imgFile) data.image = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(imgFile); });
+            try { await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'stok'), data); showIOSNotify("Disimpan", "Akun masuk cloud.", false); e.target.reset(); switchTab('db'); } 
+            catch(err) { showIOSNotify("Error", "Gagal simpan Firestore."); }
             btn.disabled = false; btn.innerText = "SIMPAN KE CLOUD";
-        };
-
-        document.getElementById('formStok').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button');
-            btn.disabled = true; btn.innerText = "Mengirim...";
-            const harga = document.getElementById('stokHarga').value;
-            const info = document.getElementById('stokInfo').value;
-
-            const text = `‼️NEW ACCOUNT FROM AHRASTORE‼️\n\n` +
-            `💸Price : ${harga}\n` +
-            `ℹ️Info Akun : ${info}\n\n` +
-            `🛒Order? Chat Admin AHRASTORE\n` +
-            `🌐 https://t.me/zaaamyy\n\n` +
-            `📦Stok lain nya cek di sini\n` +
-            `🌐 https://t.me/StokAhraStore2\n` +
-            `🤝Grub stok jual beli, taruh stok mu atau cari stok lain di sini\n` +
-            `🌐 https://t.me/JBAKUNMLBYAHRASTORE\n` +
-            `🤟Testimoni? cek\n` +
-            `🌐 https://t.me/TESTIMONIAHRASTORE`;
-
-            const formData = new FormData();
-            formData.append('chat_id', '7423591679');
-            formData.append('caption', text);
-            const photo = document.getElementById('stokImage').files[0];
-            if (photo) formData.append('photo', photo);
-
-            try {
-                await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${photo ? 'sendPhoto' : 'sendMessage'}`, {
-                    method: 'POST',
-                    body: formData
-                });
-                showIOSNotify("Berhasil Dikirim", "Informasi stok akun terkirim ke channel.", false);
-                e.target.reset();
-                document.getElementById('label-stokImage').innerText = "Pilih Foto...";
-            } catch (e) {
-                showIOSNotify("Gagal Kirim", "Terjadi masalah saat menghubungi Telegram.");
-            }
-            btn.disabled = false; btn.innerText = "KIRIM KE CHANNEL";
         };
 
         // --- GLOBAL UI UTILS ---
@@ -1107,24 +952,55 @@
             el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
         };
 
+        window.closeAllPopovers = () => {
+            document.querySelectorAll('.ios-popover').forEach(m => m.style.display = 'none');
+        };
+
         window.closeModals = () => {
             document.querySelectorAll('.overlay, .bottom-sheet, .centered-modal').forEach(m => {
                 if(m.id !== 'setupUsernameModal') m.classList.remove('active');
             });
-            setTimeout(() => { 
-                const btn = document.getElementById('modalBtnAction');
-                if(btn) btn.classList.add('hidden'); 
-            }, 300);
         };
-        document.getElementById('modalOverlay').onclick = closeModals;
 
-        window.exportJSON = () => {
-            const blob = new Blob([JSON.stringify(accounts, null, 2)], { type: "application/json" });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `AhraStore_Cloud_Backup_${Date.now()}.json`;
-            link.click();
+        window.openIOSDatePicker = () => {
+            const container = document.getElementById('pickerOptionsContainer');
+            document.getElementById('pickerTitle').innerText = "PILIH TANGGAL";
+            container.innerHTML = "";
+            for(let i=0; i<30; i++){
+                const d = new Date(); d.setDate(d.getDate() - i);
+                const ds = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                const btn = document.createElement('button'); btn.className = "picker-option"; btn.innerText = ds;
+                btn.onclick = () => { document.getElementById('testiTanggal').value = ds; document.getElementById('labelTestiTanggal').innerText = ds; document.getElementById('labelTestiTanggal').style.color = "white"; closeModals(); };
+                container.appendChild(btn);
+            }
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('iosPickerSheet').classList.add('active');
         };
+
+        window.openTestimoniPicker = () => {
+            const lvls = ["Junior", "Senior", "Ahli", "Ternama", "Terhormat", "Juragan", "Sultan"];
+            const container = document.getElementById('pickerOptionsContainer');
+            document.getElementById('pickerTitle').innerText = "PILIH TINGKATAN";
+            container.innerHTML = "";
+            lvls.forEach(l => {
+                const btn = document.createElement('button'); btn.className = "picker-option"; btn.innerText = l;
+                btn.onclick = () => { if(l === "Sultan") { document.getElementById('testiAkun').value = l; document.getElementById('labelTestiAkun').innerText = l; document.getElementById('labelTestiAkun').style.color = "white"; closeModals(); } else openLevelNumberPicker(l); };
+                container.appendChild(btn);
+            });
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('iosPickerSheet').classList.add('active');
+        };
+
+        function openLevelNumberPicker(base) {
+            const container = document.getElementById('pickerOptionsContainer');
+            document.getElementById('pickerTitle').innerText = `TINGKAT ${base.toUpperCase()}`;
+            container.innerHTML = "";
+            [1, 2, 3, 4, 5].forEach(n => {
+                const btn = document.createElement('button'); btn.className = "picker-option"; btn.innerText = n;
+                btn.onclick = () => { const f = `${base} ${n}`; document.getElementById('testiAkun').value = f; document.getElementById('labelTestiAkun').innerText = f; document.getElementById('labelTestiAkun').style.color = "white"; closeModals(); };
+                container.appendChild(btn);
+            });
+        }
 
         window.openIOSPicker = (title, options, targetId, isDynamic = false) => {
             const container = document.getElementById('pickerOptionsContainer');
@@ -1197,23 +1073,24 @@
             container.innerHTML = html;
         }
 
-        async function sendAccountToTelegram(chatId, text, imageBase64) {
-            const formData = new FormData();
-            formData.append('chat_id', chatId); formData.append('parse_mode', 'HTML');
-            if (imageBase64) {
-                const arr = imageBase64.split(','), mime = arr[0].match(/:(.*?);/)[1], bstr = atob(arr[1]);
-                let n = bstr.length; const u8arr = new Uint8Array(n); while(n--){ u8arr[n] = bstr.charCodeAt(n); }
-                formData.append('photo', new Blob([u8arr], {type:mime}), 'img.png');
-                formData.append('caption', text);
-            } else { formData.append('text', text); }
-            try { await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${imageBase64?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData }); showIOSNotify("Berhasil", "Data berhasil terkirim ke Telegram.", false); } catch(e) { showIOSNotify("Error", "Gagal mengirim pesan."); }
+        async function sendToTelegram(chatId, text, image) {
+            const fd = new FormData(); fd.append('chat_id', chatId); fd.append('parse_mode', 'HTML');
+            if (typeof image === 'string' && image.startsWith('data:')) {
+                const b = await fetch(image).then(res => res.blob()); fd.append('photo', b, 'img.png'); fd.append('caption', text);
+            } else if (image instanceof File) { fd.append('photo', image); fd.append('caption', text); } 
+            else fd.append('text', text);
+            await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${(image)?'sendPhoto':'sendMessage'}`, { method: 'POST', body: fd });
         }
 
+        document.getElementById('modalOverlay').onclick = closeModals;
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.ios-popover') && !e.target.closest('#settingsBtn') && !e.target.closest('.db-card')) {
-                document.querySelectorAll('.ios-popover').forEach(m => m.style.display = 'none');
-            }
+            if (!e.target.closest('.ios-popover') && !e.target.closest('#settingsBtn') && !e.target.closest('.db-card')) closeAllPopovers();
         });
+
+        window.exportJSON = () => {
+            const blob = new Blob([JSON.stringify(accounts, null, 2)], { type: "application/json" });
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `AhraStore_Backup_${Date.now()}.json`; link.click();
+        };
     </script>
 </body>
 </html>
