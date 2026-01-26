@@ -568,16 +568,19 @@
         }
 
         function triggerFileBackup() {
-            // Debouncing agar tidak spam download saat editing cepat
             if (window.backupTimer) clearTimeout(window.backupTimer);
             window.backupTimer = setTimeout(() => {
                 const blob = new Blob([JSON.stringify(ahraDB, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
                 const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = FIXED_FILENAME; // Nama file konsisten
+                link.href = url;
+                link.download = FIXED_FILENAME;
+                document.body.appendChild(link);
                 link.click();
-                showStatus("Database Disinkronkan");
-            }, 1000);
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                showStatus("Database Disinkronkan Otomatis");
+            }, 1500); // Tunda sebentar untuk memastikan data stabil
         }
 
         function createNewDB() { 
@@ -594,7 +597,6 @@
             reader.onload = (e) => {
                 try {
                     const data = JSON.parse(e.target.result);
-                    // Validasi minimal format database
                     if (data && Array.isArray(data.accounts)) { 
                         ahraDB = data; 
                         saveToLocalStorage(); 
@@ -609,7 +611,6 @@
                 }
             };
             reader.readAsText(file);
-            // Reset input file agar bisa memilih file yang sama lagi jika perlu
             event.target.value = "";
         }
 
