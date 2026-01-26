@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AhraStore Management - Local Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ahra-store-pro';
+
+        // Expose Firebase functions globally to fix "not defined" errors
+        window.ahraFirebase = { 
+            db, auth, appId, doc, setDoc, getDoc, onSnapshot, 
+            signInAnonymously, signInWithCustomToken 
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        :root {
+            --bg-dark: #000000;
+            --card-bg: #1c1c1e;
+            --card-secondary: #2c2c2e;
+            --accent-blue: #0a84ff;
+            --text-main: #ffffff;
+            --text-secondary: #8e8e93;
+            --ios-blur: rgba(28, 28, 30, 0.85);
+            color-scheme: dark;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+            user-select: none;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-dark);
+            position: relative;
+        }
+
+        /* Loading Screen */
+        #loadingScreen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .ios-loader {
+            width: 35px;
+            height: 35px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .shizuku-card {
+            background-color: var(--card-bg);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .ios-input-group {
+            background-color: var(--card-secondary);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .ios-input-row {
+            display: flex;
+            flex-direction: column;
+            padding: 10px 16px;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
+        }
+        .ios-input-row:last-child { border-bottom: none; }
+
+        .row-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 2px;
+        }
+
+        .pill-button {
+            background-color: var(--accent-blue);
+            color: white;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 15px;
+            transition: all 0.2s;
+            border: none;
+            width: 100%;
+        }
+        .pill-button:active { transform: scale(0.96); opacity: 0.8; }
+
+        .tab-btn {
+            position: relative;
+            padding: 12px 0;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .tab-btn.tab-active { color: var(--accent-blue); }
+        .tab-btn.tab-active::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 25%; width: 50%; height: 3px;
+            background-color: var(--accent-blue);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .ios-select-trigger {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 14px 16px;
+            background-color: var(--card-secondary);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
+        }
+
+        input, textarea {
+            background: transparent !important;
+            border: none !important;
+            color: white !important;
+            padding: 0 !important;
+            font-size: 15px !important;
+            width: 100%;
+            outline: none;
+        }
+        input::placeholder { color: var(--text-secondary); }
+
+        /* Floating Popover Menus */
+        .ios-popover {
+            position: absolute;
+            background: var(--ios-blur);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 14px;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            transform-origin: top right;
+            animation: popIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            width: 220px;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .popover-item {
+            padding: 14px 16px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            text-align: left;
+        }
+        .popover-item:last-child { border-bottom: none; }
+        .popover-item:active { background: rgba(255,255,255,0.15); }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 8000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .overlay.active { display: block; opacity: 1; }
+
+        .bottom-sheet {
+            position: fixed;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            background: var(--ios-blur);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border-radius: 20px;
+            z-index: 8500;
+            transform: translateY(120%);
+            transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1);
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        }
+        .bottom-sheet.active { transform: translateY(0); }
+
+        .centered-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 90%;
+            max-width: 360px;
+            background: var(--ios-blur);
+            backdrop-filter: blur(40px);
+            border-radius: 24px;
+            z-index: 9000;
+            display: none;
+            flex-direction: column;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+        }
+        .centered-modal.active { display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+        .picker-option {
+            padding: 16px;
+            text-align: center;
+            font-size: 17px;
+            color: var(--accent-blue);
+            background: transparent;
+            width: 100%;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+        }
+        .picker-option:active { background: rgba(255, 255, 255, 0.1); }
+
+        .db-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        .db-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 12px;
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .sold-badge {
+            background: #ff3b30;
+            color: white;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 800;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            box-shadow: 0 2px 10px rgba(255, 59, 48, 0.3);
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loadingScreen">
+        <div class="ios-loader"></div>
+        <p class="mt-6 text-[10px] font-bold text-[#8e8e93] tracking-[0.2em] uppercase">AhraStore</p>
+    </div>
+
+    <div id="setupScreen" class="fixed inset-0 bg-black z-[4000] hidden flex-col items-center justify-center p-10 text-center">
+        <div class="w-20 h-20 bg-blue-600 rounded-2xl mb-8 flex items-center justify-center shadow-2xl shadow-blue-600/20">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V9h2v7zm4 0h-2V9h2v7z"/></svg>
+        </div>
+        <h2 class="text-3xl font-bold tracking-tight mb-2 text-white">AhraStore DB</h2>
+        <p class="text-[14px] text-zinc-500 mb-12">Database stok akun profesional Anda.</p>
+        
+        <div class="w-full max-w-xs space-y-4">
+            <button onclick="createNewDB()" class="pill-button">MULAI DATABASE BARU</button>
+            <button onclick="document.getElementById('setupImportFile').click()" class="pill-button !bg-zinc-800 !text-blue-500">IMPORT DATABASE (.JSON)</button>
+            <input type="file" id="setupImportFile" accept=".json" class="hidden" onchange="handleFileImport(event)">
+        </div>
+    </div>
+
+    <div id="app" class="app-container">
+        <header class="px-6 py-4 flex justify-between items-end bg-black/80 backdrop-blur-xl sticky top-0 z-40 border-b border-white/5">
+            <div>
+                <h1 class="text-2xl font-bold text-white tracking-tight">AhraStore</h1>
+                <div id="connectionStatus" class="flex items-center gap-1.5 mt-0.5">
+                    <div id="statusDot" class="w-2 h-2 rounded-full bg-green-500 transition-colors duration-300"></div>
+                    <span id="statusLabel" class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Online</span>
+                </div>
+            </div>
+            <button id="settingsBtn" onclick="toggleAhraPopover('settingsOverlay', this)" class="p-2 text-blue-500 transition-all duration-300">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0a2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+
+            <div id="settingsOverlay" class="ios-popover" style="top: 75px; right: 20px;">
+                <button onclick="triggerFileBackup(); closeAllPopovers();" class="popover-item">
+                    <span>Export Database (.json)</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </button>
+                <button onclick="document.getElementById('settingsImportFile').click(); closeAllPopovers();" class="popover-item">
+                    <span>Import Database (.json)</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                </button>
+                <input type="file" id="settingsImportFile" accept=".json" class="hidden" onchange="handleFileImport(event)">
+                <div class="popover-item">
+                    <span>Auto Sync File</span>
+                    <input type="checkbox" id="autoBackupToggle" onchange="toggleAutoBackup()" class="w-4 h-4 accent-blue-500">
+                </div>
+                <button onclick="resetApp(); closeAllPopovers();" class="popover-item !text-red-500 font-bold">
+                    <span>Reset Database</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+            </div>
+
+            <div id="itemActionMenu" class="ios-popover" style="width: 200px;">
+                <button onclick="handleAction('detail')" class="popover-item"><span>Detail Akun</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>
+                <button onclick="handleAction('edit')" class="popover-item"><span>Edit Data</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button onclick="handleAction('sold')" class="popover-item"><span>Ubah Status Sold</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></button>
+                <button onclick="handleAction('send_admin')" class="popover-item"><span>Kirim ke Admin</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+                <button onclick="handleAction('send_buyer')" class="popover-item"><span>Kirim ke Buyer</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
+                <button onclick="handleAction('delete')" class="popover-item !text-red-500"><span>Hapus</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </div>
+        </header>
+
+        <nav class="flex px-4 bg-black/80 backdrop-blur-xl border-b border-white/5 sticky top-[75px] z-30">
+            <button onclick="switchTab('stok')" id="tab-stok" class="tab-btn flex-1 tab-active">Stok</button>
+            <button onclick="switchTab('testi')" id="tab-testi" class="tab-btn flex-1">Testi</button>
+            <button onclick="switchTab('save')" id="tab-save" class="tab-btn flex-1">Simpan</button>
+            <button onclick="switchTab('db')" id="tab-db" class="tab-btn flex-1">DB</button>
+        </nav>
+
+        <main id="mainContent" class="p-5 flex-grow pb-28">
+            <section id="section-stok">
+                <div class="shizuku-card">
+                    <h2 class="text-[12px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Telegram Post</h2>
+                    <form id="formStok" class="space-y-4">
+                        <div class="ios-input-group">
+                            <div class="ios-input-row"><span class="row-label">Bukti Foto</span><input type="file" id="stokImage" accept="image/*" required></div>
+                            <div class="ios-input-row"><span class="row-label">Harga</span><input type="text" id="stokHarga" placeholder="Contoh: 50k" required></div>
+                        </div>
+                        <div class="ios-select-trigger" id="triggerStokInfo" onclick="openIOSPicker('STATUS INFORMASI', ['Mail fresh', 'Free change email'], 'stokInfo')">
+                            <span id="labelStokInfo">Pilih Status...</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                        </div>
+                        <input type="hidden" id="stokInfo">
+                        <button type="submit" class="pill-button mt-2">🚀 KIRIM KE CHANNEL</button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="section-testi" class="hidden">
+                <div class="shizuku-card">
+                    <h2 class="text-[12px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Testimoni Post</h2>
+                    <form id="formTesti" class="space-y-4">
+                        <div class="ios-input-group">
+                            <div class="ios-input-row"><span class="row-label">Bukti Transaksi</span><input type="file" id="testiImage" accept="image/*" required></div>
+                            <div class="ios-input-row" onclick="openIOSDatePicker()">
+                                <span class="row-label">Tanggal</span>
+                                <div class="flex justify-between items-center cursor-pointer">
+                                    <span id="labelTestiTanggal" class="text-[15px] text-zinc-500">Pilih Tanggal...</span>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                                <input type="hidden" id="testiTanggal" required>
+                            </div>
+                            <div class="ios-input-row"><span class="row-label">Harga</span><input type="text" id="testiHarga" placeholder="Harga Transaksi" required></div>
+                        </div>
+                        <div class="ios-select-trigger" id="triggerTestiAkun" onclick="openTestimoniPicker()">
+                            <span id="labelTestiAkun">Pilih Tingkatan...</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                        </div>
+                        <input type="hidden" id="testiAkun">
+                        <button type="submit" class="pill-button !bg-green-500">✨ POST TESTIMONI</button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="section-save" class="hidden">
+                <div class="shizuku-card">
+                    <h2 id="saveFormTitle" class="text-[12px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Database Input</h2>
+                    <form id="formSave" class="space-y-4">
+                        <div class="ios-input-group">
+                            <div class="ios-input-row"><span class="row-label">Foto Akun</span><input type="file" id="saveImage" accept="image/*"></div>
+                        </div>
+                        <div class="ios-select-trigger" id="triggerSaveType" onclick="openIOSPicker('JENIS AKUN', ['Mail fresh', 'Mail own', 'Monkos', 'Galver'], 'saveType', true)">
+                            <span id="labelSaveType">Pilih Jenis Akun...</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                        </div>
+                        <input type="hidden" id="saveType">
+                        <div id="dynamicFields" class="space-y-4"></div>
+                        <button type="submit" class="pill-button mt-4 !bg-blue-600">📥 SIMPAN KE DB</button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="section-db" class="hidden">
+                <div class="flex justify-between items-center mb-5 px-1">
+                    <h2 class="text-[12px] font-bold text-zinc-500 uppercase tracking-widest">Katalog Stok</h2>
+                    <span id="dbCount" class="text-[10px] bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full font-extrabold">0 Item</span>
+                </div>
+                <div id="databaseGrid" class="db-grid"></div>
+            </section>
+
+            <div id="statusMsg" class="mt-6 p-4 rounded-xl hidden text-center text-[13px] font-semibold transition-all shadow-xl"></div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="modalOverlay" class="overlay"></div>
+    <div id="iosPickerSheet" class="bottom-sheet">
+        <div class="picker-header p-4 border-b border-white/5"><h3 id="pickerTitle" class="text-[13px] font-bold text-zinc-500 uppercase text-center">Judul</h3></div>
+        <div id="pickerOptionsContainer" class="flex flex-col max-h-[60vh] overflow-y-auto"></div>
+        <div class="px-4 pb-4"><button onclick="closeModals()" class="mt-2 w-full p-4 bg-zinc-800/80 rounded-2xl text-blue-500 font-bold">Batal</button></div>
+    </div>
+
+    <div id="iosDetailModal" class="centered-modal">
+        <div class="p-6">
+            <h3 id="modalTitle" class="text-lg font-bold mb-2 text-center">Judul Modal</h3>
+            <p id="modalSubTitle" class="text-sm text-zinc-400 text-center mb-4 hidden">Sub judul...</p>
+            <div id="modalBody" class="space-y-4"></div>
+        </div>
+        <div class="flex border-t border-white/10">
+            <button id="modalBtnCancel" onclick="closeModals()" class="flex-1 p-4 text-blue-500 font-medium border-r border-white/10">Tutup</button>
+            <button id="modalBtnAction" class="flex-1 p-4 text-blue-500 font-bold hidden">Simpan</button>
+        </div>
+    </div>
+
+    <script>
+        let ahraDB = { accounts: [], settings: { autoBackup: true } };
+        const FIXED_FILENAME = "AhraStore_Database.json";
+        let activeId = null;
+        let popoverOpen = null;
+
+        window.onload = async () => {
+            await initAuth();
+            loadFromLocalStorage();
+            updateConnectionStatus();
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+            
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.opacity = '0';
+                setTimeout(() => document.getElementById('loadingScreen').style.display = 'none', 500);
+            }, 1200);
+        };
+
+        // --- Firebase Core ---
+        async function initAuth() {
+            if (!window.ahraFirebase) return;
+            const { auth, signInAnonymously, signInWithCustomToken } = window.ahraFirebase;
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) { console.error("Auth failed", e); }
+        }
+
+        async function syncToCloud() {
+            if (!window.ahraFirebase) return;
+            const { db, appId, auth, doc, setDoc } = window.ahraFirebase;
+            if (!auth.currentUser) return;
+            try {
+                const docPath = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'backups', 'latest');
+                await setDoc(docPath, { data: JSON.stringify(ahraDB), updatedAt: Date.now() });
+            } catch (e) { console.error(e); }
+        }
+
+        // --- Core UI Logic ---
+        function updateConnectionStatus() {
+            const dot = document.getElementById('statusDot');
+            const label = document.getElementById('statusLabel');
+            if (navigator.onLine) {
+                dot.className = "w-2 h-2 rounded-full bg-green-500 transition-colors duration-300";
+                label.innerText = "Online";
+            } else {
+                dot.className = "w-2 h-2 rounded-full bg-red-500 transition-colors duration-300";
+                label.innerText = "Offline";
+            }
+        }
+
+        function toggleAhraPopover(id, btn, event) {
+            const menu = document.getElementById(id);
+            if (!menu) return;
+            const isVisible = menu.style.display === 'flex';
+            closeAllPopovers();
+            if (!isVisible) {
+                menu.style.display = 'flex';
+                popoverOpen = id;
+                if(btn && id === 'settingsOverlay') btn.style.transform = 'rotate(45deg)';
+            }
+            if(event) event.stopPropagation();
+        }
+
+        function closeAllPopovers() {
+            document.querySelectorAll('.ios-popover').forEach(m => m.style.display = 'none');
+            const settingsBtn = document.getElementById('settingsBtn');
+            if(settingsBtn) settingsBtn.style.transform = 'rotate(0deg)';
+            popoverOpen = null;
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.ios-popover') && !e.target.closest('#settingsBtn')) {
+                closeAllPopovers();
+            }
+        });
+
+        // --- Storage & Automated Backup Logic ---
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('ahra_db_local_pro');
+            if (saved) {
+                ahraDB = JSON.parse(saved);
+                document.getElementById('setupScreen').style.display = 'none';
+                document.getElementById('app').style.display = 'flex';
+                document.getElementById('autoBackupToggle').checked = ahraDB.settings?.autoBackup;
+                renderDatabase();
+            } else {
+                document.getElementById('setupScreen').style.display = 'flex';
+                document.getElementById('app').style.display = 'none';
+            }
+        }
+
+        function saveToLocalStorage() { 
+            localStorage.setItem('ahra_db_local_pro', JSON.stringify(ahraDB)); 
+            syncToCloud(); 
+            if (ahraDB.settings?.autoBackup) {
+                triggerFileBackup();
+            }
+        }
+
+        function triggerFileBackup() {
+            // Debouncing agar tidak spam download saat editing cepat
+            if (window.backupTimer) clearTimeout(window.backupTimer);
+            window.backupTimer = setTimeout(() => {
+                const blob = new Blob([JSON.stringify(ahraDB, null, 2)], { type: "application/json" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = FIXED_FILENAME; // Nama file konsisten
+                link.click();
+                showStatus("Database Disinkronkan");
+            }, 1000);
+        }
+
+        function createNewDB() { 
+            ahraDB = { accounts: [], settings: { autoBackup: true }, createdAt: Date.now() }; 
+            saveToLocalStorage(); 
+            loadFromLocalStorage(); 
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    // Validasi minimal format database
+                    if (data && Array.isArray(data.accounts)) { 
+                        ahraDB = data; 
+                        saveToLocalStorage(); 
+                        loadFromLocalStorage(); 
+                        showStatus("Database Berhasil Diimport"); 
+                        switchTab('db'); 
+                    } else {
+                        showStatus("Format File Tidak Valid", true);
+                    }
+                } catch(err) { 
+                    showStatus("File Rusak / Bukan JSON", true); 
+                }
+            };
+            reader.readAsText(file);
+            // Reset input file agar bisa memilih file yang sama lagi jika perlu
+            event.target.value = "";
+        }
+
+        function toggleAutoBackup() { 
+            ahraDB.settings.autoBackup = document.getElementById('autoBackupToggle').checked; 
+            saveToLocalStorage(); 
+        }
+
+        function resetApp() { if(confirm("Hapus database?")) { localStorage.removeItem('ahra_db_local_pro'); location.reload(); } }
+
+        function showStatus(msg, isError = false) {
+            const el = document.getElementById('statusMsg'); el.innerText = msg;
+            el.className = `mt-6 p-4 rounded-xl text-center text-[13px] font-bold border ${isError ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-green-500/10 text-blue-500 border-blue-500/20'}`;
+            el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 3000);
+        }
+
+        // --- CATALOG UI ---
+        function renderDatabase() {
+            const grid = document.getElementById('databaseGrid');
+            grid.innerHTML = "";
+            document.getElementById('dbCount').innerText = `${ahraDB.accounts.length} Item`;
+            
+            ahraDB.accounts.forEach(acc => {
+                const card = document.createElement('div');
+                card.className = "db-card";
+                card.onclick = (e) => {
+                    activeId = acc.id;
+                    const menu = document.getElementById('itemActionMenu');
+                    const rect = card.getBoundingClientRect();
+                    const containerRect = document.querySelector('.app-container').getBoundingClientRect();
+                    let topPos = rect.top - containerRect.top + 40;
+                    let leftPos = rect.left - containerRect.left + 20;
+                    if(leftPos + 200 > containerRect.width) leftPos = containerRect.width - 220;
+                    menu.style.top = `${topPos}px`;
+                    menu.style.left = `${leftPos}px`;
+                    toggleAhraPopover('itemActionMenu', null, e);
+                };
+                card.innerHTML = `
+                    <div class="h-32 bg-zinc-900 rounded-xl mb-3 overflow-hidden relative flex items-center justify-center">
+                        ${acc.isSold ? '<div class="sold-badge">SOLD</div>' : ''}
+                        ${acc.image ? `<img src="${acc.image}" class="w-full h-full object-cover ${acc.isSold ? 'grayscale opacity-20' : ''}">` : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2c2c2e" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'}
+                    </div>
+                    <p class="text-[13px] font-bold truncate px-1">${acc.dbEmail || acc.dbName || 'No Name'}</p>
+                    <p class="text-[9px] text-zinc-500 font-bold uppercase mt-0.5 px-1">${acc.type}</p>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        const fieldsMetadata = { 'dbEmail': 'Email Akun', 'dbPassG': 'Password Google', 'dbPassM': 'Password Moonton', 'dbBackup': 'Kode Cadangan', 'dbName': 'Nama / ID Akun', 'dbKet': 'Keterangan Akun', 'dbLoginVia': 'Login Via', 'galverType': 'Sub-Tipe Galver' };
+        function getFieldLabel(key) { return fieldsMetadata[key] || key.replace('db', ''); }
+
+        function handleDynamicFields(type, containerId = 'dynamicFields') {
+            const container = document.getElementById(containerId);
+            let html = '<div class="ios-input-group">';
+            if (type === "Mail fresh") {
+                html += `<div class="ios-input-row"><span class="row-label">Email Akun</span><input type="text" id="dbEmail" placeholder="Email" required></div>
+                         <div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div>
+                         <div class="ios-input-row"><span class="row-label">Password Moonton</span><input type="text" id="dbPassM" placeholder="Pass Moonton" required></div>`;
+            } else if (type === "Mail own") {
+                html += `<div class="ios-input-row"><span class="row-label">Email Akun</span><input type="text" id="dbEmail" placeholder="Email" required></div>
+                         <div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div>
+                         <div class="ios-input-row"><span class="row-label">Password Moonton</span><input type="text" id="dbPassM" placeholder="Pass Moonton" required></div>
+                         <div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code" class="min-h-[60px]"></textarea></div>`;
+            } else if (type === "Monkos") {
+                html += `<div class="ios-input-row"><span class="row-label">Email Moonton</span><input type="text" id="dbEmail" placeholder="Email" required></div>
+                         <div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div>
+                         <div class="ios-input-row"><span class="row-label">Login Via</span><div class="flex justify-between items-center cursor-pointer" id="triggerDbLoginVia" onclick="openIOSPicker('LOGIN VIA', ['TikTok', 'Facebook', 'Google'], 'dbLoginVia')"><span id="labelDbLoginVia" class="text-[15px]">Pilih Login...</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></div><input type="hidden" id="dbLoginVia" required></div>
+                         <div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code" class="min-h-[60px]"></textarea></div>`;
+            } else if (type === "Galver") {
+                html += `<div class="ios-input-row"><span class="row-label">Opsi Galver</span><div class="flex justify-between items-center cursor-pointer" id="triggerGalverType" onclick="openIOSPicker('PILIH TIPE', ['Email', 'Name'], 'galverType', true)"><span id="labelGalverType" class="text-[15px]">Email / Name...</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></div><input type="hidden" id="galverType"></div><div id="galverSubFields"></div>`;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function handleGalverSubFields(subType) {
+            const container = document.getElementById('galverSubFields');
+            let html = '';
+            if (subType === 'Email') {
+                html = `<div class="ios-input-row"><span class="row-label">Email Akun</span><input type="text" id="dbEmail" placeholder="Email" required></div><div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div><div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code" class="min-h-[60px]"></textarea></div>`;
+            } else if (subType === 'Name') {
+                html = `<div class="ios-input-row"><span class="row-label">Nama/ID Akun</span><input type="text" id="dbName" placeholder="Nama Akun" required></div><div class="ios-input-row"><span class="row-label">Password Moonton</span><input type="text" id="dbPassM" placeholder="Password" required></div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        // --- Actions ---
+        async function handleAction(type) {
+            const acc = ahraDB.accounts.find(a => a.id === activeId);
+            closeAllPopovers();
+            if (type === 'detail') {
+                document.getElementById('modalTitle').innerText = "Detail Akun";
+                let html = '<div class="ios-input-group">';
+                for(let key in acc) if(!['image', 'id', 'timestamp', 'isSold', 'type', 'galverType'].includes(key)) html += `<div class="ios-input-row"><span class="row-label">${getFieldLabel(key)}</span><span class="text-sm font-medium break-all text-white/90">${acc[key] || '-'}</span></div>`;
+                html += '</div>';
+                document.getElementById('modalBody').innerHTML = html;
+                document.getElementById('modalBtnAction').classList.add('hidden');
+                document.getElementById('modalOverlay').classList.add('active');
+                document.getElementById('iosDetailModal').classList.add('active');
+            } 
+            else if (type === 'edit') {
+                document.getElementById('modalTitle').innerText = "Edit Data";
+                const body = document.getElementById('modalBody');
+                body.innerHTML = '<div id="editFields"></div>';
+                handleDynamicFields(acc.type, 'editFields');
+                setTimeout(() => {
+                    if (acc.galverType) {
+                        const gtInput = document.getElementById('galverType');
+                        const gtLabel = document.getElementById('labelGalverType');
+                        if(gtInput) gtInput.value = acc.galverType;
+                        if(gtLabel) { gtLabel.innerText = acc.galverType; gtLabel.style.color = "white"; }
+                        handleGalverSubFields(acc.galverType);
+                    }
+                    ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia'].forEach(f => {
+                        const el = body.querySelector('#' + f); if(el) el.value = acc[f] || "";
+                    });
+                }, 50);
+                const action = document.getElementById('modalBtnAction');
+                action.innerText = "Simpan"; action.classList.remove('hidden');
+                action.onclick = () => {
+                    if (acc.type === 'Galver') acc.galverType = body.querySelector('#galverType')?.value;
+                    ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia'].forEach(f => {
+                        const el = body.querySelector('#' + f); if(el) acc[f] = el.value;
+                    });
+                    saveToLocalStorage(); renderDatabase(); closeModals(); showStatus("Data Diupdate");
+                };
+                document.getElementById('modalOverlay').classList.add('active');
+                document.getElementById('iosDetailModal').classList.add('active');
+            }
+            else if (type === 'sold') { acc.isSold = !acc.isSold; saveToLocalStorage(); renderDatabase(); showStatus(acc.isSold ? "Status: SOLD" : "Status: READY"); }
+            else if (type === 'delete') { if(confirm("Hapus stok ini?")) { ahraDB.accounts = ahraDB.accounts.filter(a => a.id !== activeId); saveToLocalStorage(); renderDatabase(); showStatus("Dihapus", true); } }
+            else if (type === 'send_admin') {
+                let text = `🚀 <b>DETAIL AKUN (ADMIN)</b>\n<b>Jenis :</b> ${acc.type} ${acc.galverType ? `(${acc.galverType})` : ''}\n--------------------------------\n`;
+                if (acc.dbEmail) text += `<b>Email :</b> <code>${acc.dbEmail}</code>\n`;
+                if (acc.dbPassG) text += `<b>Password :</b> <code>${acc.dbPassG}</code>\n`;
+                if (acc.dbPassM) text += `<b>Pass Moonton :</b> <code>${acc.dbPassM}</code>\n`;
+                if (acc.dbLoginVia) text += `<b>Login Via :</b> <code>${acc.dbLoginVia}</code>\n`;
+                if (acc.dbBackup) text += `<b>Kode Cadangan :</b>\n<code>${acc.dbBackup}</code>\n`;
+                if (acc.dbName) text += `<b>Nama/ID :</b> <code>${acc.dbName}</code>\n`;
+                await sendAccountToTelegram('7423591679', text, acc.image);
+            }
+            else if (type === 'send_buyer') {
+                document.getElementById('modalTitle').innerText = "Kirim ke Buyer";
+                const body = document.getElementById('modalBody');
+                body.innerHTML = `<div class="ios-input-group"><div class="ios-input-row"><span class="row-label">Username Buyer</span><input type="text" id="buyerUsername" placeholder="Masukkan username buyer" required></div></div>`;
+                const action = document.getElementById('modalBtnAction');
+                action.innerText = "Kirim ke Buyer"; action.classList.remove('hidden');
+                action.onclick = async () => {
+                    const buyer = document.getElementById('buyerUsername').value;
+                    if(!buyer) return;
+                    let text = `✨ <b>DETAIL AKUN BY AHRASTORE</b> ✨\n👤 <b>Buyer:</b> <b>${buyer}</b>\n\n--------------------------------\n`;
+                    if (acc.dbEmail) text += `<b>Email :</b> <code>${acc.dbEmail}</code>\n`;
+                    if (acc.dbPassG) text += `<b>Password :</b> <code>${acc.dbPassG}</code>\n`;
+                    if (acc.dbPassM) text += `<b>Pass Moonton :</b> <code>${acc.dbPassM}</code>\n`;
+                    if (acc.dbLoginVia) text += `<b>Login Via :</b> <code>${acc.dbLoginVia}</code>\n`;
+                    if (acc.dbBackup) text += `<b>Kode cadangan :</b>\n<code>${acc.dbBackup}</code>\n`;
+                    if (acc.dbName) text += `<b>Nama/ID :</b> <code>${acc.dbName}</code>\n--------------------------------\n\n<b>Stok:</b> https://t.me/StokAhraStore2\n<b>Grup:</b> https://t.me/JBAKUNMLBYAHRASTORE\n<b>Testi:</b> https://t.me/TESTIMONIAHRASTORE`;
+                    closeModals(); await sendAccountToTelegram('7423591679', text, acc.image);
+                };
+                document.getElementById('modalOverlay').classList.add('active');
+                document.getElementById('iosDetailModal').classList.add('active');
+            }
+        }
+
+        // --- Core Utils ---
+        function switchTab(tab) {
+            ['stok', 'testi', 'save', 'db'].forEach(t => {
+                const section = document.getElementById(`section-${t}`);
+                if (section) section.classList.toggle('hidden', t !== tab);
+                const tabBtn = document.getElementById(`tab-${t}`);
+                if (tabBtn) tabBtn.classList.toggle('tab-active', t === tab);
+            });
+            closeAllPopovers(); window.scrollTo(0, 0);
+        }
+
+        async function dataURLtoBlob(dataurl) {
+            const arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1], bstr = atob(arr[1]); 
+            let n = bstr.length; const u8arr = new Uint8Array(n);
+            while(n--){ u8arr[n] = bstr.charCodeAt(n); }
+            return new Blob([u8arr], {type:mime});
+        }
+
+        async function sendAccountToTelegram(chatId, text, imageBase64) {
+            const formData = new FormData();
+            formData.append('chat_id', chatId); formData.append('parse_mode', 'HTML');
+            let endpoint = 'sendMessage';
+            if (imageBase64) {
+                endpoint = 'sendPhoto';
+                try {
+                    const blob = await dataURLtoBlob(imageBase64);
+                    formData.append('photo', blob, 'account.png');
+                    formData.append('caption', text);
+                } catch (e) { endpoint = 'sendMessage'; formData.append('text', text); }
+            } else { formData.append('text', text); }
+            try {
+                const res = await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${endpoint}`, { method: 'POST', body: formData });
+                showStatus(res.ok ? "Pesan Terkirim" : "Gagal Kirim", !res.ok);
+            } catch(e) { showStatus("Error Koneksi", true); }
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.overlay, .bottom-sheet, .centered-modal').forEach(el => el.classList.remove('active'));
+            setTimeout(() => { document.getElementById('modalBtnAction').classList.add('hidden'); }, 300);
+        }
+        document.getElementById('modalOverlay').onclick = closeModals;
+
+        // --- Form Handlers ---
+        document.getElementById('formSave').onsubmit = async (e) => {
+            e.preventDefault();
+            const type = document.getElementById('saveType').value;
+            if(!type) { showStatus("Pilih jenis akun", true); return; }
+            const data = { id: Date.now().toString(), type: type, timestamp: Date.now(), isSold: false, galverType: document.getElementById('galverType')?.value || null };
+            ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia'].forEach(f => {
+                const el = document.getElementById(f); if(el) data[f] = el.value;
+            });
+            const imgFile = document.getElementById('saveImage').files[0];
+            if(imgFile) data.image = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(imgFile); });
+            ahraDB.accounts.unshift(data); 
+            saveToLocalStorage(); renderDatabase(); showStatus("Data Disimpan");
+            e.target.reset(); document.getElementById('dynamicFields').innerHTML = ""; 
+            const label = document.getElementById('labelSaveType'); label.innerText = "Pilih Jenis Akun..."; label.style.color = "var(--text-secondary)";
+        };
+
+        document.getElementById('formStok').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button'); btn.disabled = true; btn.innerText = "MENGIRIM...";
+            const text = `🚀 <b>NEW ACCOUNT FROM AHRASTORE</b> 🚀\n\n💰 <b>Price :</b> ${document.getElementById('stokHarga').value}\nℹ : ${document.getElementById('stokInfo').value}\n\n🛒 <b>Order? Pm Admin AHRASTORE</b>\n🔗 https://t.me/zaaamyy\n\n📦 <b>Stok lain nya cek di sini</b>\n🔗 https://t.me/StokAhraStore2\n\n🤝 <b>Grub jual beli:</b>\n🔗 https://t.me/JBAKUNMLBYAHRASTORE\n\n📝 <b>Testimoni? cek</b>\n🔗 https://t.me/TESTIMONIAHRASTORE`;
+            const formData = new FormData(); formData.append('chat_id', '7423591679'); formData.append('caption', text); formData.append('parse_mode', 'HTML');
+            const photo = document.getElementById('stokImage').files[0]; if(photo) formData.append('photo', photo);
+            try {
+                const res = await fetch(`https://api.telegram.org/bot7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao/${photo?'sendPhoto':'sendMessage'}`, { method: 'POST', body: formData });
+                showStatus(res.ok ? "Terkirim" : "Gagal", !res.ok); if(res.ok) e.target.reset();
+            } catch(e) { showStatus("Error", true); }
+            btn.disabled = false; btn.innerText = "🚀 KIRIM KE CHANNEL";
+        };
+
+        // Reuse Picker Logic
+        function openIOSPicker(title, options, targetId, isDynamic = false) {
+            const container = document.getElementById('pickerOptionsContainer');
+            document.getElementById('pickerTitle').innerText = title;
+            container.innerHTML = "";
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "picker-option"; btn.innerText = opt;
+                btn.onclick = () => {
+                    const input = document.getElementById(targetId);
+                    if(input) input.value = opt;
+                    const labelId = 'label' + targetId.charAt(0).toUpperCase() + targetId.slice(1);
+                    const labelEl = document.getElementById(labelId);
+                    if(labelEl) { labelEl.innerText = opt; labelEl.style.color = "white"; }
+                    if (isDynamic) {
+                        if (targetId === 'saveType') handleDynamicFields(opt);
+                        else if (targetId === 'galverType') handleGalverSubFields(opt);
+                    }
+                    closeModals();
+                };
+                container.appendChild(btn);
+            });
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('iosPickerSheet').classList.add('active');
+        }
+
+        function openIOSDatePicker() {
+            const container = document.getElementById('modalBody');
+            document.getElementById('modalTitle').innerText = "Pilih Tanggal";
+            document.getElementById('modalSubTitle').classList.add('hidden');
+            container.innerHTML = `<div class="ios-input-group !bg-black/20"><input type="date" id="iosDateInput" class="!text-center !text-xl !p-4" style="height: 150px;"></div>`;
+            const action = document.getElementById('modalBtnAction');
+            action.innerText = "Setel"; action.classList.remove('hidden');
+            action.onclick = () => {
+                const val = document.getElementById('iosDateInput').value;
+                if(val) {
+                    document.getElementById('testiTanggal').value = val;
+                    document.getElementById('labelTestiTanggal').innerText = val.split('-').reverse().join('/');
+                    document.getElementById('labelTestiTanggal').style.color = "white";
+                }
+                closeModals();
+            };
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('iosDetailModal').classList.add('active');
+        }
+
+        function openTestimoniPicker() {
+            const roles = ['Junior', 'Senior', 'Ahli', 'Ternama', 'Terhormat', 'Juragan', 'Sultan'];
+            const container = document.getElementById('pickerOptionsContainer');
+            document.getElementById('pickerTitle').innerText = 'TINGKATAN AKUN';
+            container.innerHTML = "";
+            roles.forEach(role => {
+                const btn = document.createElement('button');
+                btn.className = "picker-option"; btn.innerText = role;
+                btn.onclick = () => role === 'Sultan' ? (setTestiValue('Sultan'), closeModals()) : showNumberPicker(role);
+                container.appendChild(btn);
+            });
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('iosPickerSheet').classList.add('active');
+        }
+
+        function showNumberPicker(selectedRole) {
+            const container = document.getElementById('pickerOptionsContainer');
+            document.getElementById('pickerTitle').innerText = `PILIH ANGKA (${selectedRole})`;
+            container.innerHTML = "";
+            [1, 2, 3, 4, 5].forEach(num => {
+                const btn = document.createElement('button'); btn.className = "picker-option"; btn.innerText = num;
+                btn.onclick = () => (setTestiValue(`${selectedRole} ${num}`), closeModals());
+                container.appendChild(btn);
+            });
+        }
+
+        function setTestiValue(val) {
+            document.getElementById('testiAkun').value = val;
+            const label = document.getElementById('labelTestiAkun');
+            label.innerText = val; label.style.color = "white";
+        }
+    </script>
+</body>
+</html>
