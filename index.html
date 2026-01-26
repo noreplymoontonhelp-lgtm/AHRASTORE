@@ -353,7 +353,14 @@
                     <h2 class="text-[12px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Telegram Post</h2>
                     <form id="formStok" class="space-y-4">
                         <div class="ios-input-group">
-                            <div class="ios-input-row"><span class="row-label">Bukti Foto</span><input type="file" id="stokImage" accept="image/*" required></div>
+                            <div class="ios-input-row">
+                                <span class="row-label">Bukti Foto</span>
+                                <label for="stokImage" class="flex justify-between items-center cursor-pointer py-1">
+                                    <span id="label-stokImage" class="text-[15px] text-zinc-500">Pilih Foto...</span>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-500"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                    <input type="file" id="stokImage" accept="image/*" required class="hidden" onchange="handleFileSelect(this, 'label-stokImage')">
+                                </label>
+                            </div>
                             <div class="ios-input-row"><span class="row-label">Harga</span><input type="text" id="stokHarga" placeholder="Contoh: 50k" required></div>
                         </div>
                         <div class="ios-select-trigger" id="triggerStokInfo" onclick="openIOSPicker('STATUS INFORMASI', ['Mail fresh', 'Free change email'], 'stokInfo')">
@@ -372,7 +379,14 @@
                     <h2 class="text-[12px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Testimoni Post</h2>
                     <form id="formTesti" class="space-y-4">
                         <div class="ios-input-group">
-                            <div class="ios-input-row"><span class="row-label">Bukti Transaksi</span><input type="file" id="testiImage" accept="image/*" required></div>
+                            <div class="ios-input-row">
+                                <span class="row-label">Bukti Transaksi</span>
+                                <label for="testiImage" class="flex justify-between items-center cursor-pointer py-1">
+                                    <span id="label-testiImage" class="text-[15px] text-zinc-500">Pilih Foto...</span>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-500"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                    <input type="file" id="testiImage" accept="image/*" required class="hidden" onchange="handleFileSelect(this, 'label-testiImage')">
+                                </label>
+                            </div>
                             <div class="ios-input-row" onclick="openIOSDatePicker()">
                                 <span class="row-label">Tanggal</span>
                                 <div class="flex justify-between items-center cursor-pointer">
@@ -399,7 +413,14 @@
                     <h2 id="saveFormTitle" class="text-[12px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Database Input</h2>
                     <form id="formSave" class="space-y-4">
                         <div class="ios-input-group">
-                            <div class="ios-input-row"><span class="row-label">Foto Akun</span><input type="file" id="saveImage" accept="image/*"></div>
+                            <div class="ios-input-row">
+                                <span class="row-label">Foto Akun</span>
+                                <label for="saveImage" class="flex justify-between items-center cursor-pointer py-1">
+                                    <span id="label-saveImage" class="text-[15px] text-zinc-500">Pilih Foto...</span>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-500"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                    <input type="file" id="saveImage" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'label-saveImage')">
+                                </label>
+                            </div>
                         </div>
                         <div class="ios-select-trigger" id="triggerSaveType" onclick="openIOSPicker('JENIS AKUN', ['Mail fresh', 'Mail own', 'Monkos', 'Galver'], 'saveType', true)">
                             <span id="labelSaveType">Pilih Jenis Akun...</span>
@@ -722,6 +743,18 @@
             });
         }
 
+        // --- FILE UI UTILS ---
+        window.handleFileSelect = (input, labelId) => {
+            const label = document.getElementById(labelId);
+            if (input.files && input.files[0]) {
+                label.innerText = input.files[0].name;
+                label.style.color = "white";
+            } else {
+                label.innerText = "Pilih Foto...";
+                label.style.color = "#8e8e93";
+            }
+        };
+
         // --- FORM HANDLERS ---
         document.getElementById('formTesti').onsubmit = async (e) => {
             e.preventDefault();
@@ -761,6 +794,7 @@
                 e.target.reset();
                 document.getElementById('labelTestiTanggal').innerText = "Pilih Tanggal...";
                 document.getElementById('labelTestiAkun').innerText = "Pilih Tingkatan...";
+                document.getElementById('label-testiImage').innerText = "Pilih Foto...";
             } catch(e) {
                 showStatus("Gagal kirim testimoni", true);
             }
@@ -789,6 +823,7 @@
                 e.target.reset(); 
                 document.getElementById('dynamicFields').innerHTML = "";
                 document.getElementById('labelSaveType').innerText = "Pilih Jenis Akun...";
+                document.getElementById('label-saveImage').innerText = "Pilih Foto...";
                 switchTab('db');
             } catch(err) { showStatus("Gagal Menginput Data", true); }
             btn.disabled = false; btn.innerText = "SIMPAN KE CLOUD";
@@ -826,6 +861,7 @@
                 });
                 showStatus("Terkirim ke Telegram");
                 e.target.reset();
+                document.getElementById('label-stokImage').innerText = "Pilih Foto...";
             } catch (e) {
                 showStatus("Gagal kirim Telegram", true);
             }
