@@ -626,7 +626,7 @@
             if(type === 'detail') {
                 document.getElementById('modalTitle').innerText = "Detail Akun";
                 let html = '<div class="ios-input-group">';
-                const fields = { 'type': 'Jenis', 'dbEmail': 'Email', 'dbPassG': 'Password G', 'dbPassM': 'Password M', 'dbBackup': 'Kode Cadangan', 'dbName': 'Nama/ID', 'dbLoginVia': 'Login Via' };
+                const fields = { 'type': 'Jenis', 'dbEmail': 'Email', 'dbPassG': 'Password Google', 'dbPassM': 'Password Moonton', 'dbBackup': 'Kode Cadangan', 'dbName': 'Nama/ID', 'dbLoginVia': 'Login Via' };
                 for(let key in fields) {
                     if(acc[key]) html += `<div class="ios-input-row"><span class="row-label">${fields[key]}</span><span class="text-sm font-medium break-all text-white/90">${acc[key]}</span></div>`;
                 }
@@ -930,15 +930,15 @@
             let html = '<div class="ios-input-group">';
             if (type === "Mail fresh" || type === "Mail own") {
                 html += `<div class="ios-input-row"><span class="row-label">Email Akun</span><input type="text" id="dbEmail" placeholder="Email" required></div>
-                         <div class="ios-input-row"><span class="row-label">Password G</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div>
-                         <div class="ios-input-row"><span class="row-label">Password M</span><input type="text" id="dbPassM" placeholder="Pass Moonton" required></div>`;
+                         <div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div>
+                         <div class="ios-input-row"><span class="row-label">Password Moonton</span><input type="text" id="dbPassM" placeholder="Pass Moonton" required></div>`;
                 if(type === "Mail own") html += `<div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code"></textarea></div>`;
             } else if (type === "Monkos") {
                 html += `<div class="ios-input-row"><span class="row-label">Email</span><input type="text" id="dbEmail" placeholder="Email" required></div>
                          <div class="ios-input-row"><span class="row-label">Login Via</span><input type="text" id="dbLoginVia" placeholder="TikTok/FB/Google"></div>`;
             } else if (type === "Galver") {
                 html += `<div class="ios-input-row"><span class="row-label">Nama/ID</span><input type="text" id="dbName" placeholder="Nama Akun"></div>
-                         <div class="ios-input-row"><span class="row-label">Password M</span><input type="text" id="dbPassM" placeholder="Password"></div>`;
+                         <div class="ios-input-row"><span class="row-label">Password Moonton</span><input type="text" id="dbPassM" placeholder="Password"></div>`;
             }
             html += '</div>';
             container.innerHTML = html;
@@ -964,3 +964,4 @@
     </script>
 </body>
 </html>
+
