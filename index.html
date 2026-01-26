@@ -687,7 +687,8 @@
             }
 
             try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), data);
+                // Ganti menjadi ini agar sama dengan listener-nya:
+                await addDoc(collection(db, 'accounts'), data);
                 showStatus("Data Tersimpan di Cloud");
                 e.target.reset(); 
                 document.getElementById('dynamicFields').innerHTML = ""; 
@@ -942,3 +943,4 @@
     </script>
 </body>
 </html>
+
