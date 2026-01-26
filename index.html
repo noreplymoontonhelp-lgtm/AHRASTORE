@@ -362,14 +362,34 @@
         </div>
     </div>
 
+    <!-- Setup Username Modal (New User) -->
+    <div id="setupUsernameModal" class="centered-modal">
+        <div class="p-8 text-center">
+            <div class="w-16 h-16 bg-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-blue-500/20">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <h3 class="text-xl font-bold mb-1 text-white">Lengkapi Profil</h3>
+            <p class="text-[13px] text-zinc-500 mb-6">Silahkan masukkan username anda untuk melanjutkan.</p>
+            
+            <div class="ios-input-group mb-6">
+                <div class="ios-input-row">
+                    <span class="row-label">Username</span>
+                    <input type="text" id="newUsername" placeholder="Contoh: AdminGanteng" maxlength="15">
+                </div>
+            </div>
+
+            <button onclick="saveInitialUsername()" id="saveUsernameBtn" class="pill-button">SIMPAN PROFIL</button>
+        </div>
+    </div>
+
     <!-- App Container -->
     <div id="app" class="app-container" style="display:none;">
         <header class="px-6 py-4 flex justify-between items-end bg-black/80 backdrop-blur-xl sticky top-0 z-40 border-b border-white/5">
             <div>
-                <h1 class="text-2xl font-bold text-white tracking-tight">Halo User</h1>
+                <h1 id="welcomeHeader" class="text-2xl font-bold text-white tracking-tight">Halo User</h1>
                 <div class="flex items-center gap-1.5 mt-0.5">
-                    <div class="w-2 h-2 rounded-full bg-green-500 transition-colors duration-300"></div>
-                    <span id="userLabel" class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Sync Active</span>
+                    <div id="statusDot" class="w-2 h-2 rounded-full bg-green-500 transition-colors duration-300"></div>
+                    <span id="connectionLabel" class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Online</span>
                 </div>
             </div>
             <button id="settingsBtn" onclick="toggleAhraPopover('settingsOverlay', this)" class="p-2 text-blue-500 transition-all duration-300">
@@ -532,7 +552,7 @@
             GoogleAuthProvider, signInWithPopup, signOut 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
-            getFirestore, collection, addDoc, doc, onSnapshot, deleteDoc, updateDoc, query, orderBy 
+            getFirestore, collection, addDoc, doc, onSnapshot, deleteDoc, updateDoc, query, orderBy, getDoc, setDoc 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- KONFIGURASI FIREBASE ---
@@ -556,21 +576,27 @@
         let activeId = null;
 
         // --- AUTH OBSERVER ---
-        onAuthStateChanged(auth, (u) => {
+        onAuthStateChanged(auth, async (u) => {
             user = u;
             const loader = document.getElementById('loadingScreen');
             const login = document.getElementById('loginScreen');
             const appEl = document.getElementById('app');
 
             if (u) {
+                // Check user profile for username
+                await checkUserProfile(u);
+                
                 login.style.display = 'none';
                 appEl.style.display = 'flex';
                 appEl.classList.remove('hidden');
-                document.getElementById('userLabel').innerText = u.email || "User Pro";
+                
+                updateConnectionStatus(true);
                 initDatabase();
             } else {
                 appEl.style.display = 'none';
                 login.style.display = 'flex';
+                document.getElementById('setupUsernameModal').classList.remove('active');
+                document.getElementById('modalOverlay').classList.remove('active');
             }
 
             if (loader) {
@@ -578,6 +604,73 @@
                 setTimeout(() => loader.style.display = 'none', 500);
             }
         });
+
+        // --- PROFILE SYSTEM ---
+        async function checkUserProfile(u) {
+            try {
+                // RULE 1: /artifacts/{appId}/users/{userId}/{collectionName}
+                const profileRef = doc(db, 'artifacts', appId, 'users', u.uid, 'settings', 'profile');
+                const profileSnap = await getDoc(profileRef);
+
+                if (profileSnap.exists()) {
+                    const data = profileSnap.data();
+                    document.getElementById('welcomeHeader').innerText = `Halo ${data.username || 'User'}`;
+                } else {
+                    // Show Username Setup Modal
+                    document.getElementById('modalOverlay').classList.add('active');
+                    document.getElementById('setupUsernameModal').classList.add('active');
+                }
+            } catch (err) {
+                console.error("Profile check failed:", err);
+            }
+        }
+
+        window.saveInitialUsername = async () => {
+            const username = document.getElementById('newUsername').value.trim();
+            const btn = document.getElementById('saveUsernameBtn');
+            
+            if (!username || username.length < 3) {
+                return showIOSNotify("Username Terlalu Pendek", "Gunakan minimal 3 karakter.");
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Menyimpan...";
+
+            try {
+                const profileRef = doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'profile');
+                await setDoc(profileRef, {
+                    username: username,
+                    createdAt: Date.now()
+                });
+
+                document.getElementById('welcomeHeader').innerText = `Halo ${username}`;
+                document.getElementById('setupUsernameModal').classList.remove('active');
+                document.getElementById('modalOverlay').classList.remove('active');
+                showIOSNotify("Profil Diperbarui", `Halo ${username}, selamat datang!`, false);
+            } catch (err) {
+                showIOSNotify("Gagal Simpan", "Terjadi kesalahan saat menyimpan profil.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "SIMPAN PROFIL";
+            }
+        };
+
+        function updateConnectionStatus(isOnline) {
+            const label = document.getElementById('connectionLabel');
+            const dot = document.getElementById('statusDot');
+            if (isOnline) {
+                label.innerText = "Online";
+                label.classList.replace('text-red-500', 'text-zinc-500');
+                dot.classList.replace('bg-red-500', 'bg-green-500');
+            } else {
+                label.innerText = "Offline";
+                label.classList.replace('text-zinc-500', 'text-red-500');
+                dot.classList.replace('bg-green-500', 'bg-red-500');
+            }
+        }
+
+        window.addEventListener('offline', () => updateConnectionStatus(false));
+        window.addEventListener('online', () => updateConnectionStatus(true));
 
         // --- LOGIN UI ACTIONS ---
         window.toggleLoginPassword = () => {
@@ -630,10 +723,8 @@
             try {
                 if(type === 'login') {
                     await signInWithEmailAndPassword(auth, e, p);
-                    showIOSNotify("Berhasil Masuk", "Selamat datang kembali di AhraStore.", false);
                 } else {
                     await createUserWithEmailAndPassword(auth, e, p);
-                    showIOSNotify("Pendaftaran Berhasil", "Akun Anda telah dibuat. Silakan login.", false);
                 }
             } catch(err) { 
                 console.error(err.code);
@@ -681,7 +772,6 @@
             try { 
                 const provider = new GoogleAuthProvider();
                 await signInWithPopup(auth, provider); 
-                showIOSNotify("Berhasil Login", "Login dengan Google berhasil.", false);
             } catch(e) { 
                 console.error(e);
                 showIOSNotify("Google Auth Gagal", "Gagal melakukan autentikasi dengan akun Google."); 
@@ -709,7 +799,6 @@
                 renderDatabase();
             }, (error) => {
                 console.error(error);
-                showIOSNotify("Database Error", "Gagal sinkronisasi data cloud.");
             });
         }
 
@@ -1005,8 +1094,10 @@
         // --- GLOBAL UI UTILS ---
         window.switchTab = (tab) => {
             ['stok', 'testi', 'save', 'db'].forEach(t => {
-                document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tab);
-                document.getElementById(`tab-${t}`).classList.toggle('tab-active', t === tab);
+                const el = document.getElementById(`section-${t}`);
+                const btn = document.getElementById(`tab-${t}`);
+                if(el) el.classList.toggle('hidden', t !== tab);
+                if(btn) btn.classList.toggle('tab-active', t === tab);
             });
             window.scrollTo(0,0);
         };
@@ -1017,7 +1108,9 @@
         };
 
         window.closeModals = () => {
-            document.querySelectorAll('.overlay, .bottom-sheet, .centered-modal').forEach(m => m.classList.remove('active'));
+            document.querySelectorAll('.overlay, .bottom-sheet, .centered-modal').forEach(m => {
+                if(m.id !== 'setupUsernameModal') m.classList.remove('active');
+            });
             setTimeout(() => { 
                 const btn = document.getElementById('modalBtnAction');
                 if(btn) btn.classList.add('hidden'); 
