@@ -1155,8 +1155,17 @@
                          <div class="ios-input-row"><span class="row-label">Password M</span><input type="text" id="dbPassM" placeholder="Pass Moonton" required></div>`;
                 if(type === "Mail own") html += `<div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code"></textarea></div>`;
             } else if (type === "Monkos") {
-                html += `<div class="ios-input-row"><span class="row-label">Email</span><input type="text" id="dbEmail" placeholder="Email" required></div>
-                         <div class="ios-input-row"><span class="row-label">Login Via</span><input type="text" id="dbLoginVia" placeholder="TikTok/FB/Google"></div>`;
+                html += `<div class="ios-input-row"><span class="row-label">Email Akun</span><input type="text" id="dbEmail" placeholder="Email" required></div>
+                         <div class="ios-input-row"><span class="row-label">Password Google</span><input type="text" id="dbPassG" placeholder="Pass Google" required></div>
+                         <div class="ios-input-row"><span class="row-label">Kode Cadangan</span><textarea id="dbBackup" placeholder="Backup Code"></textarea></div>
+                         <div class="ios-input-row">
+                             <span class="row-label">Login Via</span>
+                             <div class="ios-select-trigger !p-0 !bg-transparent !border-none" onclick="openIOSPicker('LOGIN VIA', ['TikTok', 'Facebook', 'Google'], 'dbLoginVia')">
+                                 <span id="labelDbLoginVia" class="text-[15px] text-zinc-500">Pilih Login Via...</span>
+                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                             </div>
+                             <input type="hidden" id="dbLoginVia" required>
+                         </div>`;
             } else if (type === "Galver") {
                 html += `<div class="ios-input-row"><span class="row-label">Nama/ID</span><input type="text" id="dbName" placeholder="Nama Akun"></div>
                          <div class="ios-input-row"><span class="row-label">Password M</span><input type="text" id="dbPassM" placeholder="Password"></div>`;
