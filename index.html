@@ -229,7 +229,15 @@
             getFirestore, collection, addDoc, doc, onSnapshot, deleteDoc, updateDoc, query, orderBy 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
+        const firebaseConfig = {
+  apiKey: "AIzaSyBVk932P_IbgAh6hoZ9HhnPNzdYsthIl04",
+  authDomain: "ahrastore-14913.firebaseapp.com",
+  projectId: "ahrastore-14913",
+  storageBucket: "ahrastore-14913.firebasestorage.app",
+  messagingSenderId: "751112680601",
+  appId: "1:751112680601:web:efd16728078d392d67f408",
+  measurementId: "G-JLFVMMRH8M"
+};
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -451,3 +459,4 @@
     </script>
 </body>
 </html>
+
