@@ -8,33 +8,33 @@
     
     <!-- Firebase SDK Modular -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { 
+        getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup,
+        signInWithEmailAndPassword, createUserWithEmailAndPassword,
+        RecaptchaVerifier, signInWithPhoneNumber, signOut 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Konfigurasi Firebase Anda
-        const firebaseConfig = {
-            apiKey: "AIzaSyBVk932P_IbgAh6hoZ9HhnPNzdYsthIl04",
-            authDomain: "ahrastore-14913.firebaseapp.com",
-            projectId: "ahrastore-14913",
-            storageBucket: "ahrastore-14913.firebasestorage.app",
-            messagingSenderId: "751112680601",
-            appId: "1:751112680601:web:efd16728078d392d67f408",
-            measurementId: "G-JLFVMMRH8M"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyBVk932P_IbgAh6hoZ9HhnPNzdYsthIl04",
+        authDomain: "ahrastore-14913.firebaseapp.com",
+        projectId: "ahrastore-14913",
+        storageBucket: "ahrastore-14913.firebasestorage.app",
+        messagingSenderId: "751112680601",
+        appId: "1:751112680601:web:efd16728078d392d67f408"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ahrastore-14913';
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        // Expose Firebase functions globally
-        window.ahraFirebase = { 
-            db, auth, appId, doc, setDoc, getDoc, collection, addDoc, 
-            updateDoc, deleteDoc, onSnapshot, query, orderBy,
-            signInAnonymously, signInWithCustomToken 
-        };
-    </script>
+    // Ekspos ke window agar tombol HTML bisa memanggil fungsi ini
+    window.ahraFirebase = { auth, db, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, RecaptchaVerifier, signInWithPhoneNumber, signOut };
+
+    // Jalankan inisialisasi aplikasi
+    initApp();
+</script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
