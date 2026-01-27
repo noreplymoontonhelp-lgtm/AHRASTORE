@@ -177,6 +177,21 @@
         }
         input::placeholder { color: var(--text-secondary); }
 
+        /* PERUBAHAN: Input angka dengan keyboard number */
+        .price-input {
+            background: transparent !important;
+            border: none !important;
+            color: white !important;
+            padding: 0 !important;
+            font-size: 15px !important;
+            width: 100%;
+            outline: none;
+            text-align: left;
+            inputmode: decimal;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
         .ios-popover {
             position: absolute;
             background: var(--ios-blur);
@@ -191,12 +206,12 @@
             border: 0.5px solid rgba(255, 255, 255, 0.1);
             transform-origin: top right;
             animation: popIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-            width: 240px; /* Diperbesar sedikit */
+            width: 240px;
         }
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .popover-item {
-            padding: 16px; /* Diperbesar sedikit */
+            padding: 16px;
             font-size: 14px;
             display: flex;
             align-items: center;
@@ -205,7 +220,7 @@
             color: white;
             text-align: left;
             background: transparent;
-            min-height: 52px; /* Minimum height agar tidak terpotong */
+            min-height: 52px;
         }
         .popover-item:last-child { border-bottom: none; }
         .popover-item:active { background: rgba(255,255,255,0.15); }
@@ -261,13 +276,12 @@
         }
         .picker-option:active { background: rgba(255, 255, 255, 0.1); }
 
-        /* PERUBAHAN: Layout database grid menjadi 1 kolom */
         .db-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 14px; }
         .db-card {
             background: var(--card-bg); border-radius: 16px; padding: 12px;
             border: 0.5px solid rgba(255, 255, 255, 0.05);
             position: relative; cursor: pointer;
-            display: flex; /* Flex layout untuk tampilan horizontal */
+            display: flex;
             align-items: center;
             gap: 14px;
         }
@@ -350,6 +364,18 @@
         input:checked + .toggle-slider:before {
             transform: translateX(20px);
         }
+
+        /* PERUBAHAN: Forgot password link style */
+        .forgot-link {
+            font-size: 11px;
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 4px;
+            display: block;
+            text-align: right;
+            padding-right: 4px;
+        }
     </style>
 </head>
 <body>
@@ -391,27 +417,19 @@
                     <span class="row-label">Password</span>
                     <div class="flex items-center">
                         <input type="password" id="loginPass" placeholder="••••••••" class="flex-1">
-                        <button type="button" onclick="toggleLoginPassword()" class="p-1 text-zinc-500">
-                            <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11-8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <button type="button" id="eyeToggleBtn" class="p-1 text-zinc-500">
+                            <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
                         </button>
                     </div>
+                    <!-- PERUBAHAN: Forgot password link dipindah ke sini -->
+                    <a href="javascript:void(0)" onclick="openForgotPasswordModal()" class="forgot-link">Lupa Sandi?</a>
                 </div>
             </div>
             <button id="loginBtn" onclick="handleEmailAuth('login')" class="pill-button">MASUK</button>
             <button id="signupBtn" onclick="handleEmailAuth('signup')" class="pill-button !bg-zinc-800 !text-blue-500">DAFTAR BARU</button>
-            
-            <div class="flex items-center gap-4 py-2">
-                <div class="h-[1px] bg-zinc-800 flex-1"></div>
-                <span class="text-[9px] text-zinc-500 font-bold uppercase">Atau</span>
-                <div class="h-[1px] bg-zinc-800 flex-1"></div>
-            </div>
-
-            <button onclick="openForgotPasswordModal()" class="pill-button !bg-zinc-800 !text-blue-500">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/>
-                </svg>
-                Lupa Sandi
-            </button>
         </div>
     </div>
 
@@ -497,7 +515,6 @@
     <div id="app" class="app-container" style="display:none;">
         <header class="px-6 py-4 flex justify-between items-end bg-black/80 backdrop-blur-xl sticky top-0 z-40 border-b border-white/5">
             <div class="flex items-center gap-3">
-                <!-- UPDATED: Profile Photo Container always visible, toggles child visibility -->
                 <div id="headerProfilePhoto" class="w-12 h-12 rounded-full bg-zinc-800 border-2 border-white/10 overflow-hidden flex items-center justify-center">
                     <img id="headerProfileImg" src="" class="w-full h-full object-cover hidden">
                     <svg id="headerProfilePlaceholder" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -560,14 +577,19 @@
                                     <input type="file" id="stokImage" accept="image/*" required class="hidden" onchange="handleFileSelect(this, 'label-stokImage')">
                                 </label>
                             </div>
-                            <!-- PERUBAHAN: Input harga dengan titik tidak diblokir -->
+                            <!-- PERUBAHAN: Input harga dengan keyboard number dan format Rupiah -->
                             <div class="ios-input-row">
                                 <span class="row-label">Harga</span>
                                 <input type="text" 
                                        id="stokHarga" 
+                                       class="price-input"
                                        placeholder="Contoh: 50.000" 
                                        required 
-                                       oninput="formatNumberInput(this)">
+                                       inputmode="numeric"
+                                       pattern="[0-9.,]*"
+                                       onfocus="this.value = this.value.replace(/[^0-9]/g, '')"
+                                       onblur="formatRupiahInput(this)"
+                                       oninput="validateNumberInput(this)">
                             </div>
                         </div>
                         <div class="ios-select-trigger" id="triggerStokInfo" onclick="openIOSPicker('STATUS INFORMASI', ['Mail fresh', 'Free change email'], 'stokInfo')">
@@ -602,14 +624,19 @@
                                 </div>
                                 <input type="hidden" id="testiTanggal" required>
                             </div>
-                            <!-- PERUBAHAN: Input harga testimoni dengan titik tidak diblokir -->
+                            <!-- PERUBAHAN: Input harga testimoni dengan keyboard number -->
                             <div class="ios-input-row">
                                 <span class="row-label">Harga</span>
                                 <input type="text" 
                                        id="testiHarga" 
+                                       class="price-input"
                                        placeholder="Harga Transaksi" 
                                        required 
-                                       oninput="formatNumberInput(this)">
+                                       inputmode="numeric"
+                                       pattern="[0-9.,]*"
+                                       onfocus="this.value = this.value.replace(/[^0-9]/g, '')"
+                                       onblur="formatRupiahInput(this)"
+                                       oninput="validateNumberInput(this)">
                             </div>
                         </div>
                         <div class="ios-select-trigger" id="triggerTestiAkun" onclick="openTestimoniPicker()">
@@ -629,7 +656,7 @@
                     <form id="formSave" class="space-y-4">
                         <div class="ios-input-group">
                             <div class="ios-input-row">
-                                <span class="row-label">Foto Akun</span>
+                                <span class="row-label">Foto Akun (Opsional)</span>
                                 <label for="saveImage" class="flex justify-between items-center cursor-pointer py-1">
                                     <span id="label-saveImage" class="text-[15px] text-zinc-500">Pilih Foto...</span>
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-500"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -732,7 +759,7 @@
         </div>
     </div>
 
-    <!-- PERUBAHAN: Item Action Menu dengan width lebih besar -->
+    <!-- Item Action Menu -->
     <div id="itemActionMenu" class="ios-popover" style="width: 240px;">
         <button onclick="handleAction('detail')" class="popover-item"><span>Detail Akun</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>
         <button onclick="handleAction('edit')" class="popover-item"><span>Edit Data</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
@@ -747,8 +774,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
             getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, 
-            signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider, 
-            sendPasswordResetEmail, verifyPasswordResetCode, confirmPasswordReset
+            signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
             getFirestore, collection, addDoc, doc, onSnapshot, deleteDoc, updateDoc, query, orderBy, getDoc, setDoc 
@@ -781,6 +807,40 @@
         let generatedOTP = null;
         let otpEmail = null;
 
+        // --- PERUBAHAN: Fungsi untuk format input Rupiah ---
+        window.formatRupiahInput = function(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (!value) {
+                input.value = '';
+                return;
+            }
+            
+            // Format dengan titik setiap 3 digit
+            const formatted = new Intl.NumberFormat('id-ID').format(parseInt(value));
+            input.value = formatted;
+        };
+
+        // --- PERUBAHAN: Validasi input angka ---
+        window.validateNumberInput = function(input) {
+            // Hanya izinkan angka dan titik
+            input.value = input.value.replace(/[^\d\.]/g, '');
+            
+            // Hapus titik berlebih
+            input.value = input.value.replace(/\.+/g, '.');
+            
+            // Hapus titik di awal
+            if (input.value.startsWith('.')) {
+                input.value = input.value.substring(1);
+            }
+        };
+
+        // --- PERUBAHAN: Fungsi untuk konversi format Rupiah ke angka ---
+        function convertRupiahToNumber(rupiahString) {
+            if (!rupiahString) return 0;
+            const clean = rupiahString.toString().replace(/\./g, '');
+            return parseInt(clean) || 0;
+        }
+
         // --- FIX: Fungsi untuk menangani pemilihan file dengan benar ---
         window.handleFileSelect = function(input, labelId) {
             const label = document.getElementById(labelId);
@@ -788,6 +848,15 @@
                 label.innerText = input.files[0].name;
                 label.style.color = "white";
                 console.log("File selected:", input.files[0].name, input.files[0].size, "bytes");
+                
+                // Validasi ukuran file
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                if (input.files[0].size > maxSize) {
+                    showIOSNotify("File Terlalu Besar", "Ukuran foto maksimal 10MB.");
+                    input.value = '';
+                    label.innerText = "Pilih Foto...";
+                    label.style.color = "#8e8e93";
+                }
             } else {
                 label.innerText = "Pilih Foto...";
                 label.style.color = "#8e8e93";
@@ -795,35 +864,26 @@
             }
         };
 
-        // --- PERUBAHAN: Format input angka dengan titik ---
-        window.formatNumberInput = function(input) {
-            // Hapus semua karakter selain angka dan titik
-            let value = input.value.replace(/[^\d\.]/g, '');
-            
-            // Hapus titik berlebih
-            value = value.replace(/\.+/g, '.');
-            
-            // Format dengan titik setiap 3 digit dari belakang
-            let parts = value.split('.');
-            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-            
-            input.value = parts.join('.');
+        // --- PERUBAHAN: Fix icon mata di login ---
+        window.toggleLoginPassword = () => {
+            const passInput = document.getElementById('loginPass');
+            const eyeIcon = document.getElementById('eyeIcon');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+            } else {
+                passInput.type = 'password';
+                eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+            }
         };
 
-        // --- Fungsi untuk mengonversi format angka dengan titik ke angka tanpa format ---
-        function convertFormattedNumber(formattedNumber) {
-            return parseInt(formattedNumber.replace(/\./g, '')) || 0;
-        }
-
-        // --- FUNGSI UNTUK MEMBUKA GALERI ---
-        window.openGallery = function(inputId) {
-            const input = document.getElementById(inputId);
-            if (!input) return;
-            
-            console.log("Opening gallery for:", inputId);
-            // Trigger click pada input file
-            input.click();
-        };
+        // Inisialisasi toggle password setelah DOM siap
+        document.addEventListener('DOMContentLoaded', function() {
+            const eyeToggleBtn = document.getElementById('eyeToggleBtn');
+            if (eyeToggleBtn) {
+                eyeToggleBtn.addEventListener('click', toggleLoginPassword);
+            }
+        });
 
         // --- AUTH OBSERVER ---
         onAuthStateChanged(auth, async (u) => {
@@ -878,7 +938,6 @@
         function updateProfileUI(data) {
             document.getElementById('welcomeHeader').innerText = `Halo ${data.username || 'User'}`;
             
-            // Header Image Logic - UPDATED
             const headerImg = document.getElementById('headerProfileImg');
             const headerPlaceholder = document.getElementById('headerProfilePlaceholder');
             
@@ -891,7 +950,6 @@
                 headerPlaceholder.classList.remove('hidden');
             }
 
-            // Modal Pre-fill
             document.getElementById('editUsername').value = data.username || '';
             document.getElementById('displayEmail').innerText = user?.email || 'N/A';
             
@@ -951,7 +1009,6 @@
         window.openForgotPasswordModal = () => {
             document.getElementById('modalOverlay').classList.add('active');
             document.getElementById('forgotPasswordModal').classList.add('active');
-            // Reset form
             document.getElementById('forgotEmail').value = '';
             document.getElementById('forgotOldPassword').value = '';
             document.getElementById('forgotOTP').value = '';
@@ -976,17 +1033,13 @@
             btn.innerText = "Mengirim...";
             
             try {
-                // Verifikasi email dan password
                 await signInWithEmailAndPassword(auth, email, oldPassword);
                 
-                // Generate OTP 6 digit
                 generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
                 otpEmail = email;
                 
-                // Simulasi pengiriman OTP (dalam real app, gunakan email service)
                 showIOSNotify("OTP Dikirim", `Kode OTP: ${generatedOTP}\nCatat kode ini untuk verifikasi.`, false);
                 
-                // Enable OTP input
                 document.getElementById('forgotOTP').disabled = false;
                 document.getElementById('verifyOTPBtn').disabled = false;
                 document.getElementById('forgotOTP').focus();
@@ -1023,17 +1076,14 @@
             }
             
             try {
-                // Re-authenticate dengan password lama
                 const credential = EmailAuthProvider.credential(otpEmail, document.getElementById('forgotOldPassword').value);
                 await reauthenticateWithCredential(auth.currentUser, credential);
                 
-                // Update password
                 await updatePassword(auth.currentUser, newPassword);
                 
                 showIOSNotify("Password Diperbarui", "Password berhasil direset. Silakan login dengan password baru.", false);
                 closeModals();
                 
-                // Reset form
                 document.getElementById('forgotEmail').value = '';
                 document.getElementById('forgotOldPassword').value = '';
                 document.getElementById('forgotOTP').value = '';
@@ -1078,7 +1128,6 @@
             btn.innerText = "Saving...";
 
             try {
-                // 1. Handle Profile Data (Username & Image)
                 const updates = { username: username };
                 if (photoFile) {
                     updates.profileImage = await new Promise(r => { 
@@ -1095,7 +1144,6 @@
                 currentUserData = { ...currentUserData, ...updates };
                 updateProfileUI(currentUserData);
 
-                // 2. Handle Password Change
                 if (newPass) {
                     if (!oldPass) {
                         btn.disabled = false; btn.innerText = "Simpan";
@@ -1143,19 +1191,6 @@
 
         window.addEventListener('offline', () => updateConnectionStatus(false));
         window.addEventListener('online', () => updateConnectionStatus(true));
-
-        // --- LOGIN UI ACTIONS ---
-        window.toggleLoginPassword = () => {
-            const passInput = document.getElementById('loginPass');
-            const eyeIcon = document.getElementById('eyeIcon');
-            if (passInput.type === 'password') {
-                passInput.type = 'text';
-                eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
-            } else {
-                passInput.type = 'password';
-                eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
-            }
-        };
 
         // --- iOS Professional Notification System ---
         window.showIOSNotify = (title, message, isError = true) => {
@@ -1291,17 +1326,14 @@
                         let importedCount = 0;
                         let errorCount = 0;
 
-                        // Import setiap item
                         for (const item of jsonData) {
                             try {
-                                // Validasi data
                                 if (!item.type || !item.timestamp) {
                                     console.warn("Item tidak valid, dilewati:", item);
                                     errorCount++;
                                     continue;
                                 }
 
-                                // Siapkan data untuk Firestore
                                 const data = {
                                     type: item.type,
                                     timestamp: item.timestamp,
@@ -1309,12 +1341,10 @@
                                     image: item.image || null
                                 };
 
-                                // Tambahkan field-field lainnya
                                 ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia'].forEach(field => {
                                     if (item[field]) data[field] = item[field];
                                 });
 
-                                // Simpan ke Firestore
                                 await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'stok'), data);
                                 importedCount++;
 
@@ -1378,7 +1408,7 @@
             });
         }
 
-        // PERUBAHAN: Render database dengan layout horizontal 1:1
+        // PERUBAHAN: Render database dengan hide action menu saat klik di luar
         function renderDatabase() {
             const grid = document.getElementById('databaseGrid');
             grid.innerHTML = "";
@@ -1388,6 +1418,9 @@
                 const card = document.createElement('div');
                 card.className = "db-card";
                 card.onclick = (e) => {
+                    // Tutup semua popover yang terbuka
+                    closeAllPopovers();
+                    
                     activeId = acc.id;
                     const menu = document.getElementById('itemActionMenu');
                     const rect = card.getBoundingClientRect();
@@ -1424,7 +1457,7 @@
             });
         }
 
-        // Action Handlers
+        // PERUBAHAN: Action Handlers dengan close otomatis
         window.handleAction = async (type) => {
             const acc = accounts.find(a => a.id === activeId);
             document.getElementById('itemActionMenu').style.display = 'none';
@@ -1435,7 +1468,6 @@
             if(type === 'detail') {
                 document.getElementById('modalTitle').innerText = "Detail Akun";
                 
-                // PERUBAHAN: Tampilkan gambar di detail akun
                 let html = '';
                 if (acc.image) {
                     html += `
@@ -1504,13 +1536,11 @@
                 }
             }
             else if (type === 'send_admin') {
-                // PERUBAHAN: Kirim semua data ke Admin
                 let text = `🚀 <b>DETAIL AKUN (ADMIN)</b>\n`;
                 text += `Jenis: ${acc.type}\n`;
                 text += `Status: ${acc.isSold ? 'Terjual' : 'Tersedia'}\n`;
                 text += `--------------------------------\n`;
                 
-                // Tampilkan semua field yang ada
                 if (acc.dbEmail) text += `<b>Email:</b> <code>${acc.dbEmail}</code>\n`;
                 if (acc.dbPassG) text += `<b>Pass G:</b> <code>${acc.dbPassG}</code>\n`;
                 if (acc.dbPassM) text += `<b>Pass M:</b> <code>${acc.dbPassM}</code>\n`;
@@ -1534,13 +1564,11 @@
                     const buyer = document.getElementById('buyerUsername').value;
                     if(!buyer) return;
                     
-                    // PERUBAHAN: Format untuk Buyer dengan informasi tambahan
                     let text = `✨ <b>DETAIL AKUN BY AHRASTORE</b>\n`;
                     text += `Buyer: ${buyer}\n`;
                     text += `Jenis: ${acc.type}\n`;
                     text += `--------------------------------\n`;
                     
-                    // Tampilkan semua field yang ada
                     if (acc.dbEmail) text += `<b>Email:</b> <code>${acc.dbEmail}</code>\n`;
                     if (acc.dbPassG) text += `<b>Pass G:</b> <code>${acc.dbPassG}</code>\n`;
                     if (acc.dbPassM) text += `<b>Pass M:</b> <code>${acc.dbPassM}</code>\n`;
@@ -1549,7 +1577,6 @@
                     if (acc.dbBackup) text += `<b>Backup:</b> <code>${acc.dbBackup}</code>\n`;
                     if (acc.dbKet) text += `<b>Keterangan:</b> <code>${acc.dbKet}</code>\n`;
                     
-                    // PERUBAHAN: Tambahkan informasi link
                     text += `\n--------------------------------\n`;
                     text += `📦 Stok lain nya cek di sini\n`;
                     text += `🌐 https://t.me/StokAhraStore2\n`;
@@ -1647,7 +1674,7 @@
             ];
             
             fields.forEach(field => {
-                if (field.value || field.id === 'editDbEmail') { // Always show email field
+                if (field.value || field.id === 'editDbEmail') {
                     html += `
                         <div class="ios-input-row">
                             <span class="row-label">${field.label}</span>
@@ -1664,16 +1691,13 @@
             const types = ['Mail fresh', 'Mail own', 'Monkos', 'Galver'];
             openIOSPicker('PILIH JENIS AKUN', types, 'editType', false);
             
-            // Add event listener to update dynamic fields when type changes
             document.querySelectorAll('#pickerOptionsContainer .picker-option').forEach(btn => {
                 btn.addEventListener('click', function() {
                     setTimeout(() => {
                         const newType = document.getElementById('editType').value;
                         const account = accounts.find(a => a.id === activeId);
                         if (account && newType !== account.type) {
-                            // Update account object temporarily
                             account.type = newType;
-                            // Regenerate fields based on new type
                             const container = document.getElementById('editDynamicFields');
                             container.innerHTML = generateEditFields(account);
                         }
@@ -1703,7 +1727,6 @@
                     updatedAt: Date.now()
                 };
                 
-                // Collect all field values
                 ['editDbEmail', 'editDbPassG', 'editDbPassM', 'editDbBackup', 'editDbName', 'editDbLoginVia', 'editDbKet'].forEach(fieldId => {
                     const element = document.getElementById(fieldId);
                     if (element) {
@@ -1712,13 +1735,11 @@
                         if (value) {
                             updates[dbField] = value;
                         } else {
-                            // Remove field if empty
                             updates[dbField] = null;
                         }
                     }
                 });
                 
-                // Handle image if there's a new one
                 const imageInput = document.getElementById('editImage');
                 if (imageInput?.files[0]) {
                     const reader = new FileReader();
@@ -1826,18 +1847,20 @@
             
             if(!tanggal || !harga || !akun) return showIOSNotify("Form Testimoni", "Mohon lengkapi semua data testimoni.");
             
-            // Validasi foto
             if (!testiImageInput.files || testiImageInput.files.length === 0) {
                 return showIOSNotify("Foto Kosong", "Pilih foto bukti transaksi terlebih dahulu.");
             }
             
             const photo = testiImageInput.files[0];
-            if (photo.size > 10 * 1024 * 1024) { // 10MB limit
+            if (photo.size > 10 * 1024 * 1024) {
                 return showIOSNotify("File Terlalu Besar", "Ukuran foto maksimal 10MB.");
             }
             
-            // PERUBAHAN: Konversi harga dengan titik ke angka tanpa format
-            harga = convertFormattedNumber(harga);
+            // PERUBAHAN: Konversi format Rupiah ke angka
+            harga = convertRupiahToNumber(harga);
+            if (harga === 0) {
+                return showIOSNotify("Harga Invalid", "Masukkan harga yang valid.");
+            }
             
             btn.disabled = true; btn.innerText = "Memproses...";
             
@@ -1861,6 +1884,10 @@
                     document.getElementById('labelTestiAkun').style.color = "#8e8e93";
                     document.getElementById('label-testiImage').innerText = "Pilih Foto...";
                     document.getElementById('label-testiImage').style.color = "#8e8e93";
+                    // Reset harga input
+                    const hargaInput = document.getElementById('testiHarga');
+                    hargaInput.value = '';
+                    hargaInput.style.color = 'white';
                 } else {
                      throw new Error(resData.description || "Gagal mengirim ke Telegram");
                 }
@@ -1871,7 +1898,7 @@
             btn.disabled = false; btn.innerText = "POST TESTIMONI";
         };
 
-        // --- FIX: FORM SAVE (INPUT DATA) ---
+        // --- FIX: FORM SAVE (INPUT DATA) - PERBAIKAN UPLOAD FOTO ---
         document.getElementById('formSave').onsubmit = async (e) => {
             e.preventDefault();
             console.log("Form Save submitted");
@@ -1887,7 +1914,6 @@
             btn.innerText = "Menyimpan...";
             
             try {
-                // Prepare data object
                 const data = { 
                     type: type, 
                     timestamp: Date.now(), 
@@ -1896,7 +1922,6 @@
                 
                 console.log("Base data:", data);
                 
-                // Collect dynamic field values
                 ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia', 'galverSubtype'].forEach(field => {
                     const el = document.getElementById(field);
                     if (el) {
@@ -1909,25 +1934,39 @@
                 
                 console.log("Collected fields:", data);
                 
-                // Handle image upload
+                // PERUBAHAN: Handle image upload dengan validasi
                 const fileInput = document.getElementById('saveImage');
                 if (fileInput.files && fileInput.files[0]) {
                     const file = fileInput.files[0];
-                    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                    
+                    // Validasi ukuran file (maksimal 10MB)
+                    if (file.size > 10 * 1024 * 1024) {
                         btn.disabled = false; btn.innerText = "INPUT DATA";
-                        return showIOSNotify("File Terlalu Besar", "Ukuran foto maksimal 5MB.");
+                        return showIOSNotify("File Terlalu Besar", "Ukuran foto maksimal 10MB.");
                     }
                     
-                    data.image = await new Promise((resolve, reject) => { 
-                        const fr = new FileReader(); 
-                        fr.onload = () => resolve(fr.result); 
-                        fr.onerror = () => reject(new Error("Gagal membaca file"));
-                        fr.readAsDataURL(file); 
-                    });
-                    console.log("Image converted to base64");
+                    // Validasi tipe file
+                    if (!file.type.match('image.*')) {
+                        btn.disabled = false; btn.innerText = "INPUT DATA";
+                        return showIOSNotify("Format Tidak Didukung", "Hanya file gambar yang diperbolehkan.");
+                    }
+                    
+                    try {
+                        data.image = await new Promise((resolve, reject) => { 
+                            const fr = new FileReader(); 
+                            fr.onload = () => resolve(fr.result); 
+                            fr.onerror = () => reject(new Error("Gagal membaca file"));
+                            fr.readAsDataURL(file); 
+                        });
+                        console.log("Image converted to base64");
+                    } catch (error) {
+                        console.error("Error reading file:", error);
+                        showIOSNotify("Error", "Gagal membaca file gambar.");
+                        btn.disabled = false; btn.innerText = "INPUT DATA";
+                        return;
+                    }
                 }
                 
-                // Validate required fields based on type
                 let isValid = true;
                 let errorMsg = "";
                 
@@ -1960,13 +1999,11 @@
                 console.log("Data to save:", data);
                 console.log("User UID:", user.uid);
                 
-                // Save to Firestore
                 const docRef = await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'stok'), data);
                 console.log("Document saved with ID:", docRef.id);
                 
                 showIOSNotify("Data Tersimpan", "Akun berhasil diinput ke cloud database.", false);
                 
-                // Reset form
                 e.target.reset(); 
                 document.getElementById('dynamicFields').innerHTML = ""; 
                 document.getElementById('labelSaveType').innerText = "Pilih Jenis Akun..."; 
@@ -1974,7 +2011,6 @@
                 document.getElementById('label-saveImage').innerText = "Pilih Foto...";
                 document.getElementById('label-saveImage').style.color = "#8e8e93";
                 
-                // Switch to database tab
                 switchTab('db');
                 
             } catch(err) { 
@@ -1984,6 +2020,8 @@
                     errorMessage = "Izin ditolak. Pastikan aturan Firestore sudah benar.";
                 } else if (err.code === 'unavailable') {
                     errorMessage = "Koneksi jaringan bermasalah. Coba lagi.";
+                } else if (err.message.includes("quota")) {
+                    errorMessage = "Kuota storage Firestore terlampaui.";
                 }
                 showIOSNotify("Input Gagal", errorMessage); 
             } finally {
@@ -2008,20 +2046,23 @@
                 return showIOSNotify("Status Kosong", "Pilih status informasi akun.");
             }
             
-            // Validasi foto
             if (!stokImageInput.files || stokImageInput.files.length === 0) {
                 btn.disabled = false; btn.innerText = "KIRIM KE CHANNEL";
                 return showIOSNotify("Foto Kosong", "Pilih foto bukti terlebih dahulu.");
             }
             
             const photo = stokImageInput.files[0];
-            if (photo.size > 10 * 1024 * 1024) { // 10MB limit
+            if (photo.size > 10 * 1024 * 1024) {
                 btn.disabled = false; btn.innerText = "KIRIM KE CHANNEL";
                 return showIOSNotify("File Terlalu Besar", "Ukuran foto maksimal 10MB.");
             }
             
-            // PERUBAHAN: Konversi harga dengan titik ke angka tanpa format
-            harga = convertFormattedNumber(harga);
+            // PERUBAHAN: Konversi format Rupiah ke angka
+            harga = convertRupiahToNumber(harga);
+            if (harga === 0) {
+                btn.disabled = false; btn.innerText = "KIRIM KE CHANNEL";
+                return showIOSNotify("Harga Invalid", "Masukkan harga yang valid.");
+            }
             
             const text = `‼️NEW ACCOUNT FROM AHRASTORE‼️\n\n💸Price : Rp ${harga.toLocaleString('id-ID')}\nℹ️Info Akun : ${info}\n\n🛒Order? Chat Admin AHRASTORE\n🌐 https://t.me/zaaamyy\n📦Stok lain nya cek di sini\n🌐 https://t.me/StokAhraStore2`;
             
@@ -2042,6 +2083,10 @@
                     document.getElementById('label-stokImage').style.color = "#8e8e93";
                     document.getElementById('labelStokInfo').innerText = "Pilih Status...";
                     document.getElementById('labelStokInfo').style.color = "#8e8e93";
+                    // Reset harga input
+                    const hargaInput = document.getElementById('stokHarga');
+                    hargaInput.value = '';
+                    hargaInput.style.color = 'white';
                 } else {
                     throw new Error(resData.description || "Telegram API Error");
                 }
@@ -2068,8 +2113,10 @@
             el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
         };
 
+        // PERUBAHAN: Close popovers dengan klik di mana saja
         window.closeAllPopovers = () => {
             document.querySelectorAll('.ios-popover').forEach(p => p.style.display = 'none');
+            activeId = null;
         };
 
         window.closeModals = () => {
@@ -2080,6 +2127,9 @@
                 const btn = document.getElementById('modalBtnAction');
                 if(btn) btn.classList.add('hidden'); 
             }, 300);
+            
+            // Juga close action menu
+            closeAllPopovers();
         };
         document.getElementById('modalOverlay').onclick = closeModals;
 
@@ -2168,7 +2218,6 @@
                     formData.append('caption', text);
                 } catch (e) {
                     console.error("Error processing image:", e);
-                    // Fallback to text only
                     formData.append('text', text);
                 }
             } else { 
@@ -2190,9 +2239,54 @@
             }
         }
 
+        // PERUBAHAN: Event listener untuk close popover saat klik di mana saja
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.ios-popover') && !e.target.closest('#settingsBtn') && !e.target.closest('.db-card')) {
-                document.querySelectorAll('.ios-popover').forEach(m => m.style.display = 'none');
+            // Jika klik bukan di dalam popover, bukan tombol settings, dan bukan card database
+            if (!e.target.closest('.ios-popover') && 
+                !e.target.closest('#settingsBtn') && 
+                !e.target.closest('.db-card')) {
+                closeAllPopovers();
+            }
+            
+            // Jika klik di luar modal tetapi di dalam overlay, close modal
+            if (e.target.id === 'modalOverlay') {
+                closeModals();
+            }
+        });
+
+        // Event listener untuk close popover saat scroll
+        document.addEventListener('scroll', () => {
+            closeAllPopovers();
+        });
+
+        // Inisialisasi input harga dengan event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set inputmode numeric untuk input harga
+            const hargaInputs = document.querySelectorAll('.price-input');
+            hargaInputs.forEach(input => {
+                input.setAttribute('inputmode', 'numeric');
+                input.setAttribute('pattern', '[0-9.,]*');
+                
+                // Format saat kehilangan fokus
+                input.addEventListener('blur', function() {
+                    formatRupiahInput(this);
+                });
+                
+                // Validasi saat input
+                input.addEventListener('input', function() {
+                    validateNumberInput(this);
+                });
+                
+                // Clear format saat fokus
+                input.addEventListener('focus', function() {
+                    this.value = this.value.replace(/\./g, '');
+                });
+            });
+            
+            // Fix untuk eye icon di login
+            const eyeToggle = document.getElementById('eyeToggleBtn');
+            if (eyeToggle) {
+                eyeToggle.addEventListener('click', toggleLoginPassword);
             }
         });
     </script>
