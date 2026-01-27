@@ -16,6 +16,7 @@
             --text-main: #ffffff;
             --text-secondary: #8e8e93;
             --ios-blur: rgba(28, 28, 30, 0.85);
+            --ios-red: #ff3b30;
             color-scheme: dark;
         }
 
@@ -28,6 +29,7 @@
             overflow-x: hidden;
             -webkit-text-size-adjust: 100%;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .app-container {
@@ -191,6 +193,7 @@
             user-select: text;
         }
 
+        /* --- IOS POPUP & CONTEXT MENU --- */
         .ios-popover {
             position: absolute;
             background: var(--ios-blur);
@@ -207,8 +210,7 @@
             animation: popIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             width: 240px;
         }
-        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
+        
         .popover-item {
             padding: 16px;
             font-size: 14px;
@@ -224,6 +226,86 @@
         .popover-item:last-child { border-bottom: none; }
         .popover-item:active { background: rgba(255,255,255,0.15); }
 
+        /* NEW: iOS Context Menu (Long Press) Styles */
+        #iosContextMenuOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9990;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+            align-items: center;
+            justify-content: center;
+        }
+        #iosContextMenuOverlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .context-menu-container {
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transform: scale(0.9);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+        }
+        #iosContextMenuOverlay.active .context-menu-container {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .context-preview {
+            width: 100%;
+            height: 280px;
+            background: #1c1c1e;
+            border-radius: 18px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .context-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .context-options-group {
+            background: rgba(37, 37, 39, 0.95);
+            border-radius: 14px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .context-option {
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 16px;
+            color: white;
+            background: transparent;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.15);
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        .context-option:last-child { border-bottom: none; }
+        .context-option:active { background: rgba(255, 255, 255, 0.15); }
+        .context-option.destructive { color: var(--ios-red); }
+
+        .context-icon {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+        }
+
+        /* Overlay */
         .overlay {
             position: fixed;
             inset: 0;
@@ -280,7 +362,7 @@
             display: grid; 
             grid-template-columns: repeat(1, 1fr); 
             gap: 14px; 
-            transition: all 0.3s ease; /* Transisi halus */
+            transition: all 0.3s ease;
         }
 
         .db-card {
@@ -290,29 +372,12 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
             z-index: 1;
+            user-select: none;
+            -webkit-user-select: none;
         }
-
-        /* Saat Grid dalam mode fokus (salah satu kartu aktif) */
-        .db-grid.has-active-card .db-card {
-            filter: blur(4px) brightness(0.7);
-            opacity: 0.6;
-            pointer-events: none; /* Cegah klik kartu lain */
-            transform: scale(0.98);
-        }
-
-        /* Kartu yang sedang AKTIF (diklik) */
-        .db-grid.has-active-card .db-card.active-card {
-            filter: none;
-            opacity: 1;
-            pointer-events: auto;
-            z-index: 50; /* Di atas kartu lain */
-            transform: scale(1.03);
-            border-color: var(--accent-blue);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(10, 132, 255, 0.3);
-            background: #242426;
-        }
+        .db-card:active { transform: scale(0.97); }
 
         .sold-badge {
             background: #ff3b30; color: white; font-size: 10px;
@@ -383,6 +448,7 @@
             background-color: white;
             transition: .4s;
             border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         input:checked + .toggle-slider {
@@ -717,6 +783,63 @@
     <!-- Modals -->
     <div id="modalOverlay" class="overlay"></div>
     
+    <!-- REVISI: iOS Context Menu (Long Press) -->
+    <div id="iosContextMenuOverlay" onclick="closeIOSContextMenu(event)">
+        <div class="context-menu-container" onclick="event.stopPropagation()">
+            <!-- Preview Section -->
+            <div class="context-preview">
+                <img id="contextPreviewImg" src="" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <p id="contextPreviewTitle" class="text-white font-bold text-lg truncate"></p>
+                    <p id="contextPreviewSubtitle" class="text-zinc-300 text-xs font-medium uppercase tracking-wide"></p>
+                </div>
+            </div>
+
+            <!-- Options Section -->
+            <div class="space-y-4">
+                <!-- Group 1 -->
+                <div class="context-options-group">
+                    <div class="context-option" onclick="handleAction('detail')">
+                        <span>Detail akun</span>
+                        <svg class="context-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </div>
+                    <div class="context-option" onclick="handleAction('edit')">
+                        <span>Edit data</span>
+                        <svg class="context-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </div>
+                    <div class="context-option">
+                        <span>Status sold</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="contextSoldToggle" onchange="handleAction('sold_toggle')">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Group 2 -->
+                <div class="context-options-group">
+                    <div class="context-option" onclick="handleAction('send_admin')">
+                        <span>Kirim ke admin</span>
+                        <svg class="context-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </div>
+                    <div class="context-option" onclick="handleAction('send_buyer')">
+                        <span>Kirim ke buyer</span>
+                        <svg class="context-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                </div>
+
+                <!-- Group 3 (Delete) -->
+                <div class="context-options-group">
+                    <div class="context-option destructive" onclick="handleAction('delete')">
+                        <span>Hapus akun</span>
+                        <svg class="context-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <div id="iosPickerSheet" class="bottom-sheet">
         <div class="picker-header p-4 border-b border-white/5"><h3 id="pickerTitle" class="text-[13px] font-bold text-zinc-500 uppercase text-center">Judul</h3></div>
         <div id="pickerOptionsContainer" class="flex flex-col max-h-[60vh] overflow-y-auto"></div>
@@ -783,16 +906,6 @@
             <button onclick="closeModals()" class="flex-1 p-4 text-zinc-400 font-medium border-r border-white/10">Batal</button>
             <button onclick="saveAccountSettings()" id="saveAccountBtn" class="flex-1 p-4 text-blue-500 font-bold">Simpan</button>
         </div>
-    </div>
-
-    <!-- Item Action Menu -->
-    <div id="itemActionMenu" class="ios-popover" style="width: 240px;">
-        <button onclick="handleAction('detail')" class="popover-item"><span>Detail Akun</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>
-        <button onclick="handleAction('edit')" class="popover-item"><span>Edit Data</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-        <button onclick="handleAction('sold')" class="popover-item"><span>Status Sold</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg></button>
-        <button onclick="handleAction('send_admin')" class="popover-item"><span>Kirim ke Admin</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
-        <button onclick="handleAction('send_buyer')" class="popover-item"><span>Kirim ke Buyer</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
-        <button onclick="handleAction('delete')" class="popover-item !text-red-500"><span>Hapus</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
     </div>
 
     <!-- Firebase SDK Modules -->
@@ -1458,7 +1571,7 @@
             });
         }
 
-        // PERUBAHAN: Render database dengan logika posisi Popup yang lebih pintar
+        // PERUBAHAN: Render database dengan logika LONG PRESS
         function renderDatabase() {
             const grid = document.getElementById('databaseGrid');
             grid.innerHTML = "";
@@ -1467,78 +1580,41 @@
             accounts.forEach(acc => {
                 const card = document.createElement('div');
                 card.className = "db-card";
-                card.dataset.id = acc.id; // Store ID for reference
+                card.dataset.id = acc.id;
 
-                card.onclick = (e) => {
-                    e.stopPropagation(); // Stop bubbling to document
+                // Long Press Logic
+                let pressTimer;
+                const startPress = (e) => {
+                    // Prevent context menu on right click
+                    if (e.type === 'click' && e.button !== 0) return;
                     
-                    // Jika kartu ini sudah aktif, tutup (toggle)
-                    if (activeId === acc.id) {
-                        closeAllPopovers();
-                        return;
-                    }
+                    pressTimer = setTimeout(() => {
+                        openIOSContextMenu(acc);
+                        navigator.vibrate(50); // Haptic feedback
+                    }, 500); // 500ms for long press
+                };
 
-                    closeAllPopovers(); // Tutup yang lain dulu
-                    
-                    // Set Status Active
-                    activeId = acc.id;
-                    const grid = document.getElementById('databaseGrid');
-                    grid.classList.add('has-active-card'); // Tambahkan efek blur ke grid
-                    card.classList.add('active-card'); // Highlight kartu ini
+                const cancelPress = () => {
+                    clearTimeout(pressTimer);
+                };
 
-                    const menu = document.getElementById('itemActionMenu');
-                    
-                    // Show briefly to measure
-                    menu.style.display = 'flex';
-                    menu.style.visibility = 'hidden';
-                    
-                    const menuRect = menu.getBoundingClientRect();
-                    const menuHeight = menuRect.height;
-                    const menuWidth = menuRect.width;
-                    
-                    const cardRect = card.getBoundingClientRect();
-                    const viewportHeight = window.innerHeight;
-                    const viewportWidth = window.innerWidth;
+                // Mouse events
+                card.addEventListener('mousedown', startPress);
+                card.addEventListener('mouseup', cancelPress);
+                card.addEventListener('mouseleave', cancelPress);
 
-                    let topPos, leftPos;
+                // Touch events
+                card.addEventListener('touchstart', (e) => {
+                    // e.preventDefault(); // Optional: prevent scrolling while holding? Better not.
+                    startPress(e);
+                }, {passive: true});
+                card.addEventListener('touchend', cancelPress);
+                card.addEventListener('touchmove', cancelPress); // Cancel if scrolling
 
-                    // --- Horizontal Position ---
-                    if (viewportWidth < 768) { 
-                        // Mobile: Center horizontally
-                        leftPos = (viewportWidth - menuWidth) / 2;
-                    } else {
-                        // Desktop: To the right of the card
-                        leftPos = cardRect.right + 10;
-                        // Flip if not enough space on right
-                        if (leftPos + menuWidth > viewportWidth) {
-                            leftPos = cardRect.left - menuWidth - 10;
-                        }
-                    }
-
-                    // --- Vertical Position ---
-                    const spaceBelow = viewportHeight - cardRect.bottom;
-                    const spaceAbove = cardRect.top;
-                    
-                    // Smart vertical positioning
-                    if (spaceBelow >= menuHeight + 10) {
-                        topPos = cardRect.bottom + 5;
-                    } else if (spaceAbove >= menuHeight + 10) {
-                        topPos = cardRect.top - menuHeight - 5;
-                    } else {
-                        // Pick side with more space
-                        if (spaceBelow > spaceAbove) {
-                            topPos = cardRect.bottom + 5;
-                        } else {
-                            topPos = cardRect.top - menuHeight - 5;
-                            if (topPos < 80) topPos = 80; // Safety for header
-                        }
-                    }
-
-                    // Apply positions
-                    menu.style.top = `${topPos}px`;
-                    menu.style.left = `${leftPos}px`;
-                    menu.style.position = 'fixed';
-                    menu.style.visibility = 'visible';
+                // Prevent default click context menu
+                card.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    return false;
                 };
                 
                 card.innerHTML = `
@@ -1563,10 +1639,57 @@
             });
         }
 
-        // PERUBAHAN: Action Handlers dengan close otomatis
+        // --- NEW: iOS Context Menu Functions ---
+        window.openIOSContextMenu = (account) => {
+            activeId = account.id;
+            const overlay = document.getElementById('iosContextMenuOverlay');
+            const previewImg = document.getElementById('contextPreviewImg');
+            const title = document.getElementById('contextPreviewTitle');
+            const subtitle = document.getElementById('contextPreviewSubtitle');
+            const soldToggle = document.getElementById('contextSoldToggle');
+
+            // Populate Data
+            if (account.image) {
+                previewImg.src = account.image;
+                previewImg.style.display = 'block';
+            } else {
+                previewImg.style.display = 'none'; // Or show placeholder
+                // Fallback background color if no image
+                document.querySelector('.context-preview').style.background = '#2c2c2e';
+            }
+
+            title.innerText = account.dbEmail || account.dbName || 'No Name';
+            subtitle.innerText = account.type;
+            soldToggle.checked = account.isSold;
+
+            // Show Menu
+            overlay.classList.add('active');
+            
+            // Add blur to background elements
+            document.getElementById('app').style.filter = "blur(10px) scale(0.98)";
+            document.getElementById('app').style.transition = "all 0.3s";
+        };
+
+        window.closeIOSContextMenu = (e) => {
+            // Close if clicking overlay directly
+            if (e && !e.target.id === 'iosContextMenuOverlay') return;
+            
+            document.getElementById('iosContextMenuOverlay').classList.remove('active');
+            activeId = null;
+            
+            // Remove blur
+            document.getElementById('app').style.filter = "none";
+            document.getElementById('app').style.transform = "none";
+        };
+
+        // Modified Action Handlers
         window.handleAction = async (type) => {
             const acc = accounts.find(a => a.id === activeId);
-            document.getElementById('itemActionMenu').style.display = 'none';
+            
+            if (type !== 'sold_toggle') {
+                closeIOSContextMenu(); // Close menu for actions that open modals
+            }
+            
             if(!acc) return;
 
             const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'stok', activeId);
@@ -1631,9 +1754,11 @@
             else if (type === 'edit') {
                 openEditModal(acc);
             }
-            else if (type === 'sold') {
-                await updateDoc(docRef, { isSold: !acc.isSold });
-                showIOSNotify("Status Diperbarui", "Status penjualan akun telah diubah.", false);
+            else if (type === 'sold_toggle') {
+                // Toggle status immediately without closing menu
+                const newState = document.getElementById('contextSoldToggle').checked;
+                await updateDoc(docRef, { isSold: newState });
+                // Optional: Update UI feedback
             } 
             else if (type === 'delete') {
                 if(confirm("Hapus stok ini permanen dari Cloud?")) {
@@ -1699,8 +1824,6 @@
                 document.getElementById('modalOverlay').classList.add('active');
                 document.getElementById('iosDetailModal').classList.add('active');
             }
-            // Setelah action apapun, reset blur dan close popover
-            closeAllPopovers();
         };
 
         // --- FUNGSI EDIT DATA ---
@@ -1744,17 +1867,6 @@
                         
                         <div id="editDynamicFields">
                             ${generateEditFields(account)}
-                        </div>
-                        
-                        <div class="ios-input-row">
-                            <span class="row-label">Status Sold</span>
-                            <div class="flex items-center justify-between">
-                                <span class="text-[15px]">${account.isSold ? 'Terjual' : 'Tersedia'}</span>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="editIsSold" ${account.isSold ? 'checked' : ''}>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
                         </div>
                     </div>
                 </form>
@@ -1816,7 +1928,8 @@
 
         async function saveEditChanges(docId) {
             const type = document.getElementById('editType').value;
-            const isSold = document.getElementById('editIsSold')?.checked || false;
+            // Removed isSold from edit modal as it's now in context menu
+            // const isSold = document.getElementById('editIsSold')?.checked || false;
             
             if (!type) {
                 showIOSNotify("Error", "Jenis akun harus diisi.");
@@ -1831,7 +1944,7 @@
                 const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'stok', docId);
                 const updates = {
                     type: type,
-                    isSold: isSold,
+                    // isSold: isSold, // Managed separately now
                     updatedAt: Date.now()
                 };
                 
