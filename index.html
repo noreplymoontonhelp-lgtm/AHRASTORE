@@ -191,12 +191,12 @@
             border: 0.5px solid rgba(255, 255, 255, 0.1);
             transform-origin: top right;
             animation: popIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-            width: 220px;
+            width: 240px; /* Diperbesar sedikit */
         }
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .popover-item {
-            padding: 14px 16px;
+            padding: 16px; /* Diperbesar sedikit */
             font-size: 14px;
             display: flex;
             align-items: center;
@@ -205,6 +205,7 @@
             color: white;
             text-align: left;
             background: transparent;
+            min-height: 52px; /* Minimum height agar tidak terpotong */
         }
         .popover-item:last-child { border-bottom: none; }
         .popover-item:active { background: rgba(255,255,255,0.15); }
@@ -260,11 +261,15 @@
         }
         .picker-option:active { background: rgba(255, 255, 255, 0.1); }
 
-        .db-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        /* PERUBAHAN: Layout database grid menjadi 1 kolom */
+        .db-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 14px; }
         .db-card {
             background: var(--card-bg); border-radius: 16px; padding: 12px;
             border: 0.5px solid rgba(255, 255, 255, 0.05);
             position: relative; cursor: pointer;
+            display: flex; /* Flex layout untuk tampilan horizontal */
+            align-items: center;
+            gap: 14px;
         }
 
         .sold-badge {
@@ -536,7 +541,7 @@
         <nav class="flex px-4 bg-black/80 backdrop-blur-xl border-b border-white/5 sticky top-[75px] z-30">
             <button onclick="switchTab('stok')" id="tab-stok" class="tab-btn flex-1 tab-active">Stok</button>
             <button onclick="switchTab('testi')" id="tab-testi" class="tab-btn flex-1">Testi</button>
-            <button onclick="switchTab('save')" id="tab-save" class="tab-btn flex-1">Input Data</button> <!-- UBAH DI SINI -->
+            <button onclick="switchTab('save')" id="tab-save" class="tab-btn flex-1">Input Data</button>
             <button onclick="switchTab('db')" id="tab-db" class="tab-btn flex-1">Data akun</button>
         </nav>
 
@@ -552,20 +557,17 @@
                                 <label for="stokImage" class="flex justify-between items-center cursor-pointer py-1">
                                     <span id="label-stokImage" class="text-[15px] text-zinc-500">Pilih Foto...</span>
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-500"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                                    <!-- FIX: Tambahkan event listener di sini -->
                                     <input type="file" id="stokImage" accept="image/*" required class="hidden" onchange="handleFileSelect(this, 'label-stokImage')">
                                 </label>
                             </div>
-                            <!-- FIX: Input harga dengan keyboard numerik -->
+                            <!-- PERUBAHAN: Input harga dengan titik tidak diblokir -->
                             <div class="ios-input-row">
                                 <span class="row-label">Harga</span>
-                                <input type="tel" 
+                                <input type="text" 
                                        id="stokHarga" 
-                                       placeholder="Contoh: 50000" 
+                                       placeholder="Contoh: 50.000" 
                                        required 
-                                       pattern="[0-9]*"
-                                       inputmode="numeric"
-                                       oninput="validateNumberInput(this)">
+                                       oninput="formatNumberInput(this)">
                             </div>
                         </div>
                         <div class="ios-select-trigger" id="triggerStokInfo" onclick="openIOSPicker('STATUS INFORMASI', ['Mail fresh', 'Free change email'], 'stokInfo')">
@@ -589,7 +591,6 @@
                                 <label for="testiImage" class="flex justify-between items-center cursor-pointer py-1">
                                     <span id="label-testiImage" class="text-[15px] text-zinc-500">Pilih Foto...</span>
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-500"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                                    <!-- FIX: Tambahkan event listener di sini -->
                                     <input type="file" id="testiImage" accept="image/*" required class="hidden" onchange="handleFileSelect(this, 'label-testiImage')">
                                 </label>
                             </div>
@@ -601,16 +602,14 @@
                                 </div>
                                 <input type="hidden" id="testiTanggal" required>
                             </div>
-                            <!-- FIX: Input harga testimoni dengan keyboard numerik -->
+                            <!-- PERUBAHAN: Input harga testimoni dengan titik tidak diblokir -->
                             <div class="ios-input-row">
                                 <span class="row-label">Harga</span>
-                                <input type="tel" 
+                                <input type="text" 
                                        id="testiHarga" 
                                        placeholder="Harga Transaksi" 
                                        required 
-                                       pattern="[0-9]*"
-                                       inputmode="numeric"
-                                       oninput="validateNumberInput(this)">
+                                       oninput="formatNumberInput(this)">
                             </div>
                         </div>
                         <div class="ios-select-trigger" id="triggerTestiAkun" onclick="openTestimoniPicker()">
@@ -623,10 +622,10 @@
                 </div>
             </section>
 
-            <!-- Section Simpan ke DB (Ubah judul) -->
+            <!-- Section Simpan ke DB -->
             <section id="section-save" class="hidden">
                 <div class="shizuku-card">
-                    <h2 id="saveFormTitle" class="text-[12px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Input Data Akun</h2> <!-- UBAH JUDUL -->
+                    <h2 id="saveFormTitle" class="text-[12px] font-bold mb-5 text-zinc-500 uppercase tracking-widest">Input Data Akun</h2>
                     <form id="formSave" class="space-y-4">
                         <div class="ios-input-group">
                             <div class="ios-input-row">
@@ -634,7 +633,6 @@
                                 <label for="saveImage" class="flex justify-between items-center cursor-pointer py-1">
                                     <span id="label-saveImage" class="text-[15px] text-zinc-500">Pilih Foto...</span>
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-500"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                                    <!-- FIX: Tambahkan event listener di sini -->
                                     <input type="file" id="saveImage" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'label-saveImage')">
                                 </label>
                             </div>
@@ -645,7 +643,7 @@
                         </div>
                         <input type="hidden" id="saveType">
                         <div id="dynamicFields" class="space-y-4"></div>
-                        <button type="submit" class="pill-button mt-4 !bg-blue-600">INPUT DATA</button> <!-- UBAH TEXT TOMBOL -->
+                        <button type="submit" class="pill-button mt-4 !bg-blue-600" id="submitSaveBtn">INPUT DATA</button>
                     </form>
                 </div>
             </section>
@@ -734,7 +732,8 @@
         </div>
     </div>
 
-    <div id="itemActionMenu" class="ios-popover" style="width: 220px;">
+    <!-- PERUBAHAN: Item Action Menu dengan width lebih besar -->
+    <div id="itemActionMenu" class="ios-popover" style="width: 240px;">
         <button onclick="handleAction('detail')" class="popover-item"><span>Detail Akun</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>
         <button onclick="handleAction('edit')" class="popover-item"><span>Edit Data</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
         <button onclick="handleAction('sold')" class="popover-item"><span>Status Sold</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg></button>
@@ -796,17 +795,25 @@
             }
         };
 
-        // --- VALIDASI INPUT ANGKA ---
-        window.validateNumberInput = function(input) {
-            // Hapus semua karakter selain angka
-            input.value = input.value.replace(/[^\d]/g, '');
+        // --- PERUBAHAN: Format input angka dengan titik ---
+        window.formatNumberInput = function(input) {
+            // Hapus semua karakter selain angka dan titik
+            let value = input.value.replace(/[^\d\.]/g, '');
             
-            // Format dengan titik setiap 3 digit
-            if (input.value.length > 3) {
-                let num = parseInt(input.value.replace(/\./g, ''));
-                input.value = num.toLocaleString('id-ID');
-            }
+            // Hapus titik berlebih
+            value = value.replace(/\.+/g, '.');
+            
+            // Format dengan titik setiap 3 digit dari belakang
+            let parts = value.split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            
+            input.value = parts.join('.');
         };
+
+        // --- Fungsi untuk mengonversi format angka dengan titik ke angka tanpa format ---
+        function convertFormattedNumber(formattedNumber) {
+            return parseInt(formattedNumber.replace(/\./g, '')) || 0;
+        }
 
         // --- FUNGSI UNTUK MEMBUKA GALERI ---
         window.openGallery = function(inputId) {
@@ -1366,10 +1373,12 @@
                 snap.forEach(d => accounts.push({id: d.id, ...d.data()}));
                 renderDatabase();
             }, (error) => {
-                console.error(error);
+                console.error("Firestore error:", error);
+                showIOSNotify("Database Error", "Gagal memuat data dari Firestore.");
             });
         }
 
+        // PERUBAHAN: Render database dengan layout horizontal 1:1
         function renderDatabase() {
             const grid = document.getElementById('databaseGrid');
             grid.innerHTML = "";
@@ -1385,20 +1394,31 @@
                     const containerRect = document.querySelector('.app-container').getBoundingClientRect();
                     let topPos = rect.top - containerRect.top + 40;
                     let leftPos = rect.left - containerRect.left + 20;
-                    if(leftPos + 220 > containerRect.width) leftPos = containerRect.width - 240;
+                    if(leftPos + 240 > containerRect.width) leftPos = containerRect.width - 260;
                     
                     menu.style.top = `${topPos}px`;
                     menu.style.left = `${leftPos}px`;
                     menu.style.display = 'flex';
                     e.stopPropagation();
                 };
+                
                 card.innerHTML = `
-                    <div class="h-32 bg-zinc-900 rounded-xl mb-3 overflow-hidden relative flex items-center justify-center">
+                    <div class="w-24 h-24 bg-zinc-900 rounded-xl overflow-hidden relative flex-shrink-0 flex items-center justify-center">
                         ${acc.isSold ? '<div class="sold-badge">SOLD</div>' : ''}
                         ${acc.image ? `<img src="${acc.image}" class="w-full h-full object-cover ${acc.isSold?'grayscale opacity-30':''}">` : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2c2c2e" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'}
                     </div>
-                    <p class="text-[13px] font-bold truncate px-1">${acc.dbEmail || acc.dbName || 'No Name'}</p>
-                    <p class="text-[9px] text-zinc-500 font-bold uppercase mt-0.5 px-1">${acc.type}</p>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[14px] font-bold truncate mb-1">${acc.dbEmail || acc.dbName || 'No Name'}</p>
+                        <p class="text-[10px] text-zinc-500 font-bold uppercase mb-2">${acc.type}</p>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] px-2 py-1 rounded-full ${acc.isSold ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}">
+                                ${acc.isSold ? 'Terjual' : 'Tersedia'}
+                            </span>
+                            <span class="text-[9px] text-zinc-500">
+                                ${new Date(acc.timestamp).toLocaleDateString('id-ID')}
+                            </span>
+                        </div>
+                    </div>
                 `;
                 grid.appendChild(card);
             });
@@ -1414,12 +1434,57 @@
 
             if(type === 'detail') {
                 document.getElementById('modalTitle').innerText = "Detail Akun";
-                let html = '<div class="ios-input-group">';
-                const fields = { 'type': 'Jenis', 'dbEmail': 'Email', 'dbPassG': 'Password G', 'dbPassM': 'Password M', 'dbBackup': 'Kode Cadangan', 'dbName': 'Nama/ID', 'dbLoginVia': 'Login Via' };
-                for(let key in fields) {
-                    if(acc[key]) html += `<div class="ios-input-row"><span class="row-label">${fields[key]}</span><span class="text-sm font-medium break-all text-white/90">${acc[key]}</span></div>`;
+                
+                // PERUBAHAN: Tampilkan gambar di detail akun
+                let html = '';
+                if (acc.image) {
+                    html += `
+                        <div class="flex justify-center mb-4">
+                            <div class="w-40 h-40 bg-zinc-900 rounded-xl overflow-hidden relative">
+                                <img src="${acc.image}" class="w-full h-full object-cover">
+                                ${acc.isSold ? '<div class="sold-badge">SOLD</div>' : ''}
+                            </div>
+                        </div>
+                    `;
                 }
+                
+                html += '<div class="ios-input-group">';
+                const fields = { 
+                    'type': 'Jenis', 
+                    'dbEmail': 'Email', 
+                    'dbPassG': 'Password G', 
+                    'dbPassM': 'Password M', 
+                    'dbBackup': 'Kode Cadangan', 
+                    'dbName': 'Nama/ID', 
+                    'dbLoginVia': 'Login Via',
+                    'dbKet': 'Keterangan'
+                };
+                
+                for(let key in fields) {
+                    if(acc[key]) {
+                        html += `<div class="ios-input-row">
+                                    <span class="row-label">${fields[key]}</span>
+                                    <span class="text-sm font-medium break-all text-white/90">${acc[key]}</span>
+                                 </div>`;
+                    }
+                }
+                
+                html += `<div class="ios-input-row">
+                            <span class="row-label">Status</span>
+                            <span class="text-sm font-medium ${acc.isSold ? 'text-red-400' : 'text-green-400'}">
+                                ${acc.isSold ? 'Terjual' : 'Tersedia'}
+                            </span>
+                         </div>`;
+                
+                html += `<div class="ios-input-row">
+                            <span class="row-label">Tanggal Input</span>
+                            <span class="text-sm font-medium text-white/90">
+                                ${new Date(acc.timestamp).toLocaleString('id-ID')}
+                            </span>
+                         </div>`;
+                
                 html += '</div>';
+                
                 document.getElementById('modalBody').innerHTML = html;
                 document.getElementById('modalBtnAction').classList.add('hidden');
                 document.getElementById('modalOverlay').classList.add('active');
@@ -1439,9 +1504,25 @@
                 }
             }
             else if (type === 'send_admin') {
-                 let text = `🚀 <b>DETAIL AKUN (ADMIN)</b>\nJenis: ${acc.type}\n--------------------------------\n`;
-                 ['dbEmail', 'dbPassG', 'dbPassM', 'dbLoginVia', 'dbName'].forEach(k => { if(acc[k]) text += `<b>${k.replace('db','')} :</b> <code>${acc[k]}</code>\n`; });
-                 await sendAccountToTelegram(TELEGRAM_CHAT_ID, text, acc.image);
+                // PERUBAHAN: Kirim semua data ke Admin
+                let text = `🚀 <b>DETAIL AKUN (ADMIN)</b>\n`;
+                text += `Jenis: ${acc.type}\n`;
+                text += `Status: ${acc.isSold ? 'Terjual' : 'Tersedia'}\n`;
+                text += `--------------------------------\n`;
+                
+                // Tampilkan semua field yang ada
+                if (acc.dbEmail) text += `<b>Email:</b> <code>${acc.dbEmail}</code>\n`;
+                if (acc.dbPassG) text += `<b>Pass G:</b> <code>${acc.dbPassG}</code>\n`;
+                if (acc.dbPassM) text += `<b>Pass M:</b> <code>${acc.dbPassM}</code>\n`;
+                if (acc.dbName) text += `<b>Nama/ID:</b> <code>${acc.dbName}</code>\n`;
+                if (acc.dbLoginVia) text += `<b>Login Via:</b> <code>${acc.dbLoginVia}</code>\n`;
+                if (acc.dbBackup) text += `<b>Backup:</b> <code>${acc.dbBackup}</code>\n`;
+                if (acc.dbKet) text += `<b>Keterangan:</b> <code>${acc.dbKet}</code>\n`;
+                
+                text += `\n--------------------------------\n`;
+                text += `📅 Tanggal Input: ${new Date(acc.timestamp).toLocaleDateString('id-ID')}`;
+                
+                await sendAccountToTelegram(TELEGRAM_CHAT_ID, text, acc.image);
             }
             else if (type === 'send_buyer') {
                 document.getElementById('modalTitle').innerText = "Kirim ke Buyer";
@@ -1452,10 +1533,35 @@
                 action.onclick = async () => {
                     const buyer = document.getElementById('buyerUsername').value;
                     if(!buyer) return;
-                    let text = `✨ <b>DETAIL AKUN BY AHRASTORE</b>\nBuyer: ${buyer}\n--------------------------------\n`;
-                    ['dbEmail', 'dbPassG', 'dbPassM', 'dbLoginVia', 'dbName', 'dbBackup'].forEach(k => { if(acc[k]) text += `<b>${k.replace('db','')} :</b> <code>${acc[k]}</code>\n`; });
-                    text += `\n--------------------------------\nStok: @StokAhraStore2`;
-                    closeModals(); await sendAccountToTelegram(TELEGRAM_CHAT_ID, text, acc.image);
+                    
+                    // PERUBAHAN: Format untuk Buyer dengan informasi tambahan
+                    let text = `✨ <b>DETAIL AKUN BY AHRASTORE</b>\n`;
+                    text += `Buyer: ${buyer}\n`;
+                    text += `Jenis: ${acc.type}\n`;
+                    text += `--------------------------------\n`;
+                    
+                    // Tampilkan semua field yang ada
+                    if (acc.dbEmail) text += `<b>Email:</b> <code>${acc.dbEmail}</code>\n`;
+                    if (acc.dbPassG) text += `<b>Pass G:</b> <code>${acc.dbPassG}</code>\n`;
+                    if (acc.dbPassM) text += `<b>Pass M:</b> <code>${acc.dbPassM}</code>\n`;
+                    if (acc.dbName) text += `<b>Nama/ID:</b> <code>${acc.dbName}</code>\n`;
+                    if (acc.dbLoginVia) text += `<b>Login Via:</b> <code>${acc.dbLoginVia}</code>\n`;
+                    if (acc.dbBackup) text += `<b>Backup:</b> <code>${acc.dbBackup}</code>\n`;
+                    if (acc.dbKet) text += `<b>Keterangan:</b> <code>${acc.dbKet}</code>\n`;
+                    
+                    // PERUBAHAN: Tambahkan informasi link
+                    text += `\n--------------------------------\n`;
+                    text += `📦 Stok lain nya cek di sini\n`;
+                    text += `🌐 https://t.me/StokAhraStore2\n`;
+                    text += `\n`;
+                    text += `👥 Grub stok jual beli, taruh stok mu atau cari stok lain di sini\n`;
+                    text += `🌐 https://t.me/JBAKUNMLBYAHRASTORE\n`;
+                    text += `\n`;
+                    text += `🤟 Testimoni? cek\n`;
+                    text += `🌐 https://t.me/TESTIMONIAHRASTORE`;
+                    
+                    closeModals(); 
+                    await sendAccountToTelegram(TELEGRAM_CHAT_ID, text, acc.image);
                 };
                 document.getElementById('modalOverlay').classList.add('active');
                 document.getElementById('iosDetailModal').classList.add('active');
@@ -1709,7 +1815,7 @@
             });
         }
 
-        // --- FIX: FORM HANDLERS dengan validasi foto ---
+        // --- FIX: FORM TESTIMONI ---
         document.getElementById('formTesti').onsubmit = async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
@@ -1730,12 +1836,12 @@
                 return showIOSNotify("File Terlalu Besar", "Ukuran foto maksimal 10MB.");
             }
             
-            // Format harga untuk Telegram
-            harga = harga.replace(/\./g, '');
+            // PERUBAHAN: Konversi harga dengan titik ke angka tanpa format
+            harga = convertFormattedNumber(harga);
             
             btn.disabled = true; btn.innerText = "Memproses...";
             
-            const text = `✨ <b>TESTIMONI TRANSAKSI AHRASTORE</b>\n\n📅 Tanggal : ${tanggal}\nℹ️ Info : Akun ${akun}\n💸 Harga : Rp ${parseInt(harga).toLocaleString('id-ID')}\n\n📦 Stok lain nya cek di sini\n🌐 https://t.me/StokAhraStore2\n🤟 Testimoni? cek\n🌐 https://t.me/TESTIMONIAHRASTORE`;
+            const text = `✨ <b>TESTIMONI TRANSAKSI AHRASTORE</b>\n\n📅 Tanggal : ${tanggal}\nℹ️ Info : Akun ${akun}\n💸 Harga : Rp ${harga.toLocaleString('id-ID')}\n\n📦 Stok lain nya cek di sini\n🌐 https://t.me/StokAhraStore2\n🤟 Testimoni? cek\n🌐 https://t.me/TESTIMONIAHRASTORE`;
             const formData = new FormData();
             formData.append('chat_id', TELEGRAM_CHAT_ID); 
             formData.append('parse_mode', 'HTML'); 
@@ -1765,54 +1871,99 @@
             btn.disabled = false; btn.innerText = "POST TESTIMONI";
         };
 
-        // --- FIX: Form Save dengan validasi foto ---
+        // --- FIX: FORM SAVE (INPUT DATA) ---
         document.getElementById('formSave').onsubmit = async (e) => {
             e.preventDefault();
-            const type = document.getElementById('saveType').value;
-            if(!type) return showIOSNotify("Data Tidak Lengkap", "Pilih jenis akun terlebih dahulu.");
+            console.log("Form Save submitted");
             
-            const btn = e.target.querySelector('button'); 
+            const type = document.getElementById('saveType').value;
+            if(!type) {
+                showIOSNotify("Jenis Kosong", "Pilih jenis akun terlebih dahulu.");
+                return;
+            }
+            
+            const btn = document.getElementById('submitSaveBtn');
             btn.disabled = true; 
             btn.innerText = "Menyimpan...";
             
-            const data = { 
-                type: type, 
-                timestamp: Date.now(), 
-                isSold: false 
-            };
-            
-            // Collect field values
-            ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia'].forEach(f => {
-                const el = document.getElementById(f); 
-                if(el && el.value.trim()) data[f] = el.value.trim();
-            });
-            
-            // Handle image upload
-            const fileInput = document.getElementById('saveImage');
-            if (fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                    btn.disabled = false; btn.innerText = "INPUT DATA";
-                    return showIOSNotify("File Terlalu Besar", "Ukuran foto maksimal 5MB.");
-                }
+            try {
+                // Prepare data object
+                const data = { 
+                    type: type, 
+                    timestamp: Date.now(), 
+                    isSold: false 
+                };
                 
-                try {
+                console.log("Base data:", data);
+                
+                // Collect dynamic field values
+                ['dbEmail', 'dbPassG', 'dbPassM', 'dbBackup', 'dbName', 'dbKet', 'dbLoginVia', 'galverSubtype'].forEach(field => {
+                    const el = document.getElementById(field);
+                    if (el) {
+                        const value = el.value.trim();
+                        if (value) {
+                            data[field] = value;
+                        }
+                    }
+                });
+                
+                console.log("Collected fields:", data);
+                
+                // Handle image upload
+                const fileInput = document.getElementById('saveImage');
+                if (fileInput.files && fileInput.files[0]) {
+                    const file = fileInput.files[0];
+                    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                        btn.disabled = false; btn.innerText = "INPUT DATA";
+                        return showIOSNotify("File Terlalu Besar", "Ukuran foto maksimal 5MB.");
+                    }
+                    
                     data.image = await new Promise((resolve, reject) => { 
                         const fr = new FileReader(); 
                         fr.onload = () => resolve(fr.result); 
-                        fr.onerror = reject;
+                        fr.onerror = () => reject(new Error("Gagal membaca file"));
                         fr.readAsDataURL(file); 
                     });
-                } catch (err) {
-                    console.error("Error reading image:", err);
-                    showIOSNotify("Foto Error", "Gagal membaca file foto.");
+                    console.log("Image converted to base64");
+                }
+                
+                // Validate required fields based on type
+                let isValid = true;
+                let errorMsg = "";
+                
+                if (type === "Mail fresh" || type === "Mail own") {
+                    if (!data.dbEmail) { isValid = false; errorMsg = "Email akun harus diisi"; }
+                    if (!data.dbPassG) { isValid = false; errorMsg = "Password Google harus diisi"; }
+                    if (!data.dbPassM) { isValid = false; errorMsg = "Password Moonton harus diisi"; }
+                } else if (type === "Monkos") {
+                    if (!data.dbEmail) { isValid = false; errorMsg = "Email akun harus diisi"; }
+                    if (!data.dbPassG) { isValid = false; errorMsg = "Password Google harus diisi"; }
+                    if (!data.dbLoginVia) { isValid = false; errorMsg = "Login Via harus dipilih"; }
+                } else if (type === "Galver") {
+                    const subtype = data.galverSubtype;
+                    if (!subtype) { isValid = false; errorMsg = "Metode login harus dipilih"; }
+                    else if (subtype === 'Login Email') {
+                        if (!data.dbEmail) { isValid = false; errorMsg = "Email akun harus diisi"; }
+                        if (!data.dbPassG) { isValid = false; errorMsg = "Password Google harus diisi"; }
+                    } else if (subtype === 'Login Name') {
+                        if (!data.dbName) { isValid = false; errorMsg = "Nama/ID harus diisi"; }
+                        if (!data.dbPassM) { isValid = false; errorMsg = "Password Moonton harus diisi"; }
+                    }
+                }
+                
+                if (!isValid) {
                     btn.disabled = false; btn.innerText = "INPUT DATA";
+                    showIOSNotify("Data Tidak Lengkap", errorMsg);
                     return;
                 }
-            }
-            
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'stok'), data);
+                
+                console.log("Data to save:", data);
+                console.log("User UID:", user.uid);
+                
+                // Save to Firestore
+                const docRef = await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'stok'), data);
+                console.log("Document saved with ID:", docRef.id);
+                
                 showIOSNotify("Data Tersimpan", "Akun berhasil diinput ke cloud database.", false);
                 
                 // Reset form
@@ -1828,12 +1979,20 @@
                 
             } catch(err) { 
                 console.error("Save error:", err);
-                showIOSNotify("Input Gagal", "Gagal menyimpan data ke Firestore."); 
+                let errorMessage = "Gagal menyimpan data ke Firestore.";
+                if (err.code === 'permission-denied') {
+                    errorMessage = "Izin ditolak. Pastikan aturan Firestore sudah benar.";
+                } else if (err.code === 'unavailable') {
+                    errorMessage = "Koneksi jaringan bermasalah. Coba lagi.";
+                }
+                showIOSNotify("Input Gagal", errorMessage); 
+            } finally {
+                btn.disabled = false; 
+                btn.innerText = "INPUT DATA";
             }
-            btn.disabled = false; btn.innerText = "INPUT DATA";
         };
 
-        // --- FIX: Form Stok dengan validasi foto ---
+        // --- FIX: FORM STOK ---
         document.getElementById('formStok').onsubmit = async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button'); 
@@ -1861,10 +2020,10 @@
                 return showIOSNotify("File Terlalu Besar", "Ukuran foto maksimal 10MB.");
             }
             
-            // Format harga untuk Telegram
-            harga = harga.replace(/\./g, '');
+            // PERUBAHAN: Konversi harga dengan titik ke angka tanpa format
+            harga = convertFormattedNumber(harga);
             
-            const text = `‼️NEW ACCOUNT FROM AHRASTORE‼️\n\n💸Price : Rp ${parseInt(harga).toLocaleString('id-ID')}\nℹ️Info Akun : ${info}\n\n🛒Order? Chat Admin AHRASTORE\n🌐 https://t.me/zaaamyy\n📦Stok lain nya cek di sini\n🌐 https://t.me/StokAhraStore2`;
+            const text = `‼️NEW ACCOUNT FROM AHRASTORE‼️\n\n💸Price : Rp ${harga.toLocaleString('id-ID')}\nℹ️Info Akun : ${info}\n\n🛒Order? Chat Admin AHRASTORE\n🌐 https://t.me/zaaamyy\n📦Stok lain nya cek di sini\n🌐 https://t.me/StokAhraStore2`;
             
             const formData = new FormData();
             formData.append('chat_id', TELEGRAM_CHAT_ID); 
