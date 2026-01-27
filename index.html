@@ -1442,49 +1442,62 @@
                 const card = document.createElement('div');
                 card.className = "db-card";
                 card.onclick = (e) => {
-                    // Tutup semua popover lain
                     closeAllPopovers();
                     
                     activeId = acc.id;
                     const menu = document.getElementById('itemActionMenu');
-                    const menuRect = menu.getBoundingClientRect();
                     
-                    // Reset display dulu untuk kalkulasi
+                    // Show briefly to measure (fix for dynamic sizing)
                     menu.style.display = 'flex';
+                    menu.style.visibility = 'hidden';
+                    
+                    const menuRect = menu.getBoundingClientRect();
+                    const menuHeight = menuRect.height;
+                    const menuWidth = menuRect.width;
                     
                     const cardRect = card.getBoundingClientRect();
-                    const containerRect = document.querySelector('.app-container').getBoundingClientRect();
                     const viewportHeight = window.innerHeight;
+                    const viewportWidth = window.innerWidth;
 
-                    // Logika Posisi Baru:
-                    // Default di samping kanan
-                    let topPos = cardRect.top;
-                    let leftPos = cardRect.right + 10;
+                    let topPos, leftPos;
 
-                    // Jika di mobile atau tidak cukup ruang di kanan
-                    if (window.innerWidth < 600 || leftPos + 240 > window.innerWidth) {
-                        // Cek apakah cukup ruang di bawah
-                        if (cardRect.bottom + 260 < viewportHeight) {
-                            // Tampilkan di bawah card
-                             topPos = cardRect.bottom + 5;
-                             leftPos = (window.innerWidth / 2) - 120; // Center
-                        } else {
-                            // Tampilkan di ATAS card jika di bawah sempit
-                            topPos = cardRect.top - 260; // 260 approx height menu
-                            leftPos = (window.innerWidth / 2) - 120;
-                        }
+                    // --- Horizontal Position ---
+                    if (viewportWidth < 768) { 
+                        // Mobile: Center horizontally
+                        leftPos = (viewportWidth - menuWidth) / 2;
                     } else {
-                         // Desktop: sesuaikan relatif container
-                         topPos = cardRect.top - containerRect.top + 75; // Adjust offset header
-                         leftPos = cardRect.right - containerRect.left + 10;
+                        // Desktop: To the right of the card
+                        leftPos = cardRect.right + 10;
+                        // Flip if not enough space on right
+                        if (leftPos + menuWidth > viewportWidth) {
+                            leftPos = cardRect.left - menuWidth - 10;
+                        }
                     }
+
+                    // --- Vertical Position ---
+                    const spaceBelow = viewportHeight - cardRect.bottom;
+                    const spaceAbove = cardRect.top;
                     
-                    // Final safety check
-                    if (topPos < 80) topPos = 80; // Jangan tertutup header
-                    
+                    // Smart vertical positioning
+                    if (spaceBelow >= menuHeight + 10) {
+                        topPos = cardRect.bottom + 5;
+                    } else if (spaceAbove >= menuHeight + 10) {
+                        topPos = cardRect.top - menuHeight - 5;
+                    } else {
+                        // Pick side with more space
+                        if (spaceBelow > spaceAbove) {
+                            topPos = cardRect.bottom + 5;
+                        } else {
+                            topPos = cardRect.top - menuHeight - 5;
+                            if (topPos < 80) topPos = 80; // Safety for header
+                        }
+                    }
+
+                    // Apply positions
                     menu.style.top = `${topPos}px`;
                     menu.style.left = `${leftPos}px`;
-                    menu.style.position = 'fixed'; // Ubah ke fixed agar tidak ikut scroll div
+                    menu.style.position = 'fixed';
+                    menu.style.visibility = 'visible'; // Show again
                     
                     e.stopPropagation();
                 };
