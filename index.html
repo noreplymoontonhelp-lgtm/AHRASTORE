@@ -177,7 +177,6 @@
         }
         input::placeholder { color: var(--text-secondary); }
 
-        /* PERUBAHAN: Input angka dengan keyboard number */
         .price-input {
             background: transparent !important;
             border: none !important;
@@ -276,7 +275,14 @@
         }
         .picker-option:active { background: rgba(255, 255, 255, 0.1); }
 
-        .db-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 14px; }
+        /* --- LOGIKA DATABASE GRID & BLUR --- */
+        .db-grid { 
+            display: grid; 
+            grid-template-columns: repeat(1, 1fr); 
+            gap: 14px; 
+            transition: all 0.3s ease; /* Transisi halus */
+        }
+
         .db-card {
             background: var(--card-bg); border-radius: 16px; padding: 12px;
             border: 0.5px solid rgba(255, 255, 255, 0.05);
@@ -284,6 +290,28 @@
             display: flex;
             align-items: center;
             gap: 14px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 1;
+        }
+
+        /* Saat Grid dalam mode fokus (salah satu kartu aktif) */
+        .db-grid.has-active-card .db-card {
+            filter: blur(4px) brightness(0.7);
+            opacity: 0.6;
+            pointer-events: none; /* Cegah klik kartu lain */
+            transform: scale(0.98);
+        }
+
+        /* Kartu yang sedang AKTIF (diklik) */
+        .db-grid.has-active-card .db-card.active-card {
+            filter: none;
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 50; /* Di atas kartu lain */
+            transform: scale(1.03);
+            border-color: var(--accent-blue);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(10, 132, 255, 0.3);
+            background: #242426;
         }
 
         .sold-badge {
@@ -365,7 +393,6 @@
             transform: translateX(20px);
         }
 
-        /* PERUBAHAN: Forgot password link style */
         .forgot-link {
             font-size: 11px;
             color: var(--accent-blue);
@@ -424,7 +451,6 @@
                             </svg>
                         </button>
                     </div>
-                    <!-- PERUBAHAN: Forgot password link dipindah ke sini -->
                     <a href="javascript:void(0)" onclick="openForgotPasswordModal()" class="forgot-link">Lupa Sandi?</a>
                 </div>
             </div>
@@ -1441,13 +1467,28 @@
             accounts.forEach(acc => {
                 const card = document.createElement('div');
                 card.className = "db-card";
+                card.dataset.id = acc.id; // Store ID for reference
+
                 card.onclick = (e) => {
-                    closeAllPopovers();
+                    e.stopPropagation(); // Stop bubbling to document
                     
+                    // Jika kartu ini sudah aktif, tutup (toggle)
+                    if (activeId === acc.id) {
+                        closeAllPopovers();
+                        return;
+                    }
+
+                    closeAllPopovers(); // Tutup yang lain dulu
+                    
+                    // Set Status Active
                     activeId = acc.id;
+                    const grid = document.getElementById('databaseGrid');
+                    grid.classList.add('has-active-card'); // Tambahkan efek blur ke grid
+                    card.classList.add('active-card'); // Highlight kartu ini
+
                     const menu = document.getElementById('itemActionMenu');
                     
-                    // Show briefly to measure (fix for dynamic sizing)
+                    // Show briefly to measure
                     menu.style.display = 'flex';
                     menu.style.visibility = 'hidden';
                     
@@ -1497,17 +1538,15 @@
                     menu.style.top = `${topPos}px`;
                     menu.style.left = `${leftPos}px`;
                     menu.style.position = 'fixed';
-                    menu.style.visibility = 'visible'; // Show again
-                    
-                    e.stopPropagation();
+                    menu.style.visibility = 'visible';
                 };
                 
                 card.innerHTML = `
-                    <div class="w-24 h-24 bg-zinc-900 rounded-xl overflow-hidden relative flex-shrink-0 flex items-center justify-center">
+                    <div class="w-24 h-24 bg-zinc-900 rounded-xl overflow-hidden relative flex-shrink-0 flex items-center justify-center pointer-events-none">
                         ${acc.isSold ? '<div class="sold-badge">SOLD</div>' : ''}
                         ${acc.image ? `<img src="${acc.image}" class="w-full h-full object-cover ${acc.isSold?'grayscale opacity-30':''}">` : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2c2c2e" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'}
                     </div>
-                    <div class="flex-1 min-w-0">
+                    <div class="flex-1 min-w-0 pointer-events-none">
                         <p class="text-[14px] font-bold truncate mb-1">${acc.dbEmail || acc.dbName || 'No Name'}</p>
                         <p class="text-[10px] text-zinc-500 font-bold uppercase mb-2">${acc.type}</p>
                         <div class="flex items-center gap-2">
@@ -1660,6 +1699,8 @@
                 document.getElementById('modalOverlay').classList.add('active');
                 document.getElementById('iosDetailModal').classList.add('active');
             }
+            // Setelah action apapun, reset blur dan close popover
+            closeAllPopovers();
         };
 
         // --- FUNGSI EDIT DATA ---
@@ -1817,6 +1858,7 @@
                 
                 showIOSNotify("Berhasil", "Data akun berhasil diperbarui.", false);
                 closeModals();
+                closeAllPopovers(); // Reset blur effect
                 
             } catch (error) {
                 console.error("Error updating document:", error);
@@ -2155,6 +2197,7 @@
                 if(btn) btn.classList.toggle('tab-active', t === tab);
             });
             window.scrollTo(0,0);
+            closeAllPopovers(); // Pastikan popover tertutup saat ganti tab
         };
 
         window.toggleAhraPopover = (id) => {
@@ -2162,10 +2205,17 @@
             el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
         };
 
-        // PERUBAHAN: Close popovers dengan klik di mana saja
+        // PERUBAHAN: Close popovers dan RESET BLUR
         window.closeAllPopovers = () => {
             document.querySelectorAll('.ios-popover').forEach(p => p.style.display = 'none');
             activeId = null;
+
+            // Remove Blur Effects (Reset to normal state)
+            const grid = document.getElementById('databaseGrid');
+            if(grid) grid.classList.remove('has-active-card');
+
+            const activeCard = document.querySelector('.db-card.active-card');
+            if(activeCard) activeCard.classList.remove('active-card');
         };
 
         window.closeModals = () => {
@@ -2278,7 +2328,7 @@
                 const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/${endpoint}`, { method: 'POST', body: formData }); 
                 const resData = await response.json();
                 if(resData.ok) {
-                     showIOSNotify("Berhasil", "Data berhasil terkirim ke Telegram.", false); 
+                      showIOSNotify("Berhasil", "Data berhasil terkirim ke Telegram.", false); 
                 } else {
                      throw new Error(resData.description || "Gagal mengirim ke Telegram");
                 }
@@ -2303,9 +2353,12 @@
             }
         });
 
-        // PERUBAHAN: Event listener untuk close popover saat scroll dengan capture phase
+        // PERUBAHAN UTAMA: Event listener untuk close popover saat scroll dengan capture phase
+        // Ini memastikan menu tertutup dan blur hilang saat layar digulir
         window.addEventListener('scroll', () => {
-            closeAllPopovers();
+            if (activeId !== null) {
+                closeAllPopovers();
+            }
         }, true);
 
         // Inisialisasi input harga dengan event listener
