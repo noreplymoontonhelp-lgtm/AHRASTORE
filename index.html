@@ -280,7 +280,7 @@
             display: grid; 
             grid-template-columns: repeat(1, 1fr); 
             gap: 14px; 
-            transition: all 0.3s ease; /* Transisi halus */
+            transition: all 0.3s ease;
         }
 
         .db-card {
@@ -298,7 +298,7 @@
         .db-grid.has-active-card .db-card {
             filter: blur(4px) brightness(0.7);
             opacity: 0.6;
-            pointer-events: none; /* Cegah klik kartu lain */
+            pointer-events: none;
             transform: scale(0.98);
         }
 
@@ -307,7 +307,7 @@
             filter: none;
             opacity: 1;
             pointer-events: auto;
-            z-index: 50; /* Di atas kartu lain */
+            z-index: 50;
             transform: scale(1.03);
             border-color: var(--accent-blue);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(10, 132, 255, 0.3);
@@ -403,6 +403,90 @@
             text-align: right;
             padding-right: 4px;
         }
+
+        /* New Styles for Password Visibility */
+        .password-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .password-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 0;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .password-toggle {
+            background: transparent;
+            border: none;
+            color: #8e8e93;
+            padding: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .backup-security-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+        }
+
+        .backup-security-label {
+            font-size: 15px;
+            color: white;
+        }
+
+        .backup-security-value {
+            font-size: 14px;
+            color: #8e8e93;
+        }
+
+        .add-backup-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: rgba(10, 132, 255, 0.1);
+            border: 1px solid rgba(10, 132, 255, 0.3);
+            border-radius: 10px;
+            color: var(--accent-blue);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .add-backup-btn:active {
+            background: rgba(10, 132, 255, 0.2);
+        }
+
+        .reset-option-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--card-secondary);
+            border-radius: 12px;
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 15px;
+            text-align: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .reset-option-btn:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -442,16 +526,16 @@
                 </div>
                 <div class="ios-input-row">
                     <span class="row-label">Password</span>
-                    <div class="flex items-center">
-                        <input type="password" id="loginPass" placeholder="••••••••" class="flex-1">
-                        <button type="button" id="eyeToggleBtn" class="p-1 text-zinc-500">
+                    <div class="password-container">
+                        <input type="password" id="loginPass" placeholder="••••••••" class="password-input">
+                        <button type="button" id="eyeToggleBtn" class="password-toggle">
                             <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                 <circle cx="12" cy="12" r="3"/>
                             </svg>
                         </button>
                     </div>
-                    <a href="javascript:void(0)" onclick="openForgotPasswordModal()" class="forgot-link">Lupa Sandi?</a>
+                    <a href="javascript:void(0)" onclick="openForgotPasswordOptions()" class="forgot-link">Lupa Sandi?</a>
                 </div>
             </div>
             <button id="loginBtn" onclick="handleEmailAuth('login')" class="pill-button">MASUK</button>
@@ -459,10 +543,31 @@
         </div>
     </div>
 
-    <!-- Forgot Password Modal -->
-    <div id="forgotPasswordModal" class="centered-modal">
+    <!-- Forgot Password Options Modal -->
+    <div id="forgotPasswordOptionsModal" class="centered-modal">
         <div class="p-6">
             <h3 class="text-lg font-bold mb-4 text-center">Reset Password</h3>
+            <div class="space-y-4">
+                <button onclick="openForgotPasswordEmailModal()" class="reset-option-btn">
+                    Kirim OTP ke Email
+                </button>
+                <button onclick="openForgotPasswordTelegramModal()" class="reset-option-btn">
+                    Kirim OTP ke Telegram
+                </button>
+                <button onclick="openForgotPasswordPinModal()" class="reset-option-btn">
+                    Gunakan PIN Cadangan
+                </button>
+                <div class="text-center">
+                    <button onclick="closeModals()" class="text-[13px] text-zinc-500">Kembali ke Login</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Email Modal -->
+    <div id="forgotPasswordEmailModal" class="centered-modal">
+        <div class="p-6">
+            <h3 class="text-lg font-bold mb-4 text-center">Reset via Email</h3>
             <div class="space-y-4">
                 <div class="ios-input-group">
                     <div class="ios-input-row">
@@ -474,38 +579,99 @@
                         <input type="password" id="forgotOldPassword" placeholder="Masukkan password lama">
                     </div>
                     <div class="ios-input-row">
-                        <span class="row-label">Kode OTP (akan dikirim ke email)</span>
+                        <span class="row-label">Kode OTP</span>
                         <input type="text" id="forgotOTP" placeholder="Masukkan kode OTP" disabled>
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="sendResetOTP()" id="sendOTPBtn" class="pill-button flex-1 !bg-green-500">Kirim OTP</button>
+                    <button onclick="sendResetOTPEmail()" id="sendOTPBtn" class="pill-button flex-1 !bg-green-500">Kirim OTP</button>
                     <button onclick="verifyResetOTP()" id="verifyOTPBtn" class="pill-button flex-1 !bg-blue-500" disabled>Verifikasi</button>
                 </div>
                 <div class="text-center">
-                    <button onclick="closeModals()" class="text-[13px] text-zinc-500">Kembali ke Login</button>
+                    <button onclick="openForgotPasswordOptions()" class="text-[13px] text-zinc-500">Kembali ke Pilihan</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Setup Username Modal (New User) -->
-    <div id="setupUsernameModal" class="centered-modal">
-        <div class="p-8 text-center">
+    <!-- Forgot Password Telegram Modal -->
+    <div id="forgotPasswordTelegramModal" class="centered-modal">
+        <div class="p-6">
+            <h3 class="text-lg font-bold mb-4 text-center">Reset via Telegram</h3>
+            <div class="space-y-4">
+                <div class="ios-input-group">
+                    <div class="ios-input-row">
+                        <span class="row-label">ID Telegram</span>
+                        <input type="text" id="forgotTelegramID" placeholder="@username atau angka ID">
+                    </div>
+                    <div class="ios-input-row">
+                        <span class="row-label">Kode OTP</span>
+                        <input type="text" id="forgotTelegramOTP" placeholder="Masukkan kode OTP" disabled>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="sendResetOTPTelegram()" id="sendTelegramOTPBtn" class="pill-button flex-1 !bg-green-500">Kirim OTP</button>
+                    <button onclick="verifyTelegramOTP()" id="verifyTelegramOTPBtn" class="pill-button flex-1 !bg-blue-500" disabled>Verifikasi</button>
+                </div>
+                <div class="text-center">
+                    <button onclick="openForgotPasswordOptions()" class="text-[13px] text-zinc-500">Kembali ke Pilihan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password PIN Modal -->
+    <div id="forgotPasswordPinModal" class="centered-modal">
+        <div class="p-6">
+            <h3 class="text-lg font-bold mb-4 text-center">Reset via PIN Cadangan</h3>
+            <div class="space-y-4">
+                <div class="ios-input-group">
+                    <div class="ios-input-row">
+                        <span class="row-label">Email Terdaftar</span>
+                        <input type="email" id="forgotPinEmail" placeholder="email@contoh.com">
+                    </div>
+                    <div class="ios-input-row">
+                        <span class="row-label">PIN Cadangan</span>
+                        <input type="password" id="forgotPinCode" placeholder="Masukkan 6-digit PIN">
+                    </div>
+                </div>
+                <button onclick="verifyBackupPin()" class="pill-button !bg-green-500">Verifikasi PIN</button>
+                <div class="text-center">
+                    <button onclick="openForgotPasswordOptions()" class="text-[13px] text-zinc-500">Kembali ke Pilihan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup User Data Modal (New User) -->
+    <div id="setupUserDataModal" class="centered-modal">
+        <div class="p-6">
             <div class="w-16 h-16 bg-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-blue-500/20">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
             <h3 class="text-xl font-bold mb-1 text-white">Lengkapi Profil</h3>
-            <p class="text-[13px] text-zinc-500 mb-6">Silahkan masukkan username anda untuk melanjutkan.</p>
+            <p class="text-[13px] text-zinc-500 mb-6">Silahkan lengkapi data diri untuk keamanan akun.</p>
             
-            <div class="ios-input-group mb-6">
+            <div class="ios-input-group mb-6 space-y-4">
                 <div class="ios-input-row">
                     <span class="row-label">Username</span>
                     <input type="text" id="newUsername" placeholder="Contoh: AdminGanteng" maxlength="15">
                 </div>
+                <div class="ios-input-row">
+                    <span class="row-label">Tempat, Tanggal Lahir</span>
+                    <input type="text" id="newBirthInfo" placeholder="Contoh: Jakarta, 01 Januari 2000">
+                </div>
+                <div class="ios-input-row">
+                    <span class="row-label">ID Telegram</span>
+                    <input type="text" id="newTelegramID" placeholder="@username atau angka ID">
+                </div>
+                <div class="ios-input-row">
+                    <span class="row-label">PIN Cadangan (6 digit)</span>
+                    <input type="password" id="newBackupPIN" placeholder="••••••" maxlength="6" inputmode="numeric">
+                </div>
             </div>
 
-            <button onclick="saveInitialUsername()" id="saveUsernameBtn" class="pill-button">SIMPAN PROFIL</button>
+            <button onclick="saveInitialUserData()" id="saveUserDataBtn" class="pill-button">SIMPAN PROFIL</button>
         </div>
     </div>
 
@@ -537,8 +703,32 @@
         </div>
     </div>
 
+    <!-- Add Backup PIN Modal -->
+    <div id="addBackupPinModal" class="centered-modal">
+        <div class="p-6">
+            <h3 class="text-lg font-bold mb-4 text-center">Tambah PIN Cadangan</h3>
+            <div class="space-y-4">
+                <div class="ios-input-group">
+                    <div class="ios-input-row">
+                        <span class="row-label">PIN Cadangan Baru (6 digit)</span>
+                        <input type="password" id="newBackupPinInput" placeholder="••••••" maxlength="6" inputmode="numeric">
+                    </div>
+                    <div class="ios-input-row">
+                        <span class="row-label">Konfirmasi PIN</span>
+                        <input type="password" id="confirmBackupPinInput" placeholder="••••••" maxlength="6" inputmode="numeric">
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="saveBackupPIN()" class="pill-button flex-1 !bg-green-500">Simpan PIN</button>
+                    <button onclick="closeModals()" class="pill-button flex-1 !bg-zinc-700">Batal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- App Container -->
     <div id="app" class="app-container" style="display:none;">
+
         <header class="px-6 py-4 flex justify-between items-end bg-black/80 backdrop-blur-xl sticky top-0 z-40 border-b border-white/5">
             <div class="flex items-center gap-3">
                 <div id="headerProfilePhoto" class="w-12 h-12 rounded-full bg-zinc-800 border-2 border-white/10 overflow-hidden flex items-center justify-center">
@@ -765,7 +955,25 @@
                 </div>
 
                 <div class="pt-2">
-                    <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 ml-1">Ganti Password (Opsional)</p>
+                    <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 ml-1">Password</p>
+                    <div class="ios-input-group">
+                        <div class="ios-input-row">
+                            <span class="row-label">Password Saat Ini</span>
+                            <div class="password-container">
+                                <input type="password" id="currentPasswordDisplay" value="••••••••" readonly class="password-input">
+                                <button type="button" onclick="togglePasswordVisibility('currentPasswordDisplay', 'currentPasswordToggle')" class="password-toggle" id="currentPasswordToggle">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 ml-1">Ganti Password</p>
                     <div class="ios-input-group">
                         <div class="ios-input-row">
                             <span class="row-label">Password Lama</span>
@@ -774,6 +982,32 @@
                         <div class="ios-input-row">
                             <span class="row-label">Password Baru</span>
                             <input type="password" id="newPassword" placeholder="Minimal 6 Karakter">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 ml-1">Keamanan Cadangan</p>
+                    <div class="ios-input-group">
+                        <div class="backup-security-item">
+                            <span class="backup-security-label">PIN Cadangan</span>
+                            <span id="backupPinStatus" class="backup-security-value">Belum diatur</span>
+                        </div>
+                        <div class="backup-security-item">
+                            <span class="backup-security-label">ID Telegram</span>
+                            <span id="telegramIDStatus" class="backup-security-value">Belum diatur</span>
+                        </div>
+                        <div class="backup-security-item">
+                            <span class="backup-security-label">Data Diri</span>
+                            <span id="birthInfoStatus" class="backup-security-value">Belum diatur</span>
+                        </div>
+                        <div class="p-4">
+                            <button onclick="openAddBackupPinModal()" class="add-backup-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <path d="M12 5v14M5 12h14"/>
+                                </svg>
+                                Tambah Keamanan Cadangan
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -808,7 +1042,7 @@
 
         // --- KONFIGURASI TELEGRAM ---
         const TELEGRAM_BOT_TOKEN = "7699614697:AAH3nlKT-dKETar5GEDPy6k2cVRyZpuLuao";
-        const TELEGRAM_CHAT_ID = "7423591679"; 
+        const TELEGRAM_CHAT_ID = "7423591679";  
 
         // --- KONFIGURASI FIREBASE ---
         const firebaseConfig = {
@@ -832,6 +1066,7 @@
         let currentUserData = {};
         let generatedOTP = null;
         let otpEmail = null;
+        let userPassword = null; // Store user password for display
 
         // --- NEW: Image Compressor Helper (Fixes File Size Issue) ---
         async function compressImage(file, maxWidth = 800, quality = 0.6) {
@@ -931,138 +1166,29 @@
             }
         };
 
-        // Inisialisasi toggle password setelah DOM siap
-        document.addEventListener('DOMContentLoaded', function() {
-            const eyeToggleBtn = document.getElementById('eyeToggleBtn');
-            if (eyeToggleBtn) {
-                eyeToggleBtn.addEventListener('click', toggleLoginPassword);
-            }
-        });
-
-        // --- AUTH OBSERVER ---
-        onAuthStateChanged(auth, async (u) => {
-            user = u;
-            const loader = document.getElementById('loadingScreen');
-            const login = document.getElementById('loginScreen');
-            const appEl = document.getElementById('app');
-
-            if (u) {
-                // Check user profile for username
-                await checkUserProfile(u);
-                
-                login.style.display = 'none';
-                appEl.style.display = 'flex';
-                appEl.classList.remove('hidden');
-                
-                updateConnectionStatus(true);
-                initDatabase();
+        // --- FUNGSI TOGGLE PASSWORD VISIBILITY ---
+        window.togglePasswordVisibility = (inputId, toggleId) => {
+            const input = document.getElementById(inputId);
+            const toggle = document.getElementById(toggleId);
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggle.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
             } else {
-                appEl.style.display = 'none';
-                login.style.display = 'flex';
-                document.getElementById('setupUsernameModal').classList.remove('active');
-                document.getElementById('accountSettingsModal').classList.remove('active');
-                document.getElementById('modalOverlay').classList.remove('active');
-                resetProfileUI();
-            }
-
-            if (loader) {
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.display = 'none', 500);
-            }
-        });
-
-        // --- PROFILE SYSTEM ---
-        async function checkUserProfile(u) {
-            try {
-                const profileRef = doc(db, 'artifacts', appId, 'users', u.uid, 'settings', 'profile');
-                const profileSnap = await getDoc(profileRef);
-
-                if (profileSnap.exists()) {
-                    currentUserData = profileSnap.data();
-                    updateProfileUI(currentUserData);
-                } else {
-                    document.getElementById('modalOverlay').classList.add('active');
-                    document.getElementById('setupUsernameModal').classList.add('active');
-                }
-            } catch (err) {
-                console.error("Profile check failed:", err);
-            }
-        }
-
-        function updateProfileUI(data) {
-            document.getElementById('welcomeHeader').innerText = `Halo ${data.username || 'User'}`;
-            
-            const headerImg = document.getElementById('headerProfileImg');
-            const headerPlaceholder = document.getElementById('headerProfilePlaceholder');
-            
-            if (data.profileImage) {
-                headerImg.src = data.profileImage;
-                headerImg.classList.remove('hidden');
-                headerPlaceholder.classList.add('hidden');
-            } else {
-                headerImg.classList.add('hidden');
-                headerPlaceholder.classList.remove('hidden');
-            }
-
-            document.getElementById('editUsername').value = data.username || '';
-            document.getElementById('displayEmail').innerText = user?.email || 'N/A';
-            
-            const modalImg = document.getElementById('modalProfileImg');
-            const modalPlaceholder = document.getElementById('profilePlaceholder');
-            if (data.profileImage) {
-                modalImg.src = data.profileImage;
-                modalImg.classList.remove('hidden');
-                modalPlaceholder.classList.add('hidden');
-            } else {
-                modalImg.classList.add('hidden');
-                modalPlaceholder.classList.remove('hidden');
-            }
-        }
-
-        function resetProfileUI() {
-            const headerImg = document.getElementById('headerProfileImg');
-            const headerPlaceholder = document.getElementById('headerProfilePlaceholder');
-            headerImg.classList.add('hidden');
-            headerPlaceholder.classList.remove('hidden');
-            document.getElementById('welcomeHeader').innerText = 'Halo User';
-        }
-
-        window.saveInitialUsername = async () => {
-            const username = document.getElementById('newUsername').value.trim();
-            const btn = document.getElementById('saveUsernameBtn');
-            
-            if (!username || username.length < 3) {
-                return showIOSNotify("Username Terlalu Pendek", "Gunakan minimal 3 karakter.");
-            }
-
-            btn.disabled = true;
-            btn.innerText = "Menyimpan...";
-
-            try {
-                const profileRef = doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'profile');
-                const newData = {
-                    username: username,
-                    createdAt: Date.now()
-                };
-                await setDoc(profileRef, newData);
-                currentUserData = newData;
-                updateProfileUI(newData);
-                
-                document.getElementById('setupUsernameModal').classList.remove('active');
-                document.getElementById('modalOverlay').classList.remove('active');
-                showIOSNotify("Profil Diperbarui", `Halo ${username}, selamat datang!`, false);
-            } catch (err) {
-                showIOSNotify("Gagal Simpan", "Terjadi kesalahan saat menyimpan profil.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "SIMPAN PROFIL";
+                input.type = 'password';
+                toggle.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
             }
         };
 
-        // --- FORGOT PASSWORD SYSTEM ---
-        window.openForgotPasswordModal = () => {
+        // --- FORGOT PASSWORD OPTIONS ---
+        window.openForgotPasswordOptions = () => {
             document.getElementById('modalOverlay').classList.add('active');
-            document.getElementById('forgotPasswordModal').classList.add('active');
+            document.getElementById('forgotPasswordOptionsModal').classList.add('active');
+        };
+
+        window.openForgotPasswordEmailModal = () => {
+            document.getElementById('forgotPasswordOptionsModal').classList.remove('active');
+            document.getElementById('forgotPasswordEmailModal').classList.add('active');
             document.getElementById('forgotEmail').value = '';
             document.getElementById('forgotOldPassword').value = '';
             document.getElementById('forgotOTP').value = '';
@@ -1070,7 +1196,24 @@
             document.getElementById('verifyOTPBtn').disabled = true;
         };
 
-        window.sendResetOTP = async () => {
+        window.openForgotPasswordTelegramModal = () => {
+            document.getElementById('forgotPasswordOptionsModal').classList.remove('active');
+            document.getElementById('forgotPasswordTelegramModal').classList.add('active');
+            document.getElementById('forgotTelegramID').value = '';
+            document.getElementById('forgotTelegramOTP').value = '';
+            document.getElementById('forgotTelegramOTP').disabled = true;
+            document.getElementById('verifyTelegramOTPBtn').disabled = true;
+        };
+
+        window.openForgotPasswordPinModal = () => {
+            document.getElementById('forgotPasswordOptionsModal').classList.remove('active');
+            document.getElementById('forgotPasswordPinModal').classList.add('active');
+            document.getElementById('forgotPinEmail').value = '';
+            document.getElementById('forgotPinCode').value = '';
+        };
+
+        // --- SEND OTP VIA EMAIL ---
+        window.sendResetOTPEmail = async () => {
             const email = document.getElementById('forgotEmail').value.trim();
             const oldPassword = document.getElementById('forgotOldPassword').value;
             const btn = document.getElementById('sendOTPBtn');
@@ -1113,6 +1256,141 @@
             }
         };
 
+        // --- SEND OTP VIA TELEGRAM ---
+        window.sendResetOTPTelegram = async () => {
+            const telegramID = document.getElementById('forgotTelegramID').value.trim();
+            const btn = document.getElementById('sendTelegramOTPBtn');
+            
+            if (!telegramID) {
+                return showIOSNotify("ID Kosong", "Masukkan ID Telegram terdaftar.");
+            }
+            
+            btn.disabled = true;
+            btn.innerText = "Mengirim...";
+            
+            try {
+                // Check if telegram ID exists in user profile
+                const email = prompt("Masukkan email terdaftar untuk verifikasi:");
+                if (!email) return;
+                
+                // Try to login to check credentials
+                const password = prompt("Masukkan password untuk verifikasi:");
+                if (!password) return;
+                
+                await signInWithEmailAndPassword(auth, email, password);
+                
+                // Check telegram ID in profile
+                const profileRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'settings', 'profile');
+                const profileSnap = await getDoc(profileRef);
+                
+                if (!profileSnap.exists() || profileSnap.data().telegramID !== telegramID) {
+                    throw new Error("ID Telegram tidak terdaftar untuk akun ini.");
+                }
+                
+                generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+                otpEmail = email;
+                
+                // Send OTP to Telegram
+                const text = `🔐 *KODE OTP RESET PASSWORD*\n\nKode OTP Anda: *${generatedOTP}*\n\nGunakan kode ini untuk reset password di aplikasi AhraStore.\n\n⚠️ Jangan berikan kode ini kepada siapapun.`;
+                
+                // Send to user's telegram ID (assuming it's a chat_id)
+                await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: telegramID.replace('@', ''),
+                        text: text,
+                        parse_mode: 'Markdown'
+                    })
+                });
+                
+                showIOSNotify("OTP Dikirim", "Kode OTP telah dikirim ke Telegram Anda.", false);
+                
+                document.getElementById('forgotTelegramOTP').disabled = false;
+                document.getElementById('verifyTelegramOTPBtn').disabled = false;
+                document.getElementById('forgotTelegramOTP').focus();
+                
+            } catch (err) {
+                console.error(err);
+                let msg = "Gagal mengirim OTP.";
+                if (err.message.includes("ID Telegram tidak terdaftar")) {
+                    msg = "ID Telegram tidak terdaftar untuk akun ini.";
+                } else if (err.code === 'auth/user-not-found') {
+                    msg = "Email tidak terdaftar.";
+                } else if (err.code === 'auth/wrong-password') {
+                    msg = "Password tidak sesuai.";
+                }
+                showIOSNotify("Verifikasi Gagal", msg);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Kirim OTP";
+            }
+        };
+
+        // --- VERIFY BACKUP PIN ---
+        window.verifyBackupPin = async () => {
+            const email = document.getElementById('forgotPinEmail').value.trim();
+            const pinCode = document.getElementById('forgotPinCode').value.trim();
+            
+            if (!email) {
+                return showIOSNotify("Email Kosong", "Masukkan email terdaftar.");
+            }
+            
+            if (!pinCode || pinCode.length !== 6) {
+                return showIOSNotify("PIN Invalid", "PIN harus 6 digit angka.");
+            }
+            
+            try {
+                // Get user by email (we need to sign in first to get UID)
+                const password = prompt("Masukkan password untuk verifikasi:");
+                if (!password) return;
+                
+                await signInWithEmailAndPassword(auth, email, password);
+                
+                // Check backup PIN in profile
+                const profileRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'settings', 'profile');
+                const profileSnap = await getDoc(profileRef);
+                
+                if (!profileSnap.exists()) {
+                    throw new Error("Profil tidak ditemukan.");
+                }
+                
+                const profileData = profileSnap.data();
+                
+                if (!profileData.backupPIN) {
+                    throw new Error("PIN cadangan belum diatur.");
+                }
+                
+                if (profileData.backupPIN !== pinCode) {
+                    throw new Error("PIN cadangan tidak sesuai.");
+                }
+                
+                // PIN verified, allow password reset
+                const newPassword = prompt("Masukkan password baru (minimal 6 karakter):");
+                if (!newPassword || newPassword.length < 6) {
+                    return showIOSNotify("Password Invalid", "Password baru minimal 6 karakter.");
+                }
+                
+                await updatePassword(auth.currentUser, newPassword);
+                
+                showIOSNotify("Password Diperbarui", "Password berhasil direset menggunakan PIN cadangan.", false);
+                closeModals();
+                
+            } catch (err) {
+                console.error(err);
+                let msg = "Verifikasi gagal.";
+                if (err.message.includes("PIN cadangan")) {
+                    msg = err.message;
+                } else if (err.code === 'auth/user-not-found') {
+                    msg = "Email tidak terdaftar.";
+                } else if (err.code === 'auth/wrong-password') {
+                    msg = "Password tidak sesuai.";
+                }
+                showIOSNotify("Verifikasi Gagal", msg);
+            }
+        };
+
+        // --- VERIFY OTP ---
         window.verifyResetOTP = async () => {
             const otp = document.getElementById('forgotOTP').value.trim();
             const newPassword = prompt("Masukkan password baru (minimal 6 karakter):");
@@ -1150,10 +1428,192 @@
             }
         };
 
+        // --- VERIFY TELEGRAM OTP ---
+        window.verifyTelegramOTP = async () => {
+            const otp = document.getElementById('forgotTelegramOTP').value.trim();
+            const newPassword = prompt("Masukkan password baru (minimal 6 karakter):");
+            
+            if (!otp) {
+                return showIOSNotify("OTP Kosong", "Masukkan kode OTP yang diterima.");
+            }
+            
+            if (otp !== generatedOTP) {
+                return showIOSNotify("OTP Salah", "Kode OTP tidak sesuai.");
+            }
+            
+            if (!newPassword || newPassword.length < 6) {
+                return showIOSNotify("Password Invalid", "Password baru minimal 6 karakter.");
+            }
+            
+            try {
+                await updatePassword(auth.currentUser, newPassword);
+                
+                showIOSNotify("Password Diperbarui", "Password berhasil direset via Telegram.", false);
+                closeModals();
+                
+                document.getElementById('forgotTelegramID').value = '';
+                document.getElementById('forgotTelegramOTP').value = '';
+                generatedOTP = null;
+                otpEmail = null;
+                
+            } catch (err) {
+                console.error(err);
+                showIOSNotify("Reset Gagal", "Terjadi kesalahan saat reset password.");
+            }
+        };
+
+        // --- AUTH OBSERVER ---
+        onAuthStateChanged(auth, async (u) => {
+            user = u;
+            const loader = document.getElementById('loadingScreen');
+            const login = document.getElementById('loginScreen');
+            const appEl = document.getElementById('app');
+
+            if (u) {
+                // Check user profile for username
+                await checkUserProfile(u);
+                
+                login.style.display = 'none';
+                appEl.style.display = 'flex';
+                appEl.classList.remove('hidden');
+                
+                updateConnectionStatus(true);
+                initDatabase();
+            } else {
+                appEl.style.display = 'none';
+                login.style.display = 'flex';
+                document.getElementById('setupUserDataModal').classList.remove('active');
+                document.getElementById('accountSettingsModal').classList.remove('active');
+                document.getElementById('modalOverlay').classList.remove('active');
+                resetProfileUI();
+            }
+
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }
+        });
+
+        // --- PROFILE SYSTEM ---
+        async function checkUserProfile(u) {
+            try {
+                const profileRef = doc(db, 'artifacts', appId, 'users', u.uid, 'settings', 'profile');
+                const profileSnap = await getDoc(profileRef);
+
+                if (profileSnap.exists()) {
+                    currentUserData = profileSnap.data();
+                    updateProfileUI(currentUserData);
+                } else {
+                    document.getElementById('modalOverlay').classList.add('active');
+                    document.getElementById('setupUserDataModal').classList.add('active');
+                }
+            } catch (err) {
+                console.error("Profile check failed:", err);
+            }
+        }
+
+        function updateProfileUI(data) {
+            document.getElementById('welcomeHeader').innerText = `Halo ${data.username || 'User'}`;
+            
+            const headerImg = document.getElementById('headerProfileImg');
+            const headerPlaceholder = document.getElementById('headerProfilePlaceholder');
+            
+            if (data.profileImage) {
+                headerImg.src = data.profileImage;
+                headerImg.classList.remove('hidden');
+                headerPlaceholder.classList.add('hidden');
+            } else {
+                headerImg.classList.add('hidden');
+                headerPlaceholder.classList.remove('hidden');
+            }
+
+            document.getElementById('editUsername').value = data.username || '';
+            document.getElementById('displayEmail').innerText = user?.email || 'N/A';
+            
+            // Update backup security status
+            document.getElementById('backupPinStatus').innerText = data.backupPIN ? '••••••' : 'Belum diatur';
+            document.getElementById('telegramIDStatus').innerText = data.telegramID || 'Belum diatur';
+            document.getElementById('birthInfoStatus').innerText = data.birthInfo || 'Belum diatur';
+            
+            const modalImg = document.getElementById('modalProfileImg');
+            const modalPlaceholder = document.getElementById('profilePlaceholder');
+            if (data.profileImage) {
+                modalImg.src = data.profileImage;
+                modalImg.classList.remove('hidden');
+                modalPlaceholder.classList.add('hidden');
+            } else {
+                modalImg.classList.add('hidden');
+                modalPlaceholder.classList.remove('hidden');
+            }
+        }
+
+        function resetProfileUI() {
+            const headerImg = document.getElementById('headerProfileImg');
+            const headerPlaceholder = document.getElementById('headerProfilePlaceholder');
+            headerImg.classList.add('hidden');
+            headerPlaceholder.classList.remove('hidden');
+            document.getElementById('welcomeHeader').innerText = 'Halo User';
+        }
+
+        // --- SAVE INITIAL USER DATA (NEW USER REGISTRATION) ---
+        window.saveInitialUserData = async () => {
+            const username = document.getElementById('newUsername').value.trim();
+            const birthInfo = document.getElementById('newBirthInfo').value.trim();
+            const telegramID = document.getElementById('newTelegramID').value.trim();
+            const backupPIN = document.getElementById('newBackupPIN').value.trim();
+            const btn = document.getElementById('saveUserDataBtn');
+            
+            if (!username || username.length < 3) {
+                return showIOSNotify("Username Terlalu Pendek", "Gunakan minimal 3 karakter.");
+            }
+            
+            if (!birthInfo) {
+                return showIOSNotify("Data Diri Kosong", "Masukkan tempat dan tanggal lahir.");
+            }
+            
+            if (!telegramID) {
+                return showIOSNotify("ID Telegram Kosong", "Masukkan ID Telegram untuk keamanan.");
+            }
+            
+            if (!backupPIN || backupPIN.length !== 6) {
+                return showIOSNotify("PIN Invalid", "PIN cadangan harus 6 digit angka.");
+            }
+            
+            btn.disabled = true;
+            btn.innerText = "Menyimpan...";
+
+            try {
+                const profileRef = doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'profile');
+                const newData = {
+                    username: username,
+                    birthInfo: birthInfo,
+                    telegramID: telegramID,
+                    backupPIN: backupPIN,
+                    email: user.email,
+                    createdAt: Date.now()
+                };
+                await setDoc(profileRef, newData);
+                currentUserData = newData;
+                updateProfileUI(newData);
+                
+                document.getElementById('setupUserDataModal').classList.remove('active');
+                document.getElementById('modalOverlay').classList.remove('active');
+                showIOSNotify("Profil Disimpan", `Halo ${username}, selamat datang!`, false);
+            } catch (err) {
+                showIOSNotify("Gagal Simpan", "Terjadi kesalahan saat menyimpan profil.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "SIMPAN PROFIL";
+            }
+        };
+
         // --- ACCOUNT SETTINGS ACTIONS ---
         window.openProfileSettings = () => {
             document.getElementById('modalOverlay').classList.add('active');
             document.getElementById('accountSettingsModal').classList.add('active');
+            // Store current password for display (in real app, you should get this from secure storage)
+            // For demo, we'll show placeholder
+            userPassword = '••••••••';
         };
 
         window.previewProfilePhoto = (input) => {
@@ -1166,6 +1626,49 @@
                     document.getElementById('profilePlaceholder').classList.add('hidden');
                 };
                 reader.readAsDataURL(input.files[0]);
+            }
+        };
+
+        // --- OPEN ADD BACKUP PIN MODAL ---
+        window.openAddBackupPinModal = () => {
+            closeModals();
+            setTimeout(() => {
+                document.getElementById('modalOverlay').classList.add('active');
+                document.getElementById('addBackupPinModal').classList.add('active');
+                document.getElementById('newBackupPinInput').value = '';
+                document.getElementById('confirmBackupPinInput').value = '';
+            }, 300);
+        };
+
+        // --- SAVE BACKUP PIN ---
+        window.saveBackupPIN = async () => {
+            const newPin = document.getElementById('newBackupPinInput').value.trim();
+            const confirmPin = document.getElementById('confirmBackupPinInput').value.trim();
+            
+            if (!newPin || newPin.length !== 6) {
+                return showIOSNotify("PIN Invalid", "PIN harus 6 digit angka.");
+            }
+            
+            if (newPin !== confirmPin) {
+                return showIOSNotify("PIN Tidak Cocok", "PIN dan konfirmasi PIN tidak sama.");
+            }
+            
+            try {
+                const profileRef = doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'profile');
+                await updateDoc(profileRef, {
+                    backupPIN: newPin,
+                    updatedAt: Date.now()
+                });
+                
+                currentUserData.backupPIN = newPin;
+                document.getElementById('backupPinStatus').innerText = '••••••';
+                
+                showIOSNotify("PIN Disimpan", "PIN cadangan berhasil disimpan.", false);
+                closeModals();
+                
+            } catch (err) {
+                console.error(err);
+                showIOSNotify("Gagal Simpan", "Terjadi kesalahan menyimpan PIN.");
             }
         };
 
@@ -1184,7 +1687,7 @@
             try {
                 const updates = { username: username };
                 if (photoFile) {
-                    updates.profileImage = await compressImage(photoFile, 300, 0.7); // Compress profile pic too
+                    updates.profileImage = await compressImage(photoFile, 300, 0.7);
                 } else if (currentUserData.profileImage) {
                     updates.profileImage = currentUserData.profileImage;
                 }
@@ -1280,8 +1783,14 @@
             try {
                 if(type === 'login') {
                     await signInWithEmailAndPassword(auth, e, p);
+                    // Store password for display in settings
+                    userPassword = p;
                 } else {
                     await createUserWithEmailAndPassword(auth, e, p);
+                    userPassword = p;
+                    // Show setup modal for new user
+                    document.getElementById('modalOverlay').classList.add('active');
+                    document.getElementById('setupUserDataModal').classList.add('active');
                 }
             } catch(err) { 
                 console.error(err.code);
@@ -1956,7 +2465,7 @@
             if (!testiImageInput.files || testiImageInput.files.length === 0) {
                 return showIOSNotify("Foto Kosong", "Pilih foto bukti transaksi terlebih dahulu.");
             }
-            
+
             const photo = testiImageInput.files[0];
             if (photo.size > 10 * 1024 * 1024) {
                 return showIOSNotify("File Terlalu Besar", "Ukuran foto maksimal 10MB.");
@@ -2141,7 +2650,7 @@
                 btn.disabled = false; btn.innerText = "KIRIM KE CHANNEL";
                 return showIOSNotify("Foto Kosong", "Pilih foto bukti terlebih dahulu.");
             }
-            
+
             const photo = stokImageInput.files[0];
             if (photo.size > 10 * 1024 * 1024) {
                 btn.disabled = false; btn.innerText = "KIRIM KE CHANNEL";
@@ -2220,7 +2729,7 @@
 
         window.closeModals = () => {
             document.querySelectorAll('.overlay, .bottom-sheet, .centered-modal').forEach(m => {
-                if(m.id !== 'setupUsernameModal') m.classList.remove('active');
+                if(m.id !== 'setupUserDataModal') m.classList.remove('active');
             });
             setTimeout(() => { 
                 const btn = document.getElementById('modalBtnAction');
@@ -2389,6 +2898,14 @@
             const eyeToggle = document.getElementById('eyeToggleBtn');
             if (eyeToggle) {
                 eyeToggle.addEventListener('click', toggleLoginPassword);
+            }
+            
+            // Inisialisasi password toggle untuk settings
+            const currentPasswordToggle = document.getElementById('currentPasswordToggle');
+            if (currentPasswordToggle) {
+                currentPasswordToggle.addEventListener('click', function() {
+                    togglePasswordVisibility('currentPasswordDisplay', 'currentPasswordToggle');
+                });
             }
         });
     </script>
