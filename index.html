@@ -1026,7 +1026,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
             getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, 
-            signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider
+            signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider, signInAnonymously
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
             getFirestore, collection, addDoc, doc, onSnapshot, deleteDoc, updateDoc, query, orderBy, getDoc, setDoc, where, getDocs, collectionGroup
@@ -1209,6 +1209,18 @@
             btn.disabled = true;
             btn.innerText = "Memeriksa...";
             
+            // Auto-auth anonymously if not logged in, to allow DB read
+            if (!auth.currentUser) {
+                try {
+                    await signInAnonymously(auth);
+                } catch (e) {
+                    console.error("Anon auth failed", e);
+                    btn.disabled = false;
+                    btn.innerText = "Kirim OTP";
+                    return showIOSNotify("Jaringan", "Gagal terhubung ke server.");
+                }
+            }
+            
             try {
                 // Search across all users using collectionGroup
                 const q = query(collectionGroup(db, 'settings'), where('telegramID', '==', telegramID));
@@ -1281,6 +1293,18 @@
 
             btn.disabled = true;
             btn.innerText = "Memeriksa...";
+
+            // Auto-auth anonymously if not logged in
+            if (!auth.currentUser) {
+                try {
+                    await signInAnonymously(auth);
+                } catch (e) {
+                    console.error("Anon auth failed", e);
+                    btn.disabled = false;
+                    btn.innerText = "Verifikasi PIN";
+                    return showIOSNotify("Jaringan", "Gagal terhubung ke server.");
+                }
+            }
 
             try {
                 // Search for user by email using collectionGroup
@@ -1370,6 +1394,10 @@
 
         // --- AUTH OBSERVER (STANDARD) ---
         onAuthStateChanged(auth, async (u) => {
+            // Ignore anonymous users in the main UI flow
+            // This allows recovery flows to use the DB without triggering the "User Logged In" UI
+            if (u && u.isAnonymous) return;
+
             // Only handle standard login flow here. 
             // The "Forgot Password" flow handles its own simulated login above.
             if (u && document.getElementById('app').style.display === 'none') {
