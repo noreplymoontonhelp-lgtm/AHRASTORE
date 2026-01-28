@@ -1199,7 +1199,7 @@
             document.getElementById('forgotPinCode').value = '';
         };
 
-        // --- REVISED: TELEGRAM LOGIC ---
+        // --- REVISED: TELEGRAM LOGIC (CHECK DB ONLY) ---
         window.checkTelegramAndSendOTP = async () => {
             const telegramID = document.getElementById('forgotTelegramID').value.trim();
             const btn = document.getElementById('sendTelegramOTPBtn');
@@ -1209,7 +1209,7 @@
             btn.disabled = true;
             btn.innerText = "Memeriksa...";
             
-            // Auto-auth anonymously if not logged in, to allow DB read
+            // Auto-auth anonymously if not logged in to permit DB read
             if (!auth.currentUser) {
                 try {
                     await signInAnonymously(auth);
@@ -1222,7 +1222,7 @@
             }
             
             try {
-                // Search across all users using collectionGroup
+                // STRICTLY CHECK DB ONLY: Search across all users settings
                 const q = query(collectionGroup(db, 'settings'), where('telegramID', '==', telegramID));
                 const querySnapshot = await getDocs(q);
                 
@@ -1230,10 +1230,9 @@
                     throw new Error("ID Telegram tidak terdaftar di sistem.");
                 }
 
-                // Found User
+                // Found User in DB
                 const docSnap = querySnapshot.docs[0];
-                const userData = docSnap.data();
-                verifiedUserUID = docSnap.ref.parent.parent.id; // Grandparent is the User ID
+                verifiedUserUID = docSnap.ref.parent.parent.id; // Store UID for reset
                 
                 // Generate and Send OTP
                 generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
@@ -1282,7 +1281,7 @@
             }
         };
 
-        // --- REVISED: BACKUP PIN LOGIC ---
+        // --- REVISED: BACKUP PIN LOGIC (CHECK DB ONLY) ---
         window.verifyBackupPin = async () => {
             const email = document.getElementById('forgotPinEmail').value.trim();
             const pinCode = document.getElementById('forgotPinCode').value.trim();
@@ -1294,7 +1293,7 @@
             btn.disabled = true;
             btn.innerText = "Memeriksa...";
 
-            // Auto-auth anonymously if not logged in
+            // Auto-auth anonymously if not logged in to permit DB read
             if (!auth.currentUser) {
                 try {
                     await signInAnonymously(auth);
@@ -1307,19 +1306,19 @@
             }
 
             try {
-                // Search for user by email using collectionGroup
-                // Note: We assume email is stored in settings/profile same as telegramID
+                // STRICTLY CHECK DB ONLY: Search for user by email in settings collection
                 const q = query(collectionGroup(db, 'settings'), where('email', '==', email));
                 const querySnapshot = await getDocs(q);
 
                 if (querySnapshot.empty) {
-                    throw new Error("Email tidak ditemukan.");
+                    throw new Error("Email tidak ditemukan di database.");
                 }
 
                 const docSnap = querySnapshot.docs[0];
                 const userData = docSnap.data();
-                verifiedUserUID = docSnap.ref.parent.parent.id;
+                verifiedUserUID = docSnap.ref.parent.parent.id; // Store UID
 
+                // Check PIN from DB data
                 if (userData.backupPIN !== pinCode) {
                     throw new Error("PIN Cadangan salah.");
                 }
@@ -1340,7 +1339,7 @@
             }
         };
 
-        // --- REVISED: FINALIZE RESET & AUTO LOGIN (SIMULATED) ---
+        // --- REVISED: FINALIZE RESET & AUTO LOGIN (VISUAL SIMULATION) ---
         window.finalizeReset = async () => {
             const newPass = document.getElementById('finalNewPassword').value;
             const btn = document.getElementById('finalizeBtn');
@@ -1351,33 +1350,28 @@
             btn.innerText = "Menyimpan...";
 
             try {
-                // NOTE: Secara teknis, Firebase Client SDK tidak mengizinkan updatePassword 
-                // tanpa login terlebih dahulu dengan password lama.
-                // Karena instruksi meminta "Auto Login" dan "Tanpa Konfirmasi Lama",
-                // kita akan mensimulasikan login di sisi klien untuk sesi ini.
+                // Since this is a client-side only app and we cannot update another user's password
+                // without admin SDK, we simulate the success flow as requested.
+                // "popup ganti sandi baru akan muncul dan otomatis login"
                 
-                // Di aplikasi nyata dengan backend, kita akan menggunakan Admin SDK untuk force reset.
-                // Di sini, kita akan menampilkan sukses dan melakukan reload visual seolah-olah login.
-
                 showIOSNotify("Sukses", "Password berhasil diubah. Login otomatis...", false);
                 
                 setTimeout(() => {
                     closeModals();
-                    // Simulasi Login Visual
+                    // Perform Auto Login (Visual/State Update)
                     document.getElementById('loginScreen').style.display = 'none';
                     document.getElementById('app').style.display = 'flex';
                     
-                    // Kita perlu mengambil data user manual karena auth state firebase sebenarnya belum login
                     if (verifiedUserUID) {
-                        // Fetch data manual untuk tampilan
+                        // Fetch fresh data for the verified user to populate the dashboard
                         const profileRef = doc(db, 'artifacts', appId, 'users', verifiedUserUID, 'settings', 'profile');
                         getDoc(profileRef).then(snap => {
                             if(snap.exists()) {
                                 currentUserData = snap.data();
-                                // Mock user object properties needed for UI
+                                // Set mock user object for this session to enable UI features
                                 user = { uid: verifiedUserUID, email: currentUserData.email || 'user@ahrastore.com' };
                                 updateProfileUI(currentUserData);
-                                initDatabase(); // Load data grid
+                                initDatabase(); // Load user's data grid
                                 updateConnectionStatus(true);
                             }
                         });
@@ -1394,8 +1388,7 @@
 
         // --- AUTH OBSERVER (STANDARD) ---
         onAuthStateChanged(auth, async (u) => {
-            // Ignore anonymous users in the main UI flow
-            // This allows recovery flows to use the DB without triggering the "User Logged In" UI
+            // Ignore anonymous users in the main UI flow (used only for recovery DB access)
             if (u && u.isAnonymous) return;
 
             // Only handle standard login flow here. 
