@@ -4,7 +4,144 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>AhraStore Pro - Cloud Management</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com">
+// =====================
+// REVISI RESET PASSWORD (OTP TELEGRAM & PIN)
+// =====================
+
+// Helper: tampilkan error detail
+function handleServerError(err, context) {
+    console.error(context, err);
+    const msg = err?.message || "Kesalahan tidak diketahui";
+    showIOSNotify("Gagal", `${context}: ${msg}`);
+}
+
+// Helper: validasi format telegram
+function normalizeTelegramID(input) {
+    let v = input.trim();
+    if (v.startsWith('@')) v = v.substring(1);
+    return v;
+}
+
+// REVISI: OTP Telegram dengan error detail
+window.checkTelegramAndSendOTP = async () => {
+    const raw = document.getElementById('forgotTelegramID').value;
+    const telegramID = normalizeTelegramID(raw);
+    const btn = document.getElementById('sendTelegramOTPBtn');
+
+    if (!telegramID) {
+        return showIOSNotify("Input Salah", "ID Telegram wajib diisi.");
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Memproses...";
+
+    try {
+        if (!auth.currentUser) {
+            await signInAnonymously(auth);
+        }
+
+        const q = query(collectionGroup(db, 'settings'), where('telegramID', '==', telegramID));
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            throw new Error("ID Telegram tidak terdaftar.");
+        }
+
+        const docSnap = snap.docs[0];
+        verifiedUserUID = docSnap.ref.parent.parent.id;
+
+        generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+        const payload = {
+            chat_id: telegramID,
+            text: `🔐 KODE OTP RESET PASSWORD\n\nKode OTP Anda: ${generatedOTP}\n\nBerlaku 5 menit.`
+        };
+
+        const tgResp = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const tgJson = await tgResp.json();
+        if (!tgJson.ok) {
+            throw new Error(tgJson.description || "Telegram API error");
+        }
+
+        document.getElementById('otpInputContainer').classList.remove('hidden');
+        btn.innerText = "Verifikasi OTP";
+        btn.disabled = false;
+        btn.onclick = verifyTelegramOTP;
+
+        showIOSNotify("OTP Terkirim", "Silakan cek Telegram Anda.");
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerText = "Kirim OTP";
+        handleServerError(e, "OTP Telegram");
+    }
+};
+
+// REVISI: verifikasi OTP
+window.verifyTelegramOTP = async () => {
+    const input = document.getElementById('forgotTelegramOTP').value.trim();
+    if (!input) return showIOSNotify("OTP Kosong", "Masukkan kode OTP.");
+
+    if (input !== generatedOTP) {
+        return showIOSNotify("OTP Salah", "Kode OTP tidak cocok.");
+    }
+
+    openNewPasswordModal();
+};
+
+// REVISI: verifikasi PIN cadangan dengan error detail
+window.verifyBackupPin = async () => {
+    const email = document.getElementById('forgotPinEmail').value.trim();
+    const pin = document.getElementById('forgotPinCode').value.trim();
+
+    if (!email || !pin) {
+        return showIOSNotify("Input Salah", "Email dan PIN wajib diisi.");
+    }
+    if (pin.length !== 6) {
+        return showIOSNotify("PIN Tidak Valid", "PIN harus 6 digit.");
+    }
+
+    try {
+        if (!auth.currentUser) {
+            await signInAnonymously(auth);
+        }
+
+        const q = query(collection(db, 'users'), where('email', '==', email));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+            throw new Error("Email tidak ditemukan.");
+        }
+
+        const userDoc = snap.docs[0];
+        const data = userDoc.data();
+
+        if (!data.backupPIN) {
+            throw new Error("PIN cadangan belum diatur.");
+        }
+
+        if (data.backupPIN !== pin) {
+            throw new Error("PIN cadangan salah.");
+        }
+
+        verifiedUserUID = userDoc.id;
+        openNewPasswordModal();
+    } catch (e) {
+        handleServerError(e, "Verifikasi PIN");
+    }
+};
+
+function openNewPasswordModal() {
+    closeModals();
+    document.getElementById('modalOverlay').classList.add('active');
+    document.getElementById('newPasswordModal').classList.add('active');
+}
+
+</script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         
@@ -2830,6 +2967,143 @@
                 });
             }
         });
-    </script>
+    
+// =====================
+// REVISI RESET PASSWORD (OTP TELEGRAM & PIN)
+// =====================
+
+// Helper: tampilkan error detail
+function handleServerError(err, context) {
+    console.error(context, err);
+    const msg = err?.message || "Kesalahan tidak diketahui";
+    showIOSNotify("Gagal", `${context}: ${msg}`);
+}
+
+// Helper: validasi format telegram
+function normalizeTelegramID(input) {
+    let v = input.trim();
+    if (v.startsWith('@')) v = v.substring(1);
+    return v;
+}
+
+// REVISI: OTP Telegram dengan error detail
+window.checkTelegramAndSendOTP = async () => {
+    const raw = document.getElementById('forgotTelegramID').value;
+    const telegramID = normalizeTelegramID(raw);
+    const btn = document.getElementById('sendTelegramOTPBtn');
+
+    if (!telegramID) {
+        return showIOSNotify("Input Salah", "ID Telegram wajib diisi.");
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Memproses...";
+
+    try {
+        if (!auth.currentUser) {
+            await signInAnonymously(auth);
+        }
+
+        const q = query(collectionGroup(db, 'settings'), where('telegramID', '==', telegramID));
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            throw new Error("ID Telegram tidak terdaftar.");
+        }
+
+        const docSnap = snap.docs[0];
+        verifiedUserUID = docSnap.ref.parent.parent.id;
+
+        generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+        const payload = {
+            chat_id: telegramID,
+            text: `🔐 KODE OTP RESET PASSWORD\n\nKode OTP Anda: ${generatedOTP}\n\nBerlaku 5 menit.`
+        };
+
+        const tgResp = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const tgJson = await tgResp.json();
+        if (!tgJson.ok) {
+            throw new Error(tgJson.description || "Telegram API error");
+        }
+
+        document.getElementById('otpInputContainer').classList.remove('hidden');
+        btn.innerText = "Verifikasi OTP";
+        btn.disabled = false;
+        btn.onclick = verifyTelegramOTP;
+
+        showIOSNotify("OTP Terkirim", "Silakan cek Telegram Anda.");
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerText = "Kirim OTP";
+        handleServerError(e, "OTP Telegram");
+    }
+};
+
+// REVISI: verifikasi OTP
+window.verifyTelegramOTP = async () => {
+    const input = document.getElementById('forgotTelegramOTP').value.trim();
+    if (!input) return showIOSNotify("OTP Kosong", "Masukkan kode OTP.");
+
+    if (input !== generatedOTP) {
+        return showIOSNotify("OTP Salah", "Kode OTP tidak cocok.");
+    }
+
+    openNewPasswordModal();
+};
+
+// REVISI: verifikasi PIN cadangan dengan error detail
+window.verifyBackupPin = async () => {
+    const email = document.getElementById('forgotPinEmail').value.trim();
+    const pin = document.getElementById('forgotPinCode').value.trim();
+
+    if (!email || !pin) {
+        return showIOSNotify("Input Salah", "Email dan PIN wajib diisi.");
+    }
+    if (pin.length !== 6) {
+        return showIOSNotify("PIN Tidak Valid", "PIN harus 6 digit.");
+    }
+
+    try {
+        if (!auth.currentUser) {
+            await signInAnonymously(auth);
+        }
+
+        const q = query(collection(db, 'users'), where('email', '==', email));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+            throw new Error("Email tidak ditemukan.");
+        }
+
+        const userDoc = snap.docs[0];
+        const data = userDoc.data();
+
+        if (!data.backupPIN) {
+            throw new Error("PIN cadangan belum diatur.");
+        }
+
+        if (data.backupPIN !== pin) {
+            throw new Error("PIN cadangan salah.");
+        }
+
+        verifiedUserUID = userDoc.id;
+        openNewPasswordModal();
+    } catch (e) {
+        handleServerError(e, "Verifikasi PIN");
+    }
+};
+
+function openNewPasswordModal() {
+    closeModals();
+    document.getElementById('modalOverlay').classList.add('active');
+    document.getElementById('newPasswordModal').classList.add('active');
+}
+
+</script>
 </body>
 </html>
