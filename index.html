@@ -758,7 +758,15 @@ function openNewPasswordModal() {
                     </div>
                     <div class="ios-input-row">
                         <span class="row-label">PIN Cadangan</span>
-                        <input type="password" id="forgotPinCode" placeholder="Masukkan 6-digit PIN" maxlength="6" inputmode="numeric">
+                        <div class="password-container">
+                                <input type="password" id="forgotPinCode" placeholder="Masukkan 6-digit PIN" maxlength="6" inputmode="numeric" class="password-input">
+                                <button type="button" onclick="togglePasswordVisibility('forgotPinCode', 'forgotPinCodeToggle')" class="password-toggle" id="forgotPinCodeToggle">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
                     </div>
                 </div>
                 <button onclick="verifyBackupPin()" id="verifyPinBtn" class="pill-button !bg-green-500">Verifikasi PIN</button>
@@ -781,7 +789,15 @@ function openNewPasswordModal() {
                 <div class="ios-input-group">
                     <div class="ios-input-row">
                         <span class="row-label">Password Baru</span>
-                        <input type="password" id="finalNewPassword" placeholder="Minimal 6 karakter">
+                        <div class="password-container">
+                                <input type="password" id="finalNewPassword" placeholder="Minimal 6 karakter" class="password-input">
+                                <button type="button" onclick="togglePasswordVisibility('finalNewPassword', 'finalNewPasswordToggle')" class="password-toggle" id="finalNewPasswordToggle">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
                     </div>
                 </div>
                 <button onclick="finalizeReset()" id="finalizeBtn" class="pill-button">SIMPAN & LOGIN</button>
@@ -813,7 +829,15 @@ function openNewPasswordModal() {
                 </div>
                 <div class="ios-input-row">
                     <span class="row-label">PIN Cadangan (6 digit)</span>
-                    <input type="password" id="newBackupPIN" placeholder="••••••" maxlength="6" inputmode="numeric">
+                    <div class="password-container">
+                                <input type="password" id="newBackupPIN" placeholder="••••••" maxlength="6" inputmode="numeric" class="password-input">
+                                <button type="button" onclick="togglePasswordVisibility('newBackupPIN', 'newBackupPINToggle')" class="password-toggle" id="newBackupPINToggle">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
                 </div>
             </div>
 
@@ -857,11 +881,27 @@ function openNewPasswordModal() {
                 <div class="ios-input-group">
                     <div class="ios-input-row">
                         <span class="row-label">PIN Cadangan Baru (6 digit)</span>
-                        <input type="password" id="newBackupPinInput" placeholder="••••••" maxlength="6" inputmode="numeric">
+                        <div class="password-container">
+                                <input type="password" id="newBackupPinInput" placeholder="••••••" maxlength="6" inputmode="numeric" class="password-input">
+                                <button type="button" onclick="togglePasswordVisibility('newBackupPinInput', 'newBackupPinInputToggle')" class="password-toggle" id="newBackupPinInputToggle">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
                     </div>
                     <div class="ios-input-row">
                         <span class="row-label">Konfirmasi PIN</span>
-                        <input type="password" id="confirmBackupPinInput" placeholder="••••••" maxlength="6" inputmode="numeric">
+                        <div class="password-container">
+                                <input type="password" id="confirmBackupPinInput" placeholder="••••••" maxlength="6" inputmode="numeric" class="password-input">
+                                <button type="button" onclick="togglePasswordVisibility('confirmBackupPinInput', 'confirmBackupPinInputToggle')" class="password-toggle" id="confirmBackupPinInputToggle">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
                     </div>
                 </div>
                 <div class="flex gap-2">
@@ -1114,52 +1154,47 @@ function openNewPasswordModal() {
                                     </svg>
                                 </button>
                             </div>
+                        
+                        <div class="ios-input-row">
+                            <button onclick="toggleChangePasswordSection()" class="text-red-500 text-[13px] font-semibold text-left">
+                                Ganti Password
+                            </button>
                         </div>
+</div>
                     </div>
                 </div>
 
-                <div class="pt-2">
+                
+                <div id="changePasswordSection" class="pt-2 hidden">
                     <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 ml-1">Ganti Password</p>
                     <div class="ios-input-group">
                         <div class="ios-input-row">
                             <span class="row-label">Password Lama</span>
-                            <input type="password" id="oldPassword" placeholder="Konfirmasi Password Saat Ini">
+                            <div class="password-container">
+                                <input type="password" id="oldPassword" placeholder="Konfirmasi Password Saat Ini" class="password-input">
+                                <button type="button" onclick="togglePasswordVisibility('oldPassword', 'oldPasswordToggle')" class="password-toggle" id="oldPasswordToggle">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                         <div class="ios-input-row">
                             <span class="row-label">Password Baru</span>
-                            <input type="password" id="newPassword" placeholder="Minimal 6 Karakter">
+                            <div class="password-container">
+                                <input type="password" id="newPassword" placeholder="Minimal 6 Karakter" class="password-input">
+                                <button type="button" onclick="togglePasswordVisibility('newPassword', 'newPasswordToggle')" class="password-toggle" id="newPasswordToggle">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="pt-2">
-                    <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 ml-1">Keamanan Cadangan</p>
-                    <div class="ios-input-group">
-                        <div class="backup-security-item">
-                            <span class="backup-security-label">PIN Cadangan</span>
-                            <span id="backupPinStatus" class="backup-security-value">Belum diatur</span>
-                        </div>
-                        <div class="backup-security-item">
-                            <span class="backup-security-label">ID Telegram</span>
-                            <span id="telegramIDStatus" class="backup-security-value">Belum diatur</span>
-                        </div>
-                        <div class="backup-security-item">
-                            <span class="backup-security-label">Data Diri</span>
-                            <span id="birthInfoStatus" class="backup-security-value">Belum diatur</span>
-                        </div>
-                        <div class="p-4">
-                            <button onclick="openAddBackupPinModal()" class="add-backup-btn">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                    <path d="M12 5v14M5 12h14"/>
-                                </svg>
-                                Tambah Keamanan Cadangan
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="flex border-t border-white/10">
+<div class="flex border-t border-white/10">
             <button onclick="closeModals()" class="flex-1 p-4 text-zinc-400 font-medium border-r border-white/10">Batal</button>
             <button onclick="saveAccountSettings()" id="saveAccountBtn" class="flex-1 p-4 text-blue-500 font-bold">Simpan</button>
         </div>
@@ -1716,7 +1751,24 @@ function openNewPasswordModal() {
             // Store current password for display (in real app, you should get this from secure storage)
             // For demo, we'll show placeholder
             userPassword = '••••••••';
+
+            // Reset Change Password UI
+            const changeSec = document.getElementById('changePasswordSection');
+            if (changeSec) changeSec.classList.add('hidden');
+            const oldP = document.getElementById('oldPassword');
+            const newP = document.getElementById('newPassword');
+            if (oldP) oldP.value = '';
+            if (newP) newP.value = '';
+
         };
+
+        // --- TOGGLE CHANGE PASSWORD SECTION (iOS Style) ---
+        window.toggleChangePasswordSection = () => {
+            const section = document.getElementById('changePasswordSection');
+            if (!section) return;
+            section.classList.toggle('hidden');
+        };
+
 
         window.previewProfilePhoto = (input) => {
             if (input.files && input.files[0]) {
