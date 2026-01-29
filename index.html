@@ -206,6 +206,8 @@ function openNewPasswordModal() {
             position: fixed; inset: 0; background: black; z-index: 9000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             padding: 40px; text-align: center;
+            transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(1);
         }
         .login-logo {
             width: 80px; height: 80px; background: var(--accent-blue);
@@ -213,6 +215,22 @@ function openNewPasswordModal() {
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 10px 30px rgba(10, 132, 255, 0.3);
             overflow: hidden;
+        }
+
+        /* Smooth Page Transition After Login (Zoom Out) */
+        #loginScreen.login-exit {
+            opacity: 0;
+            transform: scale(1.03);
+            pointer-events: none;
+        }
+
+        #app.app-enter-zoomout {
+            animation: appZoomOut 0.45s cubic-bezier(0.19, 1, 0.22, 1) both;
+        }
+
+        @keyframes appZoomOut {
+            from { opacity: 0; transform: scale(1.06); }
+            to { opacity: 1; transform: scale(1); }
         }
 
         .shizuku-card {
@@ -651,7 +669,7 @@ function openNewPasswordModal() {
     <!-- Login Screen -->
     <div id="loginScreen" class="hidden">
         <div class="login-logo">
-            <img src="https://i.postimg.cc/8sK6LGQG/image.png" alt="Logo" class="w-full h-full object-cover">
+            <img src="https://img.sanishtech.com/u/f52d0e9847d08bdff31a58247421aacc.png" alt="Logo" class="w-full h-full object-cover">
         </div>
         <h2 class="text-3xl font-bold tracking-tight mb-2">Selamat Datang Di AHRASTORE.apk</h2>
         <p class="text-[14px] text-zinc-500 mb-6">Silahkan Login Untuk Lanjut</p>
@@ -673,8 +691,7 @@ function openNewPasswordModal() {
                             </svg>
                         </button>
                     </div>
-                    <a href="javascript:void(0)" onclick="openForgotPasswordOptions()" class="forgot-link">Lupa Sandi?</a>
-                </div>
+</div>
             </div>
             <button id="loginBtn" onclick="handleEmailAuth('login')" class="pill-button">MASUK</button>
             <button id="signupBtn" onclick="handleEmailAuth('signup')" class="pill-button !bg-zinc-800 !text-blue-500">DAFTAR BARU</button>
@@ -1199,6 +1216,34 @@ function openNewPasswordModal() {
         let userPassword = null; // Store user password for display
         let verifiedUserUID = null; // Store verified user UID for reset
 
+        // --- NEW: Smooth zoom-out transition when switching from Login -> App ---
+        function showAppWithZoomOut() {
+            const loginEl = document.getElementById('loginScreen');
+            const appEl = document.getElementById('app');
+
+            // Animate login screen exit (if visible)
+            if (loginEl && loginEl.style.display !== 'none') {
+                loginEl.classList.add('login-exit');
+                setTimeout(() => {
+                    loginEl.style.display = 'none';
+                    loginEl.classList.remove('login-exit');
+                }, 260);
+            }
+
+            // Show app with zoom-out animation
+            if (appEl) {
+                appEl.style.display = 'flex';
+                appEl.classList.remove('app-enter-zoomout');
+                // Force reflow to restart animation
+                void appEl.offsetWidth;
+                appEl.classList.add('app-enter-zoomout');
+                appEl.addEventListener('animationend', () => {
+                    appEl.classList.remove('app-enter-zoomout');
+                }, { once: true });
+            }
+        }
+
+
         // --- NEW: Image Compressor Helper (Fixes File Size Issue) ---
         async function compressImage(file, maxWidth = 800, quality = 0.6) {
             return new Promise((resolve, reject) => {
@@ -1497,8 +1542,7 @@ function openNewPasswordModal() {
                 setTimeout(() => {
                     closeModals();
                     // Perform Auto Login (Visual/State Update)
-                    document.getElementById('loginScreen').style.display = 'none';
-                    document.getElementById('app').style.display = 'flex';
+                    showAppWithZoomOut();
                     
                     if (verifiedUserUID) {
                         // Fetch fresh data for the verified user to populate the dashboard
@@ -1538,8 +1582,7 @@ function openNewPasswordModal() {
                 document.getElementById('loadingScreen').style.opacity = '0';
                 setTimeout(() => document.getElementById('loadingScreen').style.display = 'none', 500);
                 
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('app').style.display = 'flex';
+                showAppWithZoomOut();
                 updateConnectionStatus(true);
                 initDatabase();
             } else if (!u && document.getElementById('app').style.display === 'flex') {
