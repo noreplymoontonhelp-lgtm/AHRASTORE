@@ -2122,7 +2122,10 @@ function openNewPasswordModal() {
             });
         }
 
-        // REVISI: Render database dengan logika popover yang lebih baik
+        // =====================
+        // REVISI POPOVER DATA AKUN - DIBUAT DARI AWAL
+        // =====================
+
         function renderDatabase() {
             const grid = document.getElementById('databaseGrid');
             grid.innerHTML = "";
@@ -2131,28 +2134,30 @@ function openNewPasswordModal() {
             accounts.forEach(acc => {
                 const card = document.createElement('div');
                 card.className = "db-card";
-                card.dataset.id = acc.id; // Store ID for reference
+                card.dataset.id = acc.id;
 
+                // Fungsi untuk menampilkan popover saat kartu diklik
                 card.onclick = (e) => {
-                    e.stopPropagation(); // Stop bubbling to document
+                    e.stopPropagation();
                     
-                    // Jika kartu ini sudah aktif, tutup (toggle)
+                    // Jika kartu ini sudah aktif, tutup popover
                     if (activeId === acc.id) {
                         closeAllPopovers();
                         return;
                     }
 
-                    closeAllPopovers(); // Tutup yang lain dulu
+                    // Tutup popover lain yang mungkin terbuka
+                    closeAllPopovers();
                     
-                    // Set Status Active
+                    // Set kartu ini sebagai aktif
                     activeId = acc.id;
                     const grid = document.getElementById('databaseGrid');
-                    grid.classList.add('has-active-card'); // Tambahkan efek blur ke grid
-                    card.classList.add('active-card'); // Highlight kartu ini
+                    grid.classList.add('has-active-card');
+                    card.classList.add('active-card');
 
                     const menu = document.getElementById('itemActionMenu');
                     
-                    // Show briefly to measure
+                    // Tampilkan menu sebentar untuk mengukur dimensinya
                     menu.style.display = 'flex';
                     menu.style.visibility = 'hidden';
                     
@@ -2166,30 +2171,31 @@ function openNewPasswordModal() {
 
                     let topPos, leftPos;
 
-                    // REVISI: Posisi popover yang lebih baik - selalu muncul di atas kartu yang dipilih
-                    // Atur posisi horizontal di tengah kartu
+                    // Hitung posisi horizontal - pusatkan relatif terhadap kartu
                     leftPos = cardRect.left + (cardRect.width / 2) - (menuWidth / 2);
                     
-                    // Batasi agar tidak keluar dari viewport
+                    // Pastikan tidak keluar dari viewport kiri
                     if (leftPos < 10) leftPos = 10;
+                    
+                    // Pastikan tidak keluar dari viewport kanan
                     if (leftPos + menuWidth > viewportWidth - 10) {
                         leftPos = viewportWidth - menuWidth - 10;
                     }
 
-                    // REVISI: Atur posisi vertikal - selalu muncul di atas kartu
+                    // Hitung posisi vertikal - coba tampilkan di atas kartu terlebih dahulu
                     topPos = cardRect.top - menuHeight - 10;
                     
-                    // Jika tidak cukup ruang di atas, muncul di bawah
+                    // Jika tidak cukup ruang di atas, tampilkan di bawah
                     if (topPos < 10) {
                         topPos = cardRect.bottom + 10;
                     }
 
-                    // Pastikan tidak keluar dari viewport
+                    // Pastikan tidak keluar dari viewport bawah
                     if (topPos + menuHeight > viewportHeight - 10) {
                         topPos = viewportHeight - menuHeight - 10;
                     }
 
-                    // Apply positions
+                    // Terapkan posisi
                     menu.style.top = `${topPos}px`;
                     menu.style.left = `${leftPos}px`;
                     menu.style.position = 'fixed';
@@ -2218,7 +2224,7 @@ function openNewPasswordModal() {
             });
         }
 
-        // REVISI: Action Handlers dengan close otomatis
+        // Fungsi untuk menangani action dari popover
         window.handleAction = async (type) => {
             const acc = accounts.find(a => a.id === activeId);
             document.getElementById('itemActionMenu').style.display = 'none';
@@ -2505,7 +2511,6 @@ function openNewPasswordModal() {
                 
                 const imageInput = document.getElementById('editImage');
                 if (imageInput?.files[0]) {
-                    // PERUBAHAN: Compress image on edit
                     updates.image = await compressImage(imageInput.files[0]);
                 }
                 
@@ -2513,7 +2518,7 @@ function openNewPasswordModal() {
                 
                 showIOSNotify("Berhasil", "Data akun berhasil diperbarui.", false);
                 closeModals();
-                closeAllPopovers(); // Reset blur effect
+                closeAllPopovers();
                 
             } catch (error) {
                 console.error("Error updating document:", error);
@@ -2852,7 +2857,7 @@ function openNewPasswordModal() {
                 if(btn) btn.classList.toggle('tab-active', t === tab);
             });
             window.scrollTo(0,0);
-            closeAllPopovers(); // Pastikan popover tertutup saat ganti tab
+            closeAllPopovers();
         };
 
         window.toggleAhraPopover = (id) => {
@@ -2860,12 +2865,12 @@ function openNewPasswordModal() {
             el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
         };
 
-        // REVISI: Close popovers dan RESET BLUR
+        // Fungsi untuk menutup semua popover
         window.closeAllPopovers = () => {
             document.querySelectorAll('.ios-popover').forEach(p => p.style.display = 'none');
             activeId = null;
 
-            // Remove Blur Effects (Reset to normal state)
+            // Hapus efek blur
             const grid = document.getElementById('databaseGrid');
             if(grid) grid.classList.remove('has-active-card');
 
@@ -2882,7 +2887,6 @@ function openNewPasswordModal() {
                 if(btn) btn.classList.add('hidden'); 
             }, 300);
             
-            // Juga close action menu
             closeAllPopovers();
         };
         document.getElementById('modalOverlay').onclick = closeModals;
@@ -2993,60 +2997,51 @@ function openNewPasswordModal() {
             }
         }
 
-        // REVISI: Event listener untuk close popover saat klik di mana saja
+        // Event listener untuk menutup popover saat klik di luar
         document.addEventListener('click', (e) => {
-            // Jika klik bukan di dalam popover, bukan tombol settings, dan bukan card database
             if (!e.target.closest('.ios-popover') && 
                 !e.target.closest('#settingsBtn') && 
                 !e.target.closest('.db-card')) {
                 closeAllPopovers();
             }
             
-            // Jika klik di luar modal tetapi di dalam overlay, close modal
             if (e.target.id === 'modalOverlay') {
                 closeModals();
             }
         });
 
-        // REVISI: Event listener untuk close popover saat scroll dengan capture phase
-        // Ini memastikan menu tertutup dan blur hilang saat layar digulir
+        // Event listener untuk menutup popover saat scroll
         window.addEventListener('scroll', () => {
             if (activeId !== null) {
                 closeAllPopovers();
             }
         }, true);
 
-        // Inisialisasi input harga dengan event listener
+        // Inisialisasi
         document.addEventListener('DOMContentLoaded', function() {
-            // Set inputmode numeric untuk input harga
             const hargaInputs = document.querySelectorAll('.price-input');
             hargaInputs.forEach(input => {
                 input.setAttribute('inputmode', 'numeric');
                 input.setAttribute('pattern', '[0-9.,]*');
                 
-                // Format saat kehilangan fokus
                 input.addEventListener('blur', function() {
                     formatRupiahInput(this);
                 });
                 
-                // Validasi saat input
                 input.addEventListener('input', function() {
                     validateNumberInput(this);
                 });
                 
-                // Clear format saat fokus
                 input.addEventListener('focus', function() {
                     this.value = this.value.replace(/\./g, '');
                 });
             });
             
-            // Fix untuk eye icon di login
             const eyeToggle = document.getElementById('eyeToggleBtn');
             if (eyeToggle) {
                 eyeToggle.addEventListener('click', toggleLoginPassword);
             }
             
-            // Inisialisasi password toggle untuk settings
             const currentPasswordToggle = document.getElementById('currentPasswordToggle');
             if (currentPasswordToggle) {
                 currentPasswordToggle.addEventListener('click', function() {
