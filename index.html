@@ -1,602 +1,190 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>CS Admin · Inbox</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <style>
-    :root{
-      --bg:#0b1020;
-      --panel:#0f1830;
-      --card:rgba(255,255,255,0.06);
-      --stroke:rgba(255,255,255,0.10);
-      --text:rgba(255,255,255,0.92);
-      --muted:rgba(255,255,255,0.65);
-      --accent:#2f7cf6;
-      --bubble-admin:#2f7cf6;
-      --bubble-cust:rgba(255,255,255,0.12);
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --r:18px;
-    }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: radial-gradient(1200px 800px at 20% 10%, rgba(47,124,246,.22), transparent 55%),
-                  radial-gradient(900px 700px at 80% 20%, rgba(120,66,245,.18), transparent 55%),
-                  var(--bg);
-      color:var(--text);
-      height:100vh;
-      overflow:hidden;
-    }
-
-    /* Layout */
-    .app{
-      height:100vh;
-      display:grid;
-      grid-template-columns: 360px 1fr;
-      gap:14px;
-      padding: 14px;
-    }
-    @media (max-width: 900px){
-      .app{ grid-template-columns: 1fr; }
-      .sidebar{ display:none; }
-      .sidebar.active{ display:flex; }
-      .chat{ display:none; }
-      .chat.active{ display:flex; }
-    }
-
-    .panel{
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border: 1px solid var(--stroke);
-      border-radius: var(--r);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      min-height:0;
-    }
-
-    /* Login */
-    .login{
-      height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:18px;
-    }
-    .login-card{
-      width:min(420px, 100%);
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-      border:1px solid var(--stroke);
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-      padding:18px;
-    }
-    .login-card h1{ font-size:18px; font-weight:600; margin-bottom:6px; }
-    .login-card p{ color:var(--muted); font-size:13px; margin-bottom:16px; line-height:1.4; }
-    .field{ display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
-    .field label{ font-size:12px; color:var(--muted); }
-    .field input{
-      padding:12px 12px;
-      border-radius: 14px;
-      border: 1px solid var(--stroke);
-      background: rgba(0,0,0,.18);
-      color: var(--text);
-      outline:none;
-      font-size:14px;
-    }
-    .row{ display:flex; gap:10px; align-items:center; justify-content:space-between; }
-    .btn{
-      border:none;
-      border-radius: 14px;
-      padding: 11px 14px;
-      font-weight:600;
-      font-size:14px;
-      cursor:pointer;
-      background: var(--accent);
-      color:white;
-      transition: transform .05s ease, opacity .2s ease;
-    }
-    .btn:active{ transform: scale(.99); }
-    .btn.secondary{
-      background: rgba(255,255,255,.08);
-      color: var(--text);
-      border:1px solid var(--stroke);
-    }
-    .err{ margin-top:10px; color:#ffb3b3; font-size:13px; min-height:18px; }
-
-    /* Sidebar */
-    .sidebar{ display:flex; flex-direction:column; min-height:0; }
-    .topbar{
-      padding:12px 12px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      border-bottom:1px solid var(--stroke);
-      background: rgba(0,0,0,.12);
-    }
-    .badge{
-      width:36px;height:36px;border-radius:12px;
-      background: rgba(47,124,246,.18);
-      border:1px solid rgba(47,124,246,.30);
-      display:flex;align-items:center;justify-content:center;
-      font-weight:700;color:#cfe2ff;
-    }
-    .topbar .meta{ flex:1; min-width:0; }
-    .topbar .meta .t{ font-weight:600; font-size:14px; }
-    .topbar .meta .s{ color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .iconbtn{
-      width:40px;height:36px;border-radius:12px;
-      border:1px solid var(--stroke);
-      background: rgba(255,255,255,.06);
-      color:var(--text);
-      cursor:pointer;
-    }
-
-    .search{
-      padding:10px 12px;
-      border-bottom:1px solid var(--stroke);
-    }
-    .search input{
-      width:100%;
-      padding:11px 12px;
-      border-radius: 14px;
-      border:1px solid var(--stroke);
-      background: rgba(0,0,0,.15);
-      color: var(--text);
-      outline:none;
-      font-size:13px;
-    }
-
-    .list{
-      flex:1;
-      overflow:auto;
-      padding:10px;
-    }
-    .item{
-      display:flex;
-      gap:10px;
-      padding:10px;
-      border-radius: 16px;
-      border:1px solid transparent;
-      cursor:pointer;
-      transition: background .15s ease, border-color .15s ease;
-      margin-bottom:8px;
-      background: rgba(255,255,255,.03);
-    }
-    .item:hover{ background: rgba(255,255,255,.06); border-color: var(--stroke); }
-    .item.active{ background: rgba(47,124,246,.14); border-color: rgba(47,124,246,.35); }
-    .avatar{
-      width:40px;height:40px;border-radius: 14px;
-      background: rgba(255,255,255,.08);
-      border:1px solid var(--stroke);
-      display:flex;align-items:center;justify-content:center;
-      font-weight:700;color:rgba(255,255,255,.85);
-      flex-shrink:0;
-    }
-    .item .info{ flex:1; min-width:0; }
-    .item .info .name{ font-weight:600; font-size:14px; }
-    .item .info .preview{ color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
-    .item .time{ color:rgba(255,255,255,.45); font-size:11px; }
-
-    /* Chat */
-    .chat{ display:flex; flex-direction:column; min-height:0; }
-    .chat-head{
-      padding:12px 12px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      border-bottom:1px solid var(--stroke);
-      background: rgba(0,0,0,.12);
-    }
-    .backMobile{ display:none; }
-    @media (max-width: 900px){
-      .backMobile{ display:inline-flex; }
-    }
-
-    .chat-title{ flex:1; min-width:0; }
-    .chat-title .t{ font-weight:600; font-size:14px; }
-    .chat-title .s{ color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-    .messages{
-      flex:1;
-      overflow:auto;
-      padding:14px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
-    }
-    .bubble{
-      max-width: 78%;
-      padding: 10px 12px;
-      border-radius: 18px;
-      border:1px solid transparent;
-      line-height:1.35;
-      font-size:14px;
-      word-break: break-word;
-      white-space: pre-wrap;
-    }
-    .left{ align-self:flex-start; background: var(--bubble-cust); border-color: rgba(255,255,255,.10); border-top-left-radius: 8px; }
-    .right{ align-self:flex-end; background: var(--bubble-admin); border-color: rgba(255,255,255,.10); border-top-right-radius: 8px; }
-    .metaLine{
-      margin-top:6px;
-      font-size:11px;
-      color: rgba(255,255,255,.72);
-      opacity:.9;
-    }
-
-    .composer{
-      padding:12px;
-      display:flex;
-      gap:10px;
-      border-top:1px solid var(--stroke);
-      background: rgba(0,0,0,.10);
-    }
-    .composer input{
-      flex:1;
-      padding:12px 12px;
-      border-radius: 16px;
-      border:1px solid var(--stroke);
-      background: rgba(0,0,0,.16);
-      color: var(--text);
-      outline:none;
-      font-size:14px;
-    }
-    .hint{
-      padding:10px 12px;
-      color:var(--muted);
-      font-size:13px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Dark Support</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #121212; color: #e4e6eb; }
+        .dark-card { background-color: #1e1e1e; }
+        .chat-bubble-admin { background-color: #005c4b; color: #e9edef; }
+        .chat-bubble-user { background-color: #202c33; color: #e9edef; }
+        .status-typing { color: #00a884; }
+        
+        /* Mobile handling */
+        @media (max-width: 768px) {
+            .sidebar-active #userSidebar { display: block; width: 100%; }
+            .sidebar-active #chatWindow { display: none; }
+            .chat-active #userSidebar { display: none; }
+            .chat-active #chatWindow { display: flex; width: 100%; }
+        }
+    </style>
 </head>
+<body class="font-sans h-screen overflow-hidden sidebar-active">
 
-<body>
-  <!-- LOGIN VIEW -->
-  <div class="login" id="loginView">
-    <div class="login-card">
-      <h1>CS Admin Login</h1>
-      <p>Login pakai akun <b>agent/admin</b> yang kamu buat di Firebase Authentication.</p>
-
-      <div class="field">
-        <label>Email</label>
-        <input id="agentEmail" type="email" placeholder="agent@company.com" autocomplete="username" />
-      </div>
-
-      <div class="field">
-        <label>Password</label>
-        <input id="agentPass" type="password" placeholder="••••••••" autocomplete="current-password" />
-      </div>
-
-      <div class="row">
-        <button class="btn" id="btnLogin">Login</button>
-        <button class="btn secondary" id="btnDemo">Demo Fill</button>
-      </div>
-
-      <div class="err" id="loginErr"></div>
+    <div id="loginSection" class="fixed inset-0 bg-[#121212] flex items-center justify-center z-[100]">
+        <div class="bg-[#1e1e1e] p-8 rounded-2xl shadow-2xl w-[90%] max-w-md text-center border border-gray-800">
+            <i class="fas fa-user-lock text-5xl text-blue-500 mb-4"></i>
+            <h1 class="text-2xl font-bold mb-6 text-white">Admin Access</h1>
+            <input type="password" id="adminPassword" placeholder="Password" 
+                   class="w-full bg-[#2a2a2a] border border-gray-700 rounded-lg px-4 py-3 mb-4 text-white focus:outline-none focus:border-blue-500">
+            <button onclick="checkLogin()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">
+                Login
+            </button>
+        </div>
     </div>
-  </div>
 
-  <!-- APP VIEW -->
-  <div class="app" id="appView" style="display:none;">
-    <!-- Sidebar -->
-    <section class="panel sidebar" id="sidebar">
-      <div class="topbar">
-        <div class="badge">CS</div>
-        <div class="meta">
-          <div class="t">Inbox</div>
-          <div class="s" id="agentInfo">Signed in</div>
+    <div id="mainDashboard" class="flex h-screen hidden">
+        
+        <div id="userSidebar" class="w-full md:w-1/3 border-r border-gray-800 flex flex-col bg-[#121212]">
+            <div class="p-4 bg-[#1e1e1e] flex justify-between items-center border-b border-gray-800">
+                <h1 class="font-bold text-lg">Messages</h1>
+                <i class="fas fa-circle-notch text-green-500 text-xs"> Live</i>
+            </div>
+            <div id="userList" class="flex-1 overflow-y-auto divide-y divide-gray-800">
+                </div>
         </div>
-        <button class="iconbtn" id="btnLogout" title="Logout">⎋</button>
-      </div>
 
-      <div class="search">
-        <input id="searchBox" placeholder="Search by UID..." />
-      </div>
+        <div id="chatWindow" class="w-full md:w-2/3 flex flex-col bg-[#0b141a]">
+            <div class="p-3 bg-[#202c33] flex items-center gap-3 border-b border-gray-800">
+                <button onclick="backToList()" class="md:hidden text-gray-400 p-2">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center font-bold" id="headerAvatar">?</div>
+                <div class="flex-1">
+                    <h2 id="activeUserName" class="text-sm font-bold text-white truncate">Pilih pelanggan...</h2>
+                    <p id="typingStatus" class="text-[11px] status-typing font-medium h-4"></p>
+                </div>
+            </div>
 
-      <div class="list" id="threadList"></div>
-    </section>
+            <div id="adminMessages" class="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col">
+                <div class="m-auto text-gray-600 text-center">
+                    <i class="fas fa-comments text-5xl mb-3"></i>
+                    <p>Pilih chat untuk membalas</p>
+                </div>
+            </div>
 
-    <!-- Chat -->
-    <section class="panel chat" id="chat">
-      <div class="chat-head">
-        <button class="iconbtn backMobile" id="btnBack" title="Back">←</button>
-        <div class="chat-title">
-          <div class="t" id="chatTitle">Select a conversation</div>
-          <div class="s" id="chatSub">Waiting…</div>
+            <div class="p-3 bg-[#202c33] flex items-center gap-2">
+                <input type="text" id="adminInput" placeholder="Ketik pesan..." 
+                       class="flex-1 bg-[#2a3942] text-white border-none rounded-lg px-4 py-2.5 focus:outline-none text-sm">
+                <button onclick="adminReply()" class="bg-[#00a884] text-[#111b21] w-10 h-10 rounded-full flex items-center justify-center hover:scale-105 transition">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
         </div>
-        <button class="iconbtn" id="btnRefresh" title="Refresh">↻</button>
-      </div>
+    </div>
 
-      <div class="messages" id="messages"></div>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-      <div class="composer">
-        <input id="msgInput" placeholder="Type a reply…" disabled />
-        <button class="btn" id="btnSend" disabled>Send</button>
-      </div>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLhptp927yuM1q8Om1MP-d90X03E8HAl4",
+            authDomain: "apk-chat-8edd4.firebaseapp.com",
+            databaseURL: "https://apk-chat-8edd4-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "apk-chat-8edd4",
+            storageBucket: "apk-chat-8edd4.firebasestorage.app",
+            appId: "1:484815534171:web:a13bb73588bb8e764fe77e"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let currentUserId = null;
 
-      <div class="hint" id="hint">Open a thread to reply.</div>
-    </section>
-  </div>
+        function checkLogin() {
+            const pwd = document.getElementById('adminPassword').value;
+            if(pwd === "123") { // Ganti password sesuai keinginan
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('mainDashboard').classList.remove('hidden');
+            }
+        }
 
-  <!-- Firebase compat -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+        // Tampilan Mobile: Kembali ke daftar chat
+        function backToList() {
+            document.body.classList.replace('chat-active', 'sidebar-active');
+        }
 
-  <script>
-    // ====== CONFIG (isi punyamu) ======
-    const firebaseConfig = {
-      apiKey: "AIzaSyCLhptp927yuM1q8Om1MP-d90X03E8HAl4",
-      authDomain: "apk-chat-8edd4.firebaseapp.com",
-      databaseURL: "https://apk-chat-8edd4-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "apk-chat-8edd4",
-      storageBucket: "apk-chat-8edd4.firebasestorage.app",
-      messagingSenderId: "484815534171",
-      appId: "1:484815534171:web:a13bb73588bb8e764fe77e"
-    };
-
-    // ====== INIT ======
-    let app, auth, db;
-    try {
-      app = firebase.initializeApp(firebaseConfig);
-      auth = firebase.auth();
-      db = firebase.database();
-    } catch (e) {
-      alert("Firebase init error: " + e.message);
-    }
-
-    // ====== STATE ======
-    let currentThreadUid = null;
-    let threadListenerRef = null;
-    let listListenerRef = null;
-
-    const el = (id) => document.getElementById(id);
-
-    function fmtTime(iso){
-      try{
-        const d = new Date(iso);
-        if (isNaN(d.getTime())) return "";
-        return d.toLocaleString(undefined, { month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" });
-      } catch { return ""; }
-    }
-
-    function safeInitial(uid){
-      return (uid || "?").slice(0,1).toUpperCase();
-    }
-
-    // ====== UI HELPERS ======
-    function showLogin(){
-      el("loginView").style.display = "flex";
-      el("appView").style.display = "none";
-    }
-    function showApp(){
-      el("loginView").style.display = "none";
-      el("appView").style.display = "grid";
-      // mobile defaults
-      if (window.matchMedia("(max-width: 900px)").matches) {
-        el("sidebar").classList.add("active");
-        el("chat").classList.remove("active");
-      }
-    }
-
-    function mobileOpenChat(){
-      if (!window.matchMedia("(max-width: 900px)").matches) return;
-      el("sidebar").classList.remove("active");
-      el("chat").classList.add("active");
-    }
-    function mobileBackToList(){
-      if (!window.matchMedia("(max-width: 900px)").matches) return;
-      el("chat").classList.remove("active");
-      el("sidebar").classList.add("active");
-    }
-
-    // ====== AUTH ======
-    el("btnDemo").addEventListener("click", () => {
-      el("agentEmail").value = "agent@example.com";
-      el("agentPass").value = "password123";
-      el("loginErr").textContent = "";
-    });
-
-    el("btnLogin").addEventListener("click", async () => {
-      const email = el("agentEmail").value.trim();
-      const pass = el("agentPass").value.trim();
-      el("loginErr").textContent = "";
-      if (!email || !pass) { el("loginErr").textContent = "Email & password required."; return; }
-
-      try{
-        await auth.signInWithEmailAndPassword(email, pass);
-      }catch(e){
-        el("loginErr").textContent = e.message || "Login failed.";
-      }
-    });
-
-    el("btnLogout").addEventListener("click", async () => {
-      try { await auth.signOut(); } catch {}
-      cleanupThreadListener();
-      cleanupListListener();
-      currentThreadUid = null;
-      showLogin();
-    });
-
-    auth.onAuthStateChanged(user => {
-      if (!user){ showLogin(); return; }
-      showApp();
-      el("agentInfo").textContent = user.email || "Agent";
-      loadThreadList();
-    });
-
-    // ====== LIST THREADS ======
-    function cleanupListListener(){
-      if (listListenerRef){
-        listListenerRef.off();
-        listListenerRef = null;
-      }
-    }
-
-    function loadThreadList(){
-      cleanupListListener();
-      const listEl = el("threadList");
-      listEl.innerHTML = "";
-
-      // Listen to /messages root children
-      listListenerRef = db.ref("messages");
-      listListenerRef.on("value", (snap) => {
-        const data = snap.val() || {};
-        const search = el("searchBox").value.trim().toLowerCase();
-
-        // Build threads with last message preview
-        const threads = Object.keys(data).map(uid => {
-          const msgsObj = data[uid] || {};
-          const msgs = Object.keys(msgsObj).map(k => ({ key:k, ...msgsObj[k] }))
-            .sort((a,b) => new Date(a.timestamp||0) - new Date(b.timestamp||0));
-          const last = msgs[msgs.length-1] || null;
-          return { uid, last };
-        }).sort((a,b) => {
-          const ta = new Date(a.last?.timestamp || 0).getTime();
-          const tb = new Date(b.last?.timestamp || 0).getTime();
-          return tb - ta;
+        // Load Daftar User
+        db.ref('messages').on('value', (snapshot) => {
+            const listDiv = document.getElementById('userList');
+            listDiv.innerHTML = '';
+            
+            snapshot.forEach((userSnap) => {
+                const userId = userSnap.key;
+                const div = document.createElement('div');
+                div.className = "p-4 flex items-center gap-3 hover:bg-[#202c33] cursor-pointer transition border-b border-gray-800";
+                div.innerHTML = `
+                    <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center font-bold text-blue-400">${userId.charAt(0).toUpperCase()}</div>
+                    <div class="flex-1 overflow-hidden">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-medium text-white text-sm truncate uppercase">${userId.substring(0,10)}</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 truncate mt-1">Klik untuk membalas pesan</p>
+                    </div>
+                `;
+                div.onclick = () => selectUser(userId);
+                listDiv.appendChild(div);
+            });
         });
 
-        listEl.innerHTML = "";
-        for (const t of threads){
-          if (search && !t.uid.toLowerCase().includes(search)) continue;
+        function selectUser(userId) {
+            currentUserId = userId;
+            document.body.classList.replace('sidebar-active', 'chat-active');
+            document.getElementById('activeUserName').innerText = userId;
+            document.getElementById('headerAvatar').innerText = userId.charAt(0).toUpperCase();
 
-          const item = document.createElement("div");
-          item.className = "item" + (t.uid === currentThreadUid ? " active" : "");
+            // Status Mengetik
+            db.ref('typing/' + userId).on('value', (snap) => {
+                document.getElementById('typingStatus').innerText = snap.val() ? 'sedang mengetik...' : '';
+            });
 
-          const av = document.createElement("div");
-          av.className = "avatar";
-          av.textContent = safeInitial(t.uid);
-
-          const info = document.createElement("div");
-          info.className = "info";
-
-          const name = document.createElement("div");
-          name.className = "name";
-          name.textContent = t.uid;
-
-          const preview = document.createElement("div");
-          preview.className = "preview";
-          preview.textContent = t.last ? (t.last.sender === "admin" ? "You: " : "") + (t.last.text || "") : "(no messages)";
-
-          info.appendChild(name);
-          info.appendChild(preview);
-
-          const time = document.createElement("div");
-          time.className = "time";
-          time.textContent = t.last?.timestamp ? fmtTime(t.last.timestamp) : "";
-
-          item.appendChild(av);
-          item.appendChild(info);
-          item.appendChild(time);
-
-          item.addEventListener("click", () => openThread(t.uid));
-          listEl.appendChild(item);
+            // Ambil Pesan
+            db.ref('messages/' + userId).on('value', (snapshot) => {
+                const container = document.getElementById('adminMessages');
+                container.innerHTML = '';
+                
+                snapshot.forEach((msgSnap) => {
+                    const data = msgSnap.val();
+                    const isAdmin = data.sender === 'admin';
+                    
+                    const wrap = document.createElement('div');
+                    wrap.className = `flex w-full ${isAdmin ? 'justify-end' : 'justify-start'}`;
+                    
+                    const bubble = document.createElement('div');
+                    bubble.className = `max-w-[85%] px-3 py-2 rounded-xl text-[13.5px] shadow-md ${
+                        isAdmin ? 'chat-bubble-admin rounded-tr-none' : 'chat-bubble-user rounded-tl-none'
+                    }`;
+                    bubble.innerHTML = `
+                        <p>${data.text}</p>
+                        <span class="text-[10px] opacity-50 block text-right mt-1">${new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    `;
+                    
+                    wrap.appendChild(bubble);
+                    container.appendChild(wrap);
+                });
+                container.scrollTop = container.scrollHeight;
+            });
         }
-      });
-    }
 
-    el("searchBox").addEventListener("input", () => {
-      // force refresh by re-triggering listener render
-      if (listListenerRef) listListenerRef.once("value", () => {});
-    });
+        function adminReply() {
+            const input = document.getElementById('adminInput');
+            const text = input.value.trim();
+            if (!text || !currentUserId) return;
 
-    // ====== THREAD VIEW ======
-    function cleanupThreadListener(){
-      if (threadListenerRef){
-        threadListenerRef.off();
-        threadListenerRef = null;
-      }
-    }
+            db.ref('messages/' + currentUserId).push({
+                sender: 'admin',
+                text: text,
+                timestamp: new Date().toISOString()
+            }).then(() => {
+                input.value = '';
+            });
+        }
 
-    function openThread(uid){
-      currentThreadUid = uid;
-      el("chatTitle").textContent = "Customer";
-      el("chatSub").textContent = uid;
-      el("msgInput").disabled = false;
-      el("btnSend").disabled = false;
-      el("hint").textContent = "Reply as admin.";
-
-      // highlight selected item (quick way: re-render)
-      if (listListenerRef) listListenerRef.once("value", () => {});
-      mobileOpenChat();
-
-      // load messages realtime
-      cleanupThreadListener();
-      const msgsEl = el("messages");
-      msgsEl.innerHTML = "";
-
-      threadListenerRef = db.ref("messages/" + uid);
-      threadListenerRef.on("child_added", (snap) => {
-        const msg = snap.val() || {};
-        renderMessage(msg);
-        msgsEl.scrollTop = msgsEl.scrollHeight;
-      });
-    }
-
-    function renderMessage(msg){
-      const msgsEl = el("messages");
-      const isAdmin = msg.sender === "admin";
-
-      const b = document.createElement("div");
-      b.className = "bubble " + (isAdmin ? "right" : "left");
-      b.textContent = msg.text || "";
-
-      const meta = document.createElement("div");
-      meta.className = "metaLine";
-      meta.textContent = (isAdmin ? "Admin" : "Customer") + (msg.timestamp ? " · " + fmtTime(msg.timestamp) : "");
-      b.appendChild(meta);
-
-      msgsEl.appendChild(b);
-    }
-
-    // ====== SEND ======
-    function send(){
-      const text = el("msgInput").value.trim();
-      if (!text || !currentThreadUid) return;
-
-      const payload = {
-        sender: "admin",
-        text,
-        timestamp: new Date().toISOString()
-      };
-
-      db.ref("messages/" + currentThreadUid).push(payload)
-        .then(() => { el("msgInput").value = ""; })
-        .catch((e) => alert("Send failed: " + (e.message || e)));
-    }
-
-    el("btnSend").addEventListener("click", send);
-    el("msgInput").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") send();
-    });
-
-    el("btnRefresh").addEventListener("click", () => {
-      if (!currentThreadUid) return;
-      // reopen thread to reload UI
-      const uid = currentThreadUid;
-      currentThreadUid = null;
-      openThread(uid);
-    });
-
-    el("btnBack").addEventListener("click", mobileBackToList);
-  </script>
-
-  <!--
-    ====== IMPORTANT: Firebase Realtime Database Rules (contoh minimal aman) ======
-    Terapkan via Firebase Console > Realtime Database > Rules.
-    Ini contoh: hanya user login (agent/admin) yang boleh baca/tulis semua.
-    Kalau mau lebih ketat (role-based), kita bisa bikin /roles/{uid}:"admin" dan validasi.
-
-    {
-      "rules": {
-        ".read": "auth != null",
-        ".write": "auth != null"
-      }
-    }
-  -->
+        document.getElementById('adminInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') adminReply();
+        });
+    </script>
 </body>
 </html>
