@@ -351,46 +351,17 @@
             font-size: 16px;
             font-weight: 500;
             color: #E9EDEF;
-            margin-bottom: 2px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            /* Menghapus verified badge dari sini, dan hanya menampilkan nama */
         }
 
+        /* Kelas verified-badge tidak digunakan lagi di header, tapi kita sembunyikan */
         .verified-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: #3897F0;
-            color: white;
-            font-size: 12px;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            margin-left: 4px;
+            display: none; /* Disembunyikan dari header */
         }
-
-        .verified-badge i {
-            font-size: 10px;
-        }
-
+        
+        /* Juga sembunyikan status dot dan text */
         .header-status {
-            font-size: 12px;
-            color: #8696A0;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #00A884;
-        }
-
-        .status-dot.offline {
-            background: #8696A0;
+            display: none; /* Status online/offline dihilangkan */
         }
 
         .messages-android {
@@ -849,12 +820,9 @@
                         <div class="header-details">
                             <div class="header-name" id="headerName">
                                 Customer
-                                <span class="verified-badge"><i class="fa-solid fa-check"></i></span>
+                                <!-- Verified badge dihilangkan -->
                             </div>
-                            <div class="header-status" id="headerStatus">
-                                <span class="status-dot" id="statusDot"></span>
-                                <span id="statusText">Offline</span>
-                            </div>
+                            <!-- Status baris dihilangkan total -->
                         </div>
                     </div>
                 </div>
@@ -1303,12 +1271,10 @@
             
             document.getElementById('headerAvatar').style.backgroundImage = `url('${CUSTOMER_AVATAR_URL}')`;
             
-            const headerName = document.getElementById('headerName');
-            headerName.innerHTML = `${currentCustomer.email || 'Customer'} <span class="verified-badge"><i class="fa-solid fa-check"></i></span>`;
+            // Header hanya menampilkan nama (verified badge sudah dihilangkan di CSS, dan status online dihilangkan)
+            document.getElementById('headerName').innerHTML = `${currentCustomer.email || 'Customer'}`;
             
-            const isOnline = currentCustomer.online;
-            document.getElementById('statusDot').className = `status-dot ${isOnline ? '' : 'offline'}`;
-            document.getElementById('statusText').textContent = isOnline ? 'Online' : 'Offline';
+            // Tidak perlu mengupdate status online/dot karena elemennya sudah dihilangkan
             
             database.ref('chats/' + uid).update({ unread: 0 });
             
