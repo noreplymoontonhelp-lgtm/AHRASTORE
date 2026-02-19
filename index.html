@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-    <title>Admin Dark Support - Mobile Fix</title>
+    <title>Admin Panel - Dark Mode</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -47,9 +47,92 @@
         /* Scrollbar styling */
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+
+        /* Side Panel (Settings) */
+        #sidePanel {
+            position: fixed;
+            top: 0;
+            right: -300px; /* Mulai dari luar layar */
+            width: 280px;
+            height: 100%;
+            background-color: #1e1e1e;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            padding: 20px;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #sidePanel.open {
+            right: 0;
+        }
+
+        #sidePanel h2 {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        #sidePanel button {
+            background-color: #2a2a2a;
+            border: none;
+            color: #e4e6eb;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: left;
+            width: 100%;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+
+        #sidePanel button:hover {
+            background-color: #333;
+        }
+
+        #sidePanel button i {
+            width: 20px;
+            color: var(--accent);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
     </style>
 </head>
 <body class="sidebar-active">
+
+    <!-- Overlay untuk menutup panel saat klik di luar -->
+    <div id="overlay" class="overlay" onclick="toggleSidePanel()"></div>
+
+    <!-- Panel samping (Pengaturan, dll) -->
+    <div id="sidePanel">
+        <h2><i class="fas fa-cog mr-2"></i> Pengaturan</h2>
+        <button><i class="fas fa-user-circle"></i> Profil Admin</button>
+        <button><i class="fas fa-bell"></i> Notifikasi</button>
+        <button><i class="fas fa-palette"></i> Tema</button>
+        <button><i class="fas fa-lock"></i> Privasi</button>
+        <button><i class="fas fa-sign-out-alt"></i> Keluar</button>
+        <div class="flex-1"></div>
+        <p class="text-xs text-gray-500 text-center">Versi 1.0.0</p>
+    </div>
 
     <div id="loginSection" class="fixed inset-0 bg-[#121212] flex items-center justify-center z-[100]">
         <div class="bg-[#1e1e1e] p-8 rounded-2xl shadow-2xl w-[85%] max-w-sm text-center border border-gray-800">
@@ -66,12 +149,16 @@
     <div id="mainDashboard" class="hidden">
         
         <div id="userSidebar" class="flex-col border-r border-gray-800 bg-[#121212] w-full md:w-1/3">
+            <!-- Header dengan ikon garis tiga -->
             <div class="p-4 bg-[#1e1e1e] flex justify-between items-center border-b border-gray-800">
                 <span class="font-bold">Daftar Chat</span>
-                <span class="text-xs bg-green-900 text-green-400 px-2 py-1 rounded">Online</span>
+                <button onclick="toggleSidePanel()" class="text-gray-300 hover:text-white focus:outline-none">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
             </div>
             <div id="userList" class="flex-1 overflow-y-auto divide-y divide-gray-800">
-                </div>
+                <!-- Daftar user akan diisi oleh JavaScript -->
+            </div>
         </div>
 
         <div id="chatWindow" class="flex-col bg-[#0b141a] w-full md:w-2/3">
@@ -131,6 +218,29 @@
         function backToList() {
             document.body.classList.replace('chat-active', 'sidebar-active');
         }
+
+        // Fungsi untuk toggle panel samping
+        function toggleSidePanel() {
+            const panel = document.getElementById('sidePanel');
+            const overlay = document.getElementById('overlay');
+            panel.classList.toggle('open');
+            overlay.classList.toggle('show');
+        }
+
+        // Tutup panel jika layar di-resize (misal dari mobile ke desktop)
+        window.addEventListener('resize', () => {
+            const panel = document.getElementById('sidePanel');
+            const overlay = document.getElementById('overlay');
+            if (window.innerWidth > 768) {
+                panel.classList.remove('open');
+                overlay.classList.remove('show');
+            }
+            // Scroll ke bawah saat keyboard muncul
+            if (currentUserId) {
+                const container = document.getElementById('adminMessages');
+                container.scrollTop = container.scrollHeight;
+            }
+        });
 
         // List Users
         db.ref('messages').on('value', (snapshot) => {
@@ -208,14 +318,6 @@
         // Enter Key Handler
         document.getElementById('adminInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') adminReply();
-        });
-
-        // Fix Scroll saat Keyboard Muncul di Android
-        window.addEventListener('resize', () => {
-            if (currentUserId) {
-                const container = document.getElementById('adminMessages');
-                container.scrollTop = container.scrollHeight;
-            }
         });
     </script>
 </body>
