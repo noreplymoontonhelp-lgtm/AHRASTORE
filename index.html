@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-    <title>Admin Panel - Desktop Fixed</title>
+    <title>Admin Panel - Reset Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -19,6 +19,8 @@
             --border-color: #374151;
             --error-color: #ef4444;
             --success-color: #10b981;
+            --quick-msg-bg: #2a3942;
+            --quick-msg-hover: #3a4a54;
         }
 
         /* Tema Terang */
@@ -31,6 +33,8 @@
             --text-secondary: #667781;
             --border-color: #e9edef;
             --accent: #008069;
+            --quick-msg-bg: #ffffff;
+            --quick-msg-hover: #f0f2f5;
         }
 
         body { 
@@ -99,6 +103,334 @@
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
 
+        /* Reset Chat Button */
+        .reset-chat-btn {
+            background: var(--accent);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+            margin-left: 8px;
+        }
+
+        .reset-chat-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0,168,132,0.3);
+        }
+
+        .reset-chat-btn.danger {
+            background: #ef4444;
+        }
+
+        .reset-chat-btn.danger:hover {
+            box-shadow: 0 0 15px rgba(239,68,68,0.3);
+        }
+
+        /* Reset Confirmation Modal */
+        .reset-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .reset-modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .reset-content {
+            background: var(--bg-card);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .reset-icon {
+            font-size: 60px;
+            color: #ef4444;
+            margin-bottom: 20px;
+        }
+
+        .reset-content h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .reset-content p {
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .reset-warning {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            color: #fca5a5;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        .reset-warning i {
+            color: #ef4444;
+            margin-right: 8px;
+        }
+
+        .reset-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .reset-actions button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reset {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .btn-cancel-reset {
+            background: var(--bg-main);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-cancel-reset:hover {
+            background: var(--bg-header);
+        }
+
+        /* Success notification */
+        .reset-success {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        }
+
+        .reset-success.show {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Quick Messages Menu */
+        .quick-messages-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .quick-menu-btn {
+            background: var(--quick-msg-bg);
+            border: none;
+            color: var(--accent);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 18px;
+            font-weight: bold;
+            border: 1px solid var(--border-color);
+        }
+
+        .quick-menu-btn:hover {
+            background: var(--quick-msg-hover);
+            transform: scale(1.05);
+        }
+
+        .quick-menu-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .quick-menu-panel {
+            position: absolute;
+            bottom: 60px;
+            left: 0;
+            width: 280px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            display: none;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .quick-menu-panel.show {
+            display: block;
+            animation: slideUp 0.2s ease;
+        }
+
+        .quick-menu-header {
+            padding: 12px 15px;
+            background: var(--bg-header);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quick-menu-header span {
+            color: var(--accent);
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .quick-menu-list {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .quick-menu-item {
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid transparent;
+        }
+
+        .quick-menu-item:hover {
+            background: var(--quick-msg-hover);
+            border-color: var(--accent);
+        }
+
+        .quick-menu-item i {
+            color: var(--accent);
+            width: 20px;
+            font-size: 14px;
+        }
+
+        .quick-menu-item .command {
+            color: var(--accent);
+            font-family: monospace;
+            font-size: 12px;
+            margin-left: auto;
+            opacity: 0.7;
+        }
+
+        .quick-menu-item .content {
+            flex: 1;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .quick-menu-footer {
+            padding: 8px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-header);
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        /* Command input styling */
+        #adminInput.command-mode {
+            border-left: 3px solid var(--accent);
+            padding-left: 15px;
+            background: var(--quick-msg-bg);
+        }
+
+        .command-suggestion {
+            position: absolute;
+            bottom: 70px;
+            left: 60px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            display: none;
+            max-width: 200px;
+            z-index: 99;
+        }
+
+        .command-suggestion.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .command-suggestion i {
+            color: var(--accent);
+            margin-right: 5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Login Section Styling - Dark Theme */
         #loginSection {
             position: fixed;
@@ -127,17 +459,6 @@
             animation: slideUp 0.5s ease;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         .login-header {
@@ -650,9 +971,16 @@
         }
 
         /* Input area */
+        .input-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
         #adminInput {
             flex: 1;
-            min-width: 0; /* Prevents flex overflow */
+            min-width: 0;
         }
 
         /* Message bubbles */
@@ -667,6 +995,35 @@
     <!-- Overlay untuk menutup panel saat klik di luar -->
     <div id="overlay" class="overlay" onclick="toggleSidePanel()"></div>
 
+    <!-- Success Notification -->
+    <div id="resetSuccess" class="reset-success">
+        <i class="fas fa-check-circle"></i>
+        <span>Chat berhasil direset!</span>
+    </div>
+
+    <!-- Reset Chat Confirmation Modal -->
+    <div id="resetChatModal" class="reset-modal">
+        <div class="reset-content">
+            <div class="reset-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3>Reset Chat?</h3>
+            <p>Anda akan menghapus seluruh riwayat percakapan dengan user <span id="resetUserName" class="font-bold text-[#00a884]"></span></p>
+            
+            <div class="reset-warning">
+                <i class="fas fa-info-circle"></i>
+                <strong>Perhatian:</strong> Tindakan ini akan menghapus semua pesan baik di sisi admin maupun konsumen secara permanen. Data yang sudah dihapus tidak dapat dikembalikan.
+            </div>
+
+            <div class="reset-actions">
+                <button class="btn-cancel-reset" onclick="closeResetModal()">Batal</button>
+                <button class="btn-reset" onclick="confirmResetChat()">
+                    <i class="fas fa-trash-alt mr-2"></i>Reset Chat
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Panel samping (Pengaturan) -->
     <div id="sidePanel">
         <h2><i class="fas fa-cog mr-2"></i> Pengaturan</h2>
@@ -675,6 +1032,7 @@
             <button onclick="showNotificationModal()"><i class="fas fa-bell"></i> Notifikasi</button>
             <button onclick="showThemeModal()"><i class="fas fa-palette"></i> Tema & Wallpaper</button>
             <button onclick="showPrivacyModal()"><i class="fas fa-lock"></i> Privasi</button>
+            <button onclick="showQuickMessagesModal()"><i class="fas fa-bolt"></i> Pesan Cepat</button>
             <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Keluar</button>
         </div>
         
@@ -837,6 +1195,29 @@
         </div>
     </div>
 
+    <!-- Modal Pesan Cepat -->
+    <div id="quickMessagesModal" class="modal" onclick="if(event.target === this) closeModal('quickMessagesModal')">
+        <div class="modal-content">
+            <h3><i class="fas fa-bolt mr-2"></i>Kelola Pesan Cepat</h3>
+            <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">Gunakan perintah / untuk mengakses pesan cepat</p>
+            
+            <div id="quickMessagesList" class="space-y-2 mb-4">
+                <!-- Akan diisi oleh JavaScript -->
+            </div>
+            
+            <div class="border-t border-gray-700 pt-4 mt-2">
+                <h4 class="text-sm font-bold mb-3">Tambah Pesan Baru</h4>
+                <input type="text" id="newQuickCommand" placeholder="Perintah (contoh: hello)" class="w-full bg-[#2a2a2a] border border-gray-700 rounded-lg px-4 py-2 mb-2 text-white">
+                <textarea id="newQuickMessage" placeholder="Isi pesan" rows="2" class="w-full bg-[#2a2a2a] border border-gray-700 rounded-lg px-4 py-2 mb-2 text-white"></textarea>
+                <button onclick="addQuickMessage()" class="w-full bg-[#00a884] text-white py-2 rounded-lg">Tambah Pesan</button>
+            </div>
+            
+            <div class="modal-buttons mt-4">
+                <button class="btn-cancel" onclick="closeModal('quickMessagesModal')">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Edit User -->
     <div id="editUserModal" class="modal" onclick="if(event.target === this) closeEditModal()">
         <div class="modal-content">
@@ -932,6 +1313,10 @@
                     </div>
                     <p id="typingStatus" class="text-[11px] text-[#00a884] h-4 italic"></p>
                 </div>
+                <!-- Reset Chat Button -->
+                <button class="reset-chat-btn" onclick="openResetModal()" title="Reset Chat" id="resetChatBtn">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
             </div>
 
             <div id="adminMessages" class="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col bg-repeat bg-contain">
@@ -942,7 +1327,34 @@
             </div>
 
             <div class="p-2 bg-[#202c33] flex items-center gap-2 pb-safe">
-                <input type="text" id="adminInput" placeholder="Ketik pesan..." 
+                <!-- Quick Messages Menu -->
+                <div class="quick-messages-container">
+                    <button id="quickMenuBtn" class="quick-menu-btn" onclick="toggleQuickMenu()" title="Pesan Cepat (/)">
+                        <i class="fas fa-bolt"></i>
+                    </button>
+                    
+                    <!-- Quick Messages Panel -->
+                    <div id="quickMenuPanel" class="quick-menu-panel">
+                        <div class="quick-menu-header">
+                            <span><i class="fas fa-bolt mr-1"></i> Pesan Cepat</span>
+                            <span>/command</span>
+                        </div>
+                        <div id="quickMenuList" class="quick-menu-list">
+                            <!-- Akan diisi oleh JavaScript -->
+                        </div>
+                        <div class="quick-menu-footer">
+                            <i class="fas fa-plus-circle"></i> Tambah di Pengaturan
+                        </div>
+                    </div>
+
+                    <!-- Command Suggestion -->
+                    <div id="commandSuggestion" class="command-suggestion">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Ketik / untuk melihat pesan cepat</span>
+                    </div>
+                </div>
+
+                <input type="text" id="adminInput" placeholder="Ketik pesan... (/) untuk pesan cepat" 
                        class="flex-1 bg-[#2a3942] text-white border-none rounded-full px-4 py-2.5 focus:outline-none text-sm">
                 <button onclick="adminReply()" class="bg-[#00a884] text-white w-10 h-10 rounded-full flex items-center justify-center active:scale-90 transition">
                     <i class="fas fa-paper-plane"></i>
@@ -981,9 +1393,198 @@
         let notificationVolume = 80;
         let currentTheme = 'dark';
         let currentWallpaper = 'default';
+        
+        // Quick Messages storage
+        let quickMessages = [];
 
         // Referensi ke user profiles
         const userProfilesRef = db.ref('userProfiles');
+        
+        // Referensi ke quick messages
+        const quickMessagesRef = db.ref('quickMessages');
+
+        // Load quick messages from Firebase
+        function loadQuickMessages() {
+            quickMessagesRef.on('value', (snapshot) => {
+                quickMessages = [];
+                snapshot.forEach((child) => {
+                    quickMessages.push({
+                        id: child.key,
+                        command: child.val().command,
+                        message: child.val().message
+                    });
+                });
+                updateQuickMenu();
+                updateQuickMessagesList();
+            });
+        }
+
+        // Update quick menu display
+        function updateQuickMenu() {
+            const menuList = document.getElementById('quickMenuList');
+            if (!menuList) return;
+            
+            menuList.innerHTML = '';
+            if (quickMessages.length === 0) {
+                menuList.innerHTML = '<div class="text-center text-gray-500 p-4 text-sm">Belum ada pesan cepat</div>';
+                return;
+            }
+            
+            quickMessages.forEach(msg => {
+                const item = document.createElement('div');
+                item.className = 'quick-menu-item';
+                item.onclick = () => useQuickMessage(msg.message);
+                item.innerHTML = `
+                    <i class="fas fa-bolt"></i>
+                    <div class="content">${msg.message.substring(0, 30)}${msg.message.length > 30 ? '...' : ''}</div>
+                    <span class="command">/${msg.command}</span>
+                `;
+                menuList.appendChild(item);
+            });
+        }
+
+        // Update quick messages list in modal
+        function updateQuickMessagesList() {
+            const listDiv = document.getElementById('quickMessagesList');
+            if (!listDiv) return;
+            
+            listDiv.innerHTML = '';
+            if (quickMessages.length === 0) {
+                listDiv.innerHTML = '<div class="text-center text-gray-500 p-4">Belum ada pesan cepat</div>';
+                return;
+            }
+            
+            quickMessages.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = 'bg-[#2a2a2a] p-3 rounded-lg mb-2';
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[#00a884] font-mono text-sm">/${msg.command}</span>
+                        <button onclick="deleteQuickMessage('${msg.id}')" class="text-red-500 hover:text-red-400">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-300">${msg.message}</p>
+                `;
+                listDiv.appendChild(div);
+            });
+        }
+
+        // Toggle quick menu
+        function toggleQuickMenu() {
+            const panel = document.getElementById('quickMenuPanel');
+            const btn = document.getElementById('quickMenuBtn');
+            panel.classList.toggle('show');
+            btn.classList.toggle('active');
+        }
+
+        // Use quick message
+        function useQuickMessage(message) {
+            document.getElementById('adminInput').value = message;
+            toggleQuickMenu();
+            document.getElementById('adminInput').focus();
+        }
+
+        // Check for command in input
+        function checkCommand(input) {
+            const suggestion = document.getElementById('commandSuggestion');
+            if (input === '/') {
+                suggestion.classList.add('show');
+                toggleQuickMenu();
+            } else {
+                suggestion.classList.remove('show');
+            }
+        }
+
+        // Show quick messages modal
+        function showQuickMessagesModal() {
+            document.getElementById('quickMessagesModal').classList.add('show');
+            toggleSidePanel();
+            updateQuickMessagesList();
+        }
+
+        // Add new quick message
+        function addQuickMessage() {
+            const command = document.getElementById('newQuickCommand').value.trim().toLowerCase();
+            const message = document.getElementById('newQuickMessage').value.trim();
+            
+            if (!command || !message) {
+                alert('Perintah dan pesan harus diisi!');
+                return;
+            }
+            
+            // Check if command already exists
+            if (quickMessages.some(msg => msg.command === command)) {
+                alert('Perintah sudah ada!');
+                return;
+            }
+            
+            quickMessagesRef.push({
+                command: command,
+                message: message,
+                createdAt: new Date().toISOString()
+            }).then(() => {
+                document.getElementById('newQuickCommand').value = '';
+                document.getElementById('newQuickMessage').value = '';
+            });
+        }
+
+        // Delete quick message
+        function deleteQuickMessage(id) {
+            if (confirm('Hapus pesan cepat ini?')) {
+                quickMessagesRef.child(id).remove();
+            }
+        }
+
+        // Reset Chat Functions
+        function openResetModal() {
+            if (!currentUserId) {
+                alert('Pilih user terlebih dahulu!');
+                return;
+            }
+            
+            document.getElementById('resetUserName').textContent = currentUserEmail;
+            document.getElementById('resetChatModal').classList.add('show');
+            
+            // Change button color to danger
+            document.getElementById('resetChatBtn').classList.add('danger');
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetChatModal').classList.remove('show');
+            document.getElementById('resetChatBtn').classList.remove('danger');
+        }
+
+        function confirmResetChat() {
+            if (!currentUserId) return;
+            
+            // Hapus semua pesan dari user ini
+            db.ref('messages/' + currentUserId).remove()
+                .then(() => {
+                    // Tampilkan notifikasi sukses
+                    const successNotif = document.getElementById('resetSuccess');
+                    successNotif.classList.add('show');
+                    
+                    // Sembunyikan notifikasi setelah 3 detik
+                    setTimeout(() => {
+                        successNotif.classList.remove('show');
+                    }, 3000);
+                    
+                    // Kosongkan tampilan chat
+                    document.getElementById('adminMessages').innerHTML = `
+                        <div class="m-auto text-gray-500 text-center">
+                            <i class="fas fa-lock text-xs mb-2 block"></i>
+                            <p class="text-xs">Pesan terenkripsi secara end-to-end</p>
+                        </div>
+                    `;
+                    
+                    // Tutup modal
+                    closeResetModal();
+                })
+                .catch((error) => {
+                    alert('Gagal mereset chat: ' + error.message);
+                });
+        }
 
         // Check if user is already logged in
         auth.onAuthStateChanged((user) => {
@@ -1002,6 +1603,7 @@
                 
                 loadUserProfiles();
                 loadSettings();
+                loadQuickMessages();
             } else {
                 // User is signed out
                 document.getElementById('loginSection').style.display = 'flex';
@@ -1490,9 +2092,34 @@
             });
         }
 
-        // Enter Key Handler
-        document.getElementById('adminInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') adminReply();
+        // Input handler for quick messages
+        document.getElementById('adminInput').addEventListener('input', (e) => {
+            checkCommand(e.target.value);
+        });
+
+        document.getElementById('adminInput').addEventListener('keydown', (e) => {
+            // Close quick menu on escape
+            if (e.key === 'Escape') {
+                document.getElementById('quickMenuPanel').classList.remove('show');
+                document.getElementById('quickMenuBtn').classList.remove('active');
+                document.getElementById('commandSuggestion').classList.remove('show');
+            }
+            
+            // Enter untuk kirim
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                adminReply();
+            }
+        });
+
+        // Close quick menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('quickMenuPanel');
+            const btn = document.getElementById('quickMenuBtn');
+            if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+                menu.classList.remove('show');
+                btn.classList.remove('active');
+            }
         });
 
         // Fix Scroll saat Keyboard Muncul di Android
