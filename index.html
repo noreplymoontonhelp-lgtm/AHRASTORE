@@ -648,49 +648,89 @@
             }
         }
 
-        function startSync() {
-            loadQuickMessages();
-            
-            // Realtime profiles listener
-            db.ref('userProfiles').on('value', snapshot => {
-                profilesCache = {};
-                snapshot.forEach(child => {
-                    profilesCache[child.key] = child.val();
-                });
-                renderUserList(document.getElementById('userSearchInput')?.value.toLowerCase());
-                
-                // Realtime header update if current user's profile changes
-                if(currentUserId && profilesCache[currentUserId]) {
-                    const profile = profilesCache[currentUserId];
-                    currentUserEmail = profile.email || currentUserId;
-                    document.getElementById('activeUserName').textContent = currentUserEmail;
-                    document.getElementById('headerAvatar').textContent = currentUserEmail.charAt(0).toUpperCase();
-                }
-            });
+        // Tambahkan variabel ini di luar fungsi startSync (di bagian atas script)
+let lastTotalMessages = 0;
 
-            db.ref('messages').on('value', snapshot => {
-                const tempUsers = [];
-                snapshot.forEach((userSnap) => {
-                    const userId = userSnap.key;
-                    const messagesSnap = userSnap.val();
-                    const messages = Object.values(messagesSnap);
-                    
-                    // Sorting logic for sidebar preview: latest message including welcome
-                    const sortedMsg = messages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                    const lastMsgObj = sortedMsg[0];
-                    const unreadCount = messages.filter(m => m.sender !== 'admin' && !m.read).length;
-                    
-                    tempUsers.push({
-                        id: userId,
-                        lastMsg: lastMsgObj.text,
-                        lastTime: new Date(lastMsgObj.timestamp).getTime(),
-                        unread: unreadCount
-                    });
-                });
-                usersData = tempUsers;
-                renderUserList(document.getElementById('userSearchInput')?.value.toLowerCase());
-            });
+function startSync() {
+    loadQuickMessages();
+    
+    // Minta izin notifikasi saat sinkronisasi dimulai
+    if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
+
+    // Realtime profiles listener
+    db.ref('userProfiles').on('value', snapshot => {
+        profilesCache = {};
+        snapshot.forEach(child => {
+            profilesCache[child.key] = child.val();
+        });
+        renderUserList(document.getElementById('userSearchInput')?.value.toLowerCase());
+        
+        if(currentUserId && profilesCache[currentUserId]) {
+            const profile = profilesCache[currentUserId];
+            currentUserEmail = profile.email || currentUserId;
+            document.getElementById('activeUserName').textContent = currentUserEmail;
+            document.getElementById('headerAvatar').textContent = currentUserEmail.charAt(0).toUpperCase();
         }
+    });
+
+    // Realtime messages listener
+    db.ref('messages').on('value', snapshot => {
+        const tempUsers = [];
+        let currentTotalMessages = 0;
+        let latestMsgData = null;
+
+        snapshot.forEach((userSnap) => {
+            const userId = userSnap.key;
+            const messagesSnap = userSnap.val();
+            const messages = Object.values(messagesSnap);
+            
+            currentTotalMessages += messages.length; // Hitung total pesan
+            
+            const sortedMsg = messages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const lastMsgObj = sortedMsg[0];
+            const unreadCount = messages.filter(m => m.sender !== 'admin' && !m.read).length;
+            
+            // Simpan data pesan terakhir untuk notifikasi
+            if (lastMsgObj.sender !== 'admin') {
+                latestMsgData = {
+                    sender: profilesCache[userId]?.email || userId,
+                    text: lastMsgObj.text
+                };
+            }
+
+            tempUsers.push({
+                id: userId,
+                lastMsg: lastMsgObj.text,
+                lastTime: new Date(lastMsgObj.timestamp).getTime(),
+                unread: unreadCount
+            });
+        });
+
+        // LOGIKA NOTIFIKASI:
+        // Jika jumlah pesan bertambah dan pesan terakhir bukan dari admin
+        if (currentTotalMessages > lastTotalMessages && lastTotalMessages !== 0) {
+            if (latestMsgData && document.hidden) { // document.hidden agar notif muncul hanya saat aplikasi tidak dibuka
+                showPushNotification(latestMsgData.sender, latestMsgData.text);
+            }
+        }
+        lastTotalMessages = currentTotalMessages; // Update jumlah pesan terakhir
+
+        usersData = tempUsers;
+        renderUserList(document.getElementById('userSearchInput')?.value.toLowerCase());
+    });
+}
+
+// Fungsi pembantu untuk memunculkan notifikasi
+function showPushNotification(sender, message) {
+    if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Pesan Baru!", {
+            body: `${sender}: ${message}`,
+            icon: "https://cdn-icons-png.flaticon.com/512/733/733585.png" // Bisa diganti ikon Anda
+        });
+    }
+}
 
         function renderUserList(query = '') {
             const listDiv = document.getElementById('userList');
@@ -866,6 +906,20 @@
                 document.getElementById('quickMenuPanel').classList.remove('show');
             }
         };
+        function requestNotificationPermission() {
+    if ("Notification" in window) {
+        Notification.requestPermission();
+    }
+}
+
+function showChatNotification(sender, message) {
+    if (Notification.permission === "granted" && document.hidden) {
+        new Notification(`Pesan Baru dari ${sender}`, {
+            body: message,
+            icon: 'https://cdn-icons-png.flaticon.com/512/733/733585.png' // Ganti dengan icon aplikasi Anda
+        });
+    }
+}
 
         auth.onAuthStateChanged(user => {
             const login = document.getElementById('loginSection');
@@ -875,6 +929,7 @@
                 dash.classList.add('flex-mode');
                 loadAdminProfile();
                 startSync();
+                requestNotificationPermission();
             } else {
                 login.style.display = 'flex';
                 dash.classList.remove('flex-mode');
@@ -883,3 +938,4 @@
     </script>
 </body>
 </html>
+
