@@ -42,7 +42,6 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* Login Styling */
         #loginSection {
             position: fixed;
             inset: 0;
@@ -149,8 +148,41 @@
         .reset-modal, .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .reset-modal.show, .modal.show { display: flex; }
         .reset-content, .modal-content { background: var(--bg-card); border-radius: 20px; width: 90%; max-width: 400px; padding: 25px; border: 1px solid var(--border-color); text-align: center; }
-        .quick-menu-panel { position: absolute; bottom: 60px; left: 0; width: 280px; background: var(--bg-card); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid var(--border-color); display: none; z-index: 100; }
-        .quick-menu-panel.show { display: block; }
+        
+        .quick-menu-panel { 
+            position: absolute; 
+            bottom: 70px; 
+            left: 10px; 
+            right: 10px;
+            max-width: 400px;
+            background: var(--bg-card); 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
+            border: 1px solid var(--border-color); 
+            display: none; 
+            z-index: 100;
+            overflow: hidden;
+        }
+        .quick-menu-panel.show { display: block; animation: slideInUp 0.2s ease; }
+        
+        .quick-item {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .quick-item:hover { background: rgba(255,255,255,0.05); }
+        .quick-item .cmd { color: var(--accent); font-weight: bold; font-family: monospace; font-size: 13px; min-width: 60px; }
+        .quick-item .msg { color: var(--text-secondary); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        @keyframes slideInUp {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
         
@@ -162,6 +194,19 @@
             background-position: center;
             margin-bottom: 15px;
             border: 1px solid var(--border-color);
+        }
+
+        /* Auto-resizing textarea style */
+        #adminInput {
+            max-height: 150px;
+            resize: none;
+            overflow-y: auto;
+        }
+        
+        /* Preserve line breaks in bubbles */
+        .bubble-text {
+            white-space: pre-wrap;
+            word-break: break-word;
         }
     </style>
 </head>
@@ -229,7 +274,7 @@
             <div id="userList" class="flex-1 overflow-y-auto divide-y divide-gray-800"></div>
         </div>
 
-        <div id="chatWindow" class="flex-col bg-[#0b141a] w-full md:w-2/3">
+        <div id="chatWindow" class="flex-col bg-[#0b141a] w-full md:w-2/3 relative">
             <div class="p-3 bg-[#202c33] flex items-center gap-3 shadow-md">
                 <button onclick="backToList()" class="md:hidden text-gray-400 p-2">
                     <i class="fas fa-arrow-left"></i>
@@ -253,24 +298,53 @@
                 </div>
             </div>
 
-            <div class="p-2 bg-[#202c33] flex items-center gap-2">
-                <div class="quick-messages-container relative">
-                    <button id="quickMenuBtn" class="w-10 h-10 rounded-full bg-[#2a3942] text-[#00a884] flex items-center justify-center" onclick="toggleQuickMenu()">
-                        <i class="fas fa-bolt"></i>
-                    </button>
-                    <div id="quickMenuPanel" class="quick-menu-panel">
-                        <div class="p-3 border-b border-gray-700 font-bold text-xs text-[#00a884]">PESAN CEPAT</div>
-                        <div id="quickMenuList" class="max-height-[200px] overflow-y-auto"></div>
-                    </div>
-                </div>
-                <input type="text" id="adminInput" placeholder="Tulis pesan..." class="flex-1 bg-[#2a3942] text-white rounded-full px-4 py-2.5 focus:outline-none text-sm">
-                <button onclick="adminReply()" class="bg-[#00a884] text-white w-10 h-10 rounded-full flex items-center justify-center">
+            <div id="quickMenuPanel" class="quick-menu-panel">
+                <div class="p-2 border-b border-gray-700 bg-black/20 text-[10px] text-gray-400 uppercase tracking-widest px-3">Saran Pesan Cepat</div>
+                <div id="quickMenuList" class="max-h-[250px] overflow-y-auto"></div>
+            </div>
+
+            <div class="p-2 bg-[#202c33] flex items-end gap-2">
+                <button id="quickMenuBtn" class="w-10 h-10 rounded-full bg-[#2a3942] text-[#00a884] flex items-center justify-center shrink-0 mb-0.5" onclick="toggleQuickMenuExplicit()">
+                    <i class="fas fa-bolt"></i>
+                </button>
+                <textarea id="adminInput" 
+                          oninput="handleInputChanges(this)" 
+                          placeholder="Tulis pesan... (/ untuk pintasan)" 
+                          rows="1"
+                          class="flex-1 bg-[#2a3942] text-white rounded-[20px] px-4 py-2.5 focus:outline-none text-sm"></textarea>
+                <button onclick="adminReply()" class="bg-[#00a884] text-white w-10 h-10 rounded-full flex items-center justify-center shrink-0 mb-0.5">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Quick Messages Management Modal -->
+    <div id="quickMessagesModal" class="modal">
+        <div class="modal-content text-left max-w-lg">
+            <h3 class="text-xl font-bold mb-4">Kelola Pesan Cepat</h3>
+            <p class="text-xs text-gray-400 mb-6">Tambahkan pintasan (/) untuk mengirim pesan panjang dengan cepat.</p>
+            
+            <div class="space-y-4 mb-6">
+                <div class="flex flex-col gap-2">
+                    <input type="text" id="newQuickCmd" placeholder="Pintasan (cth: hi)" class="w-full bg-gray-800 p-2 rounded-lg text-white border border-gray-700 outline-none text-sm">
+                    <textarea id="newQuickMsg" placeholder="Isi pesan lengkap (bisa beberapa baris)..." class="w-full bg-gray-800 p-2 rounded-lg text-white border border-gray-700 outline-none text-sm min-h-[100px]"></textarea>
+                </div>
+                <button onclick="addNewQuickMessage()" class="w-full bg-[#00a884] py-2 rounded-lg text-sm font-bold">Tambah Pintasan</button>
+            </div>
+
+            <div class="border-t border-gray-800 pt-4">
+                <h4 class="text-xs font-bold text-gray-500 uppercase mb-3">Daftar Pintasan</h4>
+                <div id="manageQuickList" class="space-y-2 max-h-[250px] overflow-y-auto"></div>
+            </div>
+
+            <div class="mt-6">
+                <button class="w-full py-2 bg-gray-700 rounded-lg text-sm" onclick="closeModal('quickMessagesModal')">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consumer Detail Modal -->
     <div id="consumerDetailModal" class="modal">
         <div class="modal-content text-left">
             <div class="flex items-center gap-4 mb-6">
@@ -304,6 +378,7 @@
         </div>
     </div>
 
+    <!-- Theme Modal -->
     <div id="themeModal" class="modal">
         <div class="modal-content">
             <h3 class="text-lg font-bold mb-4">Tema & Wallpaper</h3>
@@ -322,6 +397,7 @@
         </div>
     </div>
 
+    <!-- Profile Admin Modal -->
     <div id="profileModal" class="modal">
         <div class="modal-content">
             <h3 class="text-lg font-bold mb-4">Pengaturan Profil Admin</h3>
@@ -334,11 +410,15 @@
         </div>
     </div>
 
+    <!-- Side Panel -->
     <div id="sidePanel" class="fixed top-0 -left-[280px] w-[280px] h-full bg-[#1e1e1e] transition-all duration-300 z-[1000] border-r border-gray-800 p-4">
         <h2 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fas fa-cog"></i> Menu</h2>
         <div class="flex flex-col gap-2">
             <button onclick="showProfileModal()" class="w-full text-left p-3 hover:bg-gray-800 rounded-lg flex items-center gap-3">
                 <i class="fas fa-user-circle text-[#00a884]"></i> Edit Profil Admin
+            </button>
+            <button onclick="document.getElementById('quickMessagesModal').classList.add('show'); toggleSidePanel();" class="w-full text-left p-3 hover:bg-gray-800 rounded-lg flex items-center gap-3">
+                <i class="fas fa-bolt text-yellow-500"></i> Kelola Pesan Cepat
             </button>
             <button onclick="document.getElementById('themeModal').classList.add('show'); toggleSidePanel();" class="w-full text-left p-3 hover:bg-gray-800 rounded-lg flex items-center gap-3">
                 <i class="fas fa-palette text-purple-500"></i> Tema & Wallpaper
@@ -372,6 +452,8 @@
         let currentUserEmail = '';
         let selectedMsgId = null;
         let usersData = [];
+        let quickMessages = [];
+        let profilesCache = {};
 
         function loginWithEmail() {
             const email = document.getElementById('loginEmail').value;
@@ -381,6 +463,124 @@
             auth.signInWithEmailAndPassword(email, pass).catch(err => {
                 error.textContent = "Login gagal: " + err.message;
                 error.classList.remove('hidden');
+            });
+        }
+
+        // Quick Messages Logic (Telegram Style)
+        function loadQuickMessages() {
+            db.ref('quickMessages').on('value', snapshot => {
+                quickMessages = [];
+                snapshot.forEach(child => {
+                    quickMessages.push({ id: child.key, ...child.val() });
+                });
+                renderManageQuickMessages();
+            });
+        }
+
+        function handleInputChanges(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+            if (textarea.scrollHeight > 150) textarea.style.height = '150px';
+
+            const val = textarea.value;
+            const panel = document.getElementById('quickMenuPanel');
+            const list = document.getElementById('quickMenuList');
+
+            if (val.startsWith('/')) {
+                const query = val.slice(1).toLowerCase();
+                const filtered = quickMessages.filter(m => m.cmd.toLowerCase().includes(query));
+                
+                if (filtered.length > 0) {
+                    list.innerHTML = '';
+                    filtered.forEach(msg => {
+                        const item = document.createElement('div');
+                        item.className = 'quick-item';
+                        const preview = msg.text.split('\n')[0];
+                        item.innerHTML = `<span class="cmd">/${msg.cmd}</span> <span class="msg">${preview}</span>`;
+                        item.onclick = () => selectQuickMessage(msg.text);
+                        list.appendChild(item);
+                    });
+                    panel.classList.add('show');
+                } else {
+                    panel.classList.remove('show');
+                }
+            } else {
+                panel.classList.remove('show');
+            }
+        }
+
+        function selectQuickMessage(text) {
+            const input = document.getElementById('adminInput');
+            input.value = text;
+            document.getElementById('quickMenuPanel').classList.remove('show');
+            handleInputChanges(input);
+            input.focus();
+        }
+
+        document.getElementById('adminInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                adminReply();
+            }
+        });
+
+        function toggleQuickMenuExplicit() {
+            const panel = document.getElementById('quickMenuPanel');
+            if (panel.classList.contains('show')) {
+                panel.classList.remove('show');
+            } else {
+                const list = document.getElementById('quickMenuList');
+                list.innerHTML = '';
+                if (quickMessages.length > 0) {
+                    quickMessages.forEach(msg => {
+                        const item = document.createElement('div');
+                        item.className = 'quick-item';
+                        const preview = msg.text.split('\n')[0];
+                        item.innerHTML = `<span class="cmd">/${msg.cmd}</span> <span class="msg">${preview}</span>`;
+                        item.onclick = () => selectQuickMessage(msg.text);
+                        list.appendChild(item);
+                    });
+                    panel.classList.add('show');
+                }
+            }
+        }
+
+        function addNewQuickMessage() {
+            const cmd = document.getElementById('newQuickCmd').value.trim().replace(/\//g, '');
+            const text = document.getElementById('newQuickMsg').value.trim();
+            if (!cmd || !text) return;
+            db.ref('quickMessages').push({ cmd, text }).then(() => {
+                document.getElementById('newQuickCmd').value = '';
+                document.getElementById('newQuickMsg').value = '';
+            });
+        }
+
+        function deleteQuickMessage(id) {
+            if(confirm('Hapus pintasan ini?')) db.ref('quickMessages/' + id).remove();
+        }
+
+        function renderManageQuickMessages() {
+            const container = document.getElementById('manageQuickList');
+            if (!container) return;
+            container.innerHTML = '';
+            if (quickMessages.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-600 italic">Belum ada pintasan yang dibuat.</p>';
+                return;
+            }
+            quickMessages.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 bg-white/5 rounded-lg border border-gray-800';
+                const preview = msg.text.split('\n')[0];
+                div.innerHTML = `
+                    <div class="overflow-hidden mr-2">
+                        <span class="text-xs font-bold text-[#00a884]">/${msg.cmd}</span>
+                        <p class="text-[10px] text-gray-500 truncate">${preview}</p>
+                    </div>
+                    <button onclick="deleteQuickMessage('${msg.id}')" class="text-red-500 p-2 hover:bg-red-500/10 rounded-lg shrink-0">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                `;
+                container.appendChild(div);
             });
         }
 
@@ -436,12 +636,6 @@
             document.getElementById('detailUID').textContent = currentUserId;
             document.getElementById('editConsumerName').value = currentUserEmail;
             document.getElementById('detailAvatar').textContent = currentUserEmail.charAt(0).toUpperCase();
-            db.ref('userProfiles/' + currentUserId).once('value', snapshot => {
-                if(snapshot.exists()) {
-                    const data = snapshot.val();
-                    document.getElementById('editConsumerName').value = data.email || currentUserEmail;
-                }
-            });
             document.getElementById('consumerDetailModal').classList.add('show');
         }
 
@@ -449,85 +643,102 @@
             const newName = document.getElementById('editConsumerName').value.trim();
             if(newName && currentUserId) {
                 db.ref('userProfiles/' + currentUserId).update({ email: newName }).then(() => {
-                    currentUserEmail = newName;
-                    document.getElementById('activeUserName').textContent = newName;
-                    document.getElementById('headerAvatar').textContent = newName.charAt(0).toUpperCase();
                     closeModal('consumerDetailModal');
                 });
             }
         }
 
-        function toggleSearch() {
-            document.getElementById('searchContainer').classList.toggle('active');
-            if(document.getElementById('searchContainer').classList.contains('active')) {
-                document.getElementById('userSearchInput').focus();
-            }
-        }
+        function startSync() {
+            loadQuickMessages();
+            
+            // Realtime profiles listener
+            db.ref('userProfiles').on('value', snapshot => {
+                profilesCache = {};
+                snapshot.forEach(child => {
+                    profilesCache[child.key] = child.val();
+                });
+                renderUserList(document.getElementById('userSearchInput')?.value.toLowerCase());
+                
+                // Realtime header update if current user's profile changes
+                if(currentUserId && profilesCache[currentUserId]) {
+                    const profile = profilesCache[currentUserId];
+                    currentUserEmail = profile.email || currentUserId;
+                    document.getElementById('activeUserName').textContent = currentUserEmail;
+                    document.getElementById('headerAvatar').textContent = currentUserEmail.charAt(0).toUpperCase();
+                }
+            });
 
-        function filterUsers() { renderUserList(document.getElementById('userSearchInput').value.toLowerCase()); }
+            db.ref('messages').on('value', snapshot => {
+                const tempUsers = [];
+                snapshot.forEach((userSnap) => {
+                    const userId = userSnap.key;
+                    const messagesSnap = userSnap.val();
+                    const messages = Object.values(messagesSnap);
+                    
+                    // Sorting logic for sidebar preview: latest message including welcome
+                    const sortedMsg = messages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    const lastMsgObj = sortedMsg[0];
+                    const unreadCount = messages.filter(m => m.sender !== 'admin' && !m.read).length;
+                    
+                    tempUsers.push({
+                        id: userId,
+                        lastMsg: lastMsgObj.text,
+                        lastTime: new Date(lastMsgObj.timestamp).getTime(),
+                        unread: unreadCount
+                    });
+                });
+                usersData = tempUsers;
+                renderUserList(document.getElementById('userSearchInput')?.value.toLowerCase());
+            });
+        }
 
         function renderUserList(query = '') {
             const listDiv = document.getElementById('userList');
             if (!listDiv) return;
             listDiv.innerHTML = '';
+            
             const sortedUsers = [...usersData].sort((a, b) => b.lastTime - a.lastTime);
             sortedUsers.forEach(user => {
-                if(user.email.toLowerCase().includes(query) || user.lastMsg.toLowerCase().includes(query)) {
+                const profile = profilesCache[user.id] || {};
+                const displayEmail = profile.email || user.id;
+
+                if(displayEmail.toLowerCase().includes(query) || user.lastMsg.toLowerCase().includes(query)) {
                     const div = document.createElement('div');
                     div.className = `p-4 flex items-center gap-3 hover:bg-[#202c33] cursor-pointer border-b border-gray-800 ${currentUserId === user.id ? 'bg-[#2b3942]' : ''}`;
                     const timeStr = new Date(user.lastTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const lastMsgPreview = user.lastMsg.split('\n')[0];
                     div.innerHTML = `
-                        <div class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center font-bold text-[#tg-blue] border border-gray-700 text-sm">${user.email.charAt(0).toUpperCase()}</div>
+                        <div class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center font-bold text-[#tg-blue] border border-gray-700 text-sm">${displayEmail.charAt(0).toUpperCase()}</div>
                         <div class="flex-1 overflow-hidden">
                             <div class="flex justify-between items-center mb-0.5">
-                                <h3 class="font-bold text-white text-sm truncate">${user.email}</h3>
+                                <h3 class="font-bold text-white text-sm truncate">${displayEmail}</h3>
                                 <span class="text-[10px] text-gray-500">${timeStr}</span>
                             </div>
                             <div class="flex justify-between items-center">
-                                <p class="text-xs text-gray-400 truncate w-4/5">${user.lastMsg}</p>
+                                <p class="text-xs text-gray-400 truncate w-4/5">${lastMsgPreview}</p>
                                 ${user.unread > 0 ? `<span class="unread-badge">${user.unread}</span>` : ''}
                             </div>
                         </div>
                     `;
-                    div.onclick = () => selectUser(user.id, user.email);
+                    div.onclick = () => selectUser(user.id, displayEmail);
                     listDiv.appendChild(div);
                 }
-            });
-        }
-
-        function startSync() {
-            db.ref('messages').on('value', (snapshot) => {
-                const tempUsers = [];
-                const promises = [];
-                snapshot.forEach((userSnap) => {
-                    const userId = userSnap.key;
-                    const messages = Object.values(userSnap.val());
-                    const lastMsgObj = messages[messages.length - 1];
-                    const unreadCount = messages.filter(m => m.sender !== 'admin' && !m.read).length;
-                    const p = db.ref('userProfiles/' + userId).once('value').then(profileSnap => {
-                        tempUsers.push({
-                            id: userId,
-                            email: profileSnap.val()?.email || userId,
-                            lastMsg: lastMsgObj.text,
-                            lastTime: new Date(lastMsgObj.timestamp).getTime(),
-                            unread: unreadCount
-                        });
-                    });
-                    promises.push(p);
-                });
-                Promise.all(promises).then(() => {
-                    usersData = tempUsers;
-                    renderUserList();
-                });
             });
         }
 
         function selectUser(userId, email) {
             currentUserId = userId;
             currentUserEmail = email;
+            
+            // Detach previous listeners for specific user
+            db.ref('typing/' + userId).off();
+            db.ref('presence/' + userId).off();
+            db.ref('messages/' + userId).off();
+
             db.ref('messages/' + userId).once('value', snapshot => {
                 snapshot.forEach(child => { if(child.val().sender !== 'admin') child.ref.update({read: true}); });
             });
+            
             document.body.classList.replace('sidebar-active', 'chat-active');
             document.getElementById('activeUserName').textContent = email;
             document.getElementById('headerAvatar').textContent = email.charAt(0).toUpperCase();
@@ -554,22 +765,38 @@
 
             db.ref('messages/' + userId).on('value', (snapshot) => {
                 const container = document.getElementById('adminMessages');
-                container.innerHTML = '';
+                container.innerHTML = `
+                    <div class="m-auto text-gray-500 text-center bg-black/20 p-2 rounded-lg mb-4">
+                        <i class="fas fa-lock text-[10px] mb-1 block"></i>
+                        <p class="text-[10px]">Percakapan ini aman dan terenkripsi.</p>
+                    </div>
+                `;
+                
+                let messages = [];
                 snapshot.forEach((msgSnap) => {
-                    const data = msgSnap.val();
-                    const msgId = msgSnap.key;
+                    messages.push({ id: msgSnap.key, ...msgSnap.val() });
+                });
+
+                // Logic: Pesan default (initial_welcome) selalu di atas, sisanya diurutkan waktu
+                messages.sort((a, b) => {
+                    if (a.id === 'initial_welcome') return -1;
+                    if (b.id === 'initial_welcome') return 1;
+                    return new Date(a.timestamp) - new Date(b.timestamp);
+                });
+
+                messages.forEach((data) => {
                     const isAdmin = data.sender === 'admin';
                     const wrap = document.createElement('div');
                     wrap.className = `flex w-full ${isAdmin ? 'justify-end' : 'justify-start'}`;
                     const bubble = document.createElement('div');
                     bubble.className = `max-w-[85%] px-3 py-2 rounded-xl text-sm shadow-sm relative group cursor-pointer ${isAdmin ? 'chat-bubble-admin rounded-tr-none' : 'chat-bubble-user rounded-tl-none'}`;
                     bubble.innerHTML = `
-                        <p>${data.text}</p>
+                        <p class="bubble-text">${data.text}</p>
                         <div class="flex items-center justify-end gap-1 mt-1 opacity-50">
                             <span class="text-[9px]">${new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                             ${isAdmin ? `<i class="fas fa-check-double text-[8px] ${data.read ? 'text-blue-400' : ''}"></i>` : ''}
                         </div>`;
-                    bubble.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e, msgId, data.text); });
+                    bubble.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e, data.id, data.text); });
                     wrap.appendChild(bubble);
                     container.appendChild(wrap);
                 });
@@ -577,6 +804,11 @@
             });
         }
 
+        function toggleSearch() {
+            document.getElementById('searchContainer').classList.toggle('active');
+            if(document.getElementById('searchContainer').classList.contains('active')) document.getElementById('userSearchInput').focus();
+        }
+        function filterUsers() { renderUserList(document.getElementById('userSearchInput').value.toLowerCase()); }
         function showContextMenu(e, msgId, text) {
             selectedMsgId = msgId;
             selectedMsgText = text;
@@ -586,22 +818,12 @@
             let y = e.pageY || (e.touches ? e.touches[0].pageY : 0);
             if(x + 160 > window.innerWidth) x -= 160;
             if(y + 100 > window.innerHeight) y -= 100;
-            menu.style.left = x + 'px';
-            menu.style.top = y + 'px';
+            menu.style.left = x + 'px'; menu.style.top = y + 'px';
         }
-
         function copyMsgText() { navigator.clipboard.writeText(selectedMsgText); hideContextMenu(); }
         function hideContextMenu() { document.getElementById('msgContextMenu').style.display = 'none'; }
+        function confirmDeleteMsg(mode) { db.ref(`messages/${currentUserId}/${selectedMsgId}`).remove(); hideContextMenu(); }
         
-        // Hapus Pesan Tunggal Untuk Semua Orang
-        function confirmDeleteMsg(mode) {
-            if(!currentUserId || !selectedMsgId) return;
-            // Menghapus node pesan dari database menghapus pesan di sisi admin dan konsumen
-            db.ref(`messages/${currentUserId}/${selectedMsgId}`).remove()
-              .then(() => hideContextMenu());
-        }
-
-        // Reset Chat Untuk Semua Orang
         function confirmResetChat() {
             if(!currentUserId) return;
             const welcomeMsg = {
@@ -610,19 +832,21 @@
                 timestamp: new Date().toISOString(),
                 read: true
             };
-            // Menggunakan .set() pada path messages/USER_ID akan menghapus seluruh isi percakapan
-            // dan menggantinya dengan pesan sambutan saja di kedua belah pihak.
-            db.ref('messages/' + currentUserId).set({ 'initial_welcome': welcomeMsg }).then(() => {
-                closeResetModal();
-            });
+            db.ref('messages/' + currentUserId).set({ 'initial_welcome': welcomeMsg }).then(() => closeResetModal());
         }
 
         function adminReply() {
             const input = document.getElementById('adminInput');
             const text = input.value.trim();
             if (!text || !currentUserId) return;
-            db.ref('messages/' + currentUserId).push({ sender: 'admin', text: text, timestamp: new Date().toISOString(), read: false });
+            db.ref('messages/' + currentUserId).push({ 
+                sender: 'admin', 
+                text: text, 
+                timestamp: new Date().toISOString(), 
+                read: false 
+            });
             input.value = '';
+            input.style.height = 'auto';
         }
 
         function logout() { if(confirm('Keluar dari panel?')) auth.signOut(); }
@@ -635,9 +859,13 @@
         function closeModal(id) { document.getElementById(id).classList.remove('show'); }
         function openResetModal() { document.getElementById('resetChatModal').classList.add('show'); }
         function closeResetModal() { document.getElementById('resetChatModal').classList.remove('show'); }
-        function toggleQuickMenu() { document.getElementById('quickMenuPanel').classList.toggle('show'); }
 
-        window.onclick = (e) => { if(!e.target.closest('.chat-bubble-admin') && !e.target.closest('.chat-bubble-user')) hideContextMenu(); };
+        window.onclick = (e) => {
+            if(!e.target.closest('.chat-bubble-admin') && !e.target.closest('.chat-bubble-user')) hideContextMenu();
+            if(!e.target.closest('#quickMenuPanel') && !e.target.closest('#quickMenuBtn') && !e.target.closest('#adminInput')) {
+                document.getElementById('quickMenuPanel').classList.remove('show');
+            }
+        };
 
         auth.onAuthStateChanged(user => {
             const login = document.getElementById('loginSection');
