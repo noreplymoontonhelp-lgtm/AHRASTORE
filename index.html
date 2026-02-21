@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-    <title>Admin Panel - Reset Chat</title>
+    <title>Admin Panel - Telegram Style</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Menggunakan dvh agar tinggi layar dinamis mengikuti keyboard */
         :root {
             --bg-main: #121212;
             --bg-card: #1e1e1e;
@@ -17,13 +16,9 @@
             --text-primary: #e4e6eb;
             --text-secondary: #9ca3af;
             --border-color: #374151;
-            --error-color: #ef4444;
-            --success-color: #10b981;
-            --quick-msg-bg: #2a3942;
-            --quick-msg-hover: #3a4a54;
+            --tg-blue: #2481cc;
         }
 
-        /* Tema Terang */
         [data-theme="light"] {
             --bg-main: #f0f2f5;
             --bg-card: #ffffff;
@@ -33,8 +28,6 @@
             --text-secondary: #667781;
             --border-color: #e9edef;
             --accent: #008069;
-            --quick-msg-bg: #ffffff;
-            --quick-msg-hover: #f0f2f5;
         }
 
         body { 
@@ -46,45 +39,59 @@
             flex-direction: column;
             overflow: hidden;
             transition: background-color 0.3s, color 0.3s;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Login Styling */
+        #loginSection {
+            position: fixed;
+            inset: 0;
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .login-card {
+            background: #1a1a1a;
+            border-radius: 24px;
+            padding: 40px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .login-input {
+            width: 100%;
+            padding: 14px;
+            background: #262626;
+            border: 2px solid #333;
+            border-radius: 12px;
+            color: white;
+            margin-bottom: 15px;
+            outline: none;
+        }
+        .login-input:focus { border-color: var(--accent); }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
         .chat-bubble-admin { background-color: #005c4b; color: #e9edef; }
         .chat-bubble-user { background-color: var(--bg-header); color: var(--text-primary); }
         
-        /* Layout Handling - Fixed untuk desktop */
-        #mainDashboard {
-            display: flex;
-            flex: 1;
-            height: 100%;
-            overflow: hidden;
-            width: 100%;
-        }
+        #mainDashboard { display: none; flex: 1; height: 100%; overflow: hidden; width: 100%; }
+        #mainDashboard.flex-mode { display: flex; }
 
-        /* Desktop layout - fixed widths */
         @media (min-width: 769px) {
-            #userSidebar {
-                width: 30% !important;
-                max-width: 380px;
-                min-width: 280px;
-                display: flex !important;
-            }
-            
-            #chatWindow {
-                width: 70% !important;
-                flex: 1;
-                display: flex !important;
-            }
-            
-            /* Hide mobile back button on desktop */
-            .md\\:hidden {
-                display: none !important;
-            }
-            
-            /* Ensure proper height */
-            #adminMessages {
-                height: calc(100vh - 130px);
-                max-height: calc(100vh - 130px);
-            }
+            #userSidebar { width: 30% !important; max-width: 380px; min-width: 280px; display: flex !important; }
+            #chatWindow { width: 70% !important; flex: 1; display: flex !important; }
+            .md\:hidden { display: none !important; }
         }
 
         @media (max-width: 768px) {
@@ -92,1210 +99,134 @@
             .sidebar-active #chatWindow { display: none; }
             .chat-active #userSidebar { display: none; }
             .chat-active #chatWindow { display: flex; width: 100%; }
-            
-            #adminMessages {
-                height: calc(100dvh - 130px);
-                max-height: calc(100dvh - 130px);
-            }
         }
 
-        /* Scrollbar styling */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
-
-        /* Reset Chat Button */
-        .reset-chat-btn {
-            background: var(--accent);
-            border: none;
+        .unread-badge {
+            background-color: var(--accent);
             color: white;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 16px;
-            margin-left: 8px;
-        }
-
-        .reset-chat-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 15px rgba(0,168,132,0.3);
-        }
-
-        .reset-chat-btn.danger {
-            background: #ef4444;
-        }
-
-        .reset-chat-btn.danger:hover {
-            box-shadow: 0 0 15px rgba(239,68,68,0.3);
-        }
-
-        /* Reset Confirmation Modal */
-        .reset-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 3000;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(5px);
-        }
-
-        .reset-modal.show {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .reset-content {
-            background: var(--bg-card);
-            border-radius: 20px;
-            width: 90%;
-            max-width: 400px;
-            padding: 25px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
             text-align: center;
         }
 
-        .reset-icon {
-            font-size: 60px;
-            color: #ef4444;
-            margin-bottom: 20px;
-        }
-
-        .reset-content h3 {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: var(--text-primary);
-        }
-
-        .reset-content p {
-            color: var(--text-secondary);
-            margin-bottom: 25px;
-            line-height: 1.6;
-        }
-
-        .reset-warning {
-            background: rgba(239,68,68,0.1);
-            border: 1px solid rgba(239,68,68,0.2);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 25px;
-            color: #fca5a5;
-            font-size: 14px;
-            text-align: left;
-        }
-
-        .reset-warning i {
-            color: #ef4444;
-            margin-right: 8px;
-        }
-
-        .reset-actions {
-            display: flex;
-            gap: 15px;
-        }
-
-        .reset-actions button {
-            flex: 1;
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-reset {
-            background: #ef4444;
-            color: white;
-        }
-
-        .btn-reset:hover {
-            background: #dc2626;
-            transform: translateY(-2px);
-        }
-
-        .btn-cancel-reset {
-            background: var(--bg-main);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-cancel-reset:hover {
-            background: var(--bg-header);
-        }
-
-        /* Success notification */
-        .reset-success {
+        .context-menu {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #10b981;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            display: none;
-            align-items: center;
-            gap: 10px;
-            z-index: 9999;
-            animation: slideIn 0.3s ease;
-        }
-
-        .reset-success.show {
-            display: flex;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        /* Quick Messages Menu */
-        .quick-messages-container {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .quick-menu-btn {
-            background: var(--quick-msg-bg);
-            border: none;
-            color: var(--accent);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 18px;
-            font-weight: bold;
-            border: 1px solid var(--border-color);
-        }
-
-        .quick-menu-btn:hover {
-            background: var(--quick-msg-hover);
-            transform: scale(1.05);
-        }
-
-        .quick-menu-btn.active {
-            background: var(--accent);
-            color: white;
-        }
-
-        .quick-menu-panel {
-            position: absolute;
-            bottom: 60px;
-            left: 0;
-            width: 280px;
             background: var(--bg-card);
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             border: 1px solid var(--border-color);
-            display: none;
-            z-index: 100;
-            overflow: hidden;
-        }
-
-        .quick-menu-panel.show {
-            display: block;
-            animation: slideUp 0.2s ease;
-        }
-
-        .quick-menu-header {
-            padding: 12px 15px;
-            background: var(--bg-header);
-            border-bottom: 1px solid var(--border-color);
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .quick-menu-header span {
-            color: var(--accent);
-            font-family: monospace;
-            font-size: 14px;
-        }
-
-        .quick-menu-list {
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 8px;
-        }
-
-        .quick-menu-item {
-            padding: 10px 12px;
             border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid transparent;
-        }
-
-        .quick-menu-item:hover {
-            background: var(--quick-msg-hover);
-            border-color: var(--accent);
-        }
-
-        .quick-menu-item i {
-            color: var(--accent);
-            width: 20px;
-            font-size: 14px;
-        }
-
-        .quick-menu-item .command {
-            color: var(--accent);
-            font-family: monospace;
-            font-size: 12px;
-            margin-left: auto;
-            opacity: 0.7;
-        }
-
-        .quick-menu-item .content {
-            flex: 1;
-            font-size: 13px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .quick-menu-footer {
-            padding: 8px;
-            border-top: 1px solid var(--border-color);
-            background: var(--bg-header);
-            font-size: 11px;
-            color: var(--text-secondary);
-            text-align: center;
-        }
-
-        /* Command input styling */
-        #adminInput.command-mode {
-            border-left: 3px solid var(--accent);
-            padding-left: 15px;
-            background: var(--quick-msg-bg);
-        }
-
-        .command-suggestion {
-            position: absolute;
-            bottom: 70px;
-            left: 60px;
-            background: var(--bg-card);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 12px;
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            z-index: 5000;
             display: none;
-            max-width: 200px;
-            z-index: 99;
-        }
-
-        .command-suggestion.show {
-            display: block;
-            animation: fadeIn 0.2s ease;
-        }
-
-        .command-suggestion i {
-            color: var(--accent);
-            margin-right: 5px;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Login Section Styling - Dark Theme */
-        #loginSection {
-            position: fixed;
-            inset: 0;
-            background: #0a0a0a;
-            background-image: radial-gradient(circle at 10% 20%, rgba(0, 168, 132, 0.1) 0%, transparent 30%),
-                              radial-gradient(circle at 90% 80%, rgba(0, 168, 132, 0.1) 0%, transparent 30%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            padding: 20px;
-        }
-
-        .login-container {
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .login-card {
-            background: #1a1a1a;
-            border-radius: 24px;
-            padding: 40px 30px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
-                        0 0 0 1px rgba(0, 168, 132, 0.1);
-            animation: slideUp 0.5s ease;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 35px;
-        }
-
-        .login-header i {
-            font-size: 60px;
-            color: #00a884;
-            margin-bottom: 20px;
-            filter: drop-shadow(0 0 20px rgba(0, 168, 132, 0.3));
-        }
-
-        .login-header h1 {
-            color: #ffffff;
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-
-        .login-header p {
-            color: #9ca3af;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            color: #d1d5db;
-            font-weight: 500;
-            font-size: 14px;
-            letter-spacing: 0.3px;
-        }
-
-        .input-icon {
-            position: relative;
-        }
-
-        .input-icon i {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #00a884;
-            font-size: 18px;
-            opacity: 0.7;
-        }
-
-        .input-icon input {
-            width: 100%;
-            padding: 16px 16px 16px 50px;
-            background: #262626;
-            border: 2px solid #333333;
-            border-radius: 16px;
-            font-size: 15px;
-            transition: all 0.3s;
-            color: #ffffff;
-        }
-
-        .input-icon input::placeholder {
-            color: #6b7280;
-        }
-
-        .input-icon input:focus {
-            border-color: #00a884;
-            outline: none;
-            background: #2d2d2d;
-            box-shadow: 0 0 0 4px rgba(0, 168, 132, 0.1);
-        }
-
-        .login-button {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #00a884 0%, #00806b 100%);
-            color: white;
-            border: none;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 15px;
-            position: relative;
-            overflow: hidden;
-            letter-spacing: 0.5px;
-        }
-
-        .login-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(0, 168, 132, 0.4);
-        }
-
-        .login-button:active {
-            transform: translateY(0);
-        }
-
-        .login-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .error-message {
-            background: rgba(239, 68, 68, 0.1);
-            color: #fca5a5;
-            padding: 14px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            font-size: 14px;
-            text-align: center;
-            animation: shake 0.5s ease;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .forgot-password {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .forgot-password a {
-            color: #9ca3af;
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .forgot-password a:hover {
-            color: #00a884;
-        }
-
-        .forgot-password a i {
-            font-size: 12px;
-        }
-
-        .demo-credentials {
-            margin-top: 30px;
-            padding: 16px;
-            background: rgba(0, 168, 132, 0.05);
-            border-radius: 16px;
-            border: 1px solid rgba(0, 168, 132, 0.1);
-        }
-
-        .demo-credentials p {
-            color: #9ca3af;
-            font-size: 13px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .demo-credentials p i {
-            color: #00a884;
-            font-size: 12px;
-        }
-
-        .demo-credentials .cred-item {
-            color: #d1d5db;
-            font-size: 13px;
-            padding: 4px 0;
-            font-family: monospace;
-        }
-
-        /* Side Panel */
-        #sidePanel {
-            position: fixed;
-            top: 0;
-            right: -300px;
-            width: 280px;
-            height: 100%;
-            background-color: var(--bg-card);
-            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
-            transition: right 0.3s ease;
-            z-index: 1000;
-            padding: 20px;
-            border-left: 1px solid var(--border-color);
-            display: flex;
             flex-direction: column;
-            color: var(--text-primary);
+            min-width: 160px;
+            overflow: hidden;
         }
 
-        #sidePanel.open {
-            right: 0;
-        }
-
-        #sidePanel h2 {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-
-        .settings-menu {
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .settings-menu button {
-            background-color: transparent;
-            border: none;
-            color: var(--text-primary);
-            padding: 12px;
-            border-radius: 8px;
+        .context-menu button {
+            padding: 12px 16px;
             text-align: left;
-            width: 100%;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: background 0.2s;
-        }
-
-        .settings-menu button:hover {
-            background-color: rgba(0,168,132,0.1);
-        }
-
-        .settings-menu button i {
-            width: 20px;
-            color: var(--accent);
-        }
-
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            display: none;
-        }
-
-        .overlay.show {
-            display: block;
-        }
-
-        /* Modal styling */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.show {
-            display: flex;
-        }
-
-        .modal-content {
-            background: var(--bg-card);
-            padding: 20px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 350px;
-            border: 1px solid var(--border-color);
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-content h3 {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: var(--text-primary);
-        }
-
-        .modal-content input, .modal-content select {
-            width: 100%;
-            background: var(--bg-main);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px;
-            color: var(--text-primary);
-            margin-bottom: 15px;
-        }
-
-        .modal-content input:focus, .modal-content select:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .modal-content label {
-            display: block;
-            margin-bottom: 5px;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .modal-buttons button {
-            flex: 1;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.2s;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-save {
-            background: var(--accent);
-            color: white;
-        }
-
-        .btn-cancel {
-            background: var(--bg-main);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-save:active, .btn-cancel:active {
-            transform: scale(0.95);
-        }
-
-        /* Info item styling */
-        .info-item {
-            background: var(--bg-main);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
-        }
-
-        .info-label {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            margin-bottom: 4px;
-        }
-
-        .info-value {
-            color: var(--text-primary);
-            font-size: 1rem;
-            font-weight: 500;
-            word-break: break-all;
-        }
-
-        /* Wallpaper options */
-        .wallpaper-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .wallpaper-item {
-            aspect-ratio: 1;
-            border-radius: 8px;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: border-color 0.2s;
-            background-size: cover;
-            background-position: center;
-        }
-
-        .wallpaper-item.selected {
-            border-color: var(--accent);
-        }
-
-        /* Notification sound options */
-        .sound-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            background: var(--bg-main);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-
-        .sound-option.selected {
-            border-color: var(--accent);
-            background: rgba(0,168,132,0.1);
-        }
-
-        .sound-option i {
-            color: var(--accent);
-        }
-
-        /* Edit button in header */
-        .edit-user-btn {
             background: none;
             border: none;
-            color: var(--accent);
-            font-size: 0.9rem;
+            color: var(--text-primary);
             cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: background 0.2s;
+            font-size: 14px;
         }
 
-        .edit-user-btn:hover {
-            background: rgba(0,168,132,0.1);
+        .context-menu button:hover { background: var(--bg-header); }
+        .context-menu button.danger { color: #ef4444; }
+
+        .search-container {
+            transition: all 0.3s ease;
+            max-height: 0;
+            overflow: hidden;
+            background: var(--bg-card);
         }
 
-        /* Dark/Light mode specific */
-        [data-theme="light"] .chat-bubble-admin {
-            background-color: #d9fdd3;
-            color: #111b21;
-        }
+        .search-container.active { max-height: 60px; padding: 10px; border-bottom: 1px solid var(--border-color); }
 
-        [data-theme="light"] .chat-bubble-user {
-            background-color: #ffffff;
-            color: #111b21;
-        }
-
-        /* Admin info in side panel */
-        .admin-info {
-            background: var(--bg-main);
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: auto;
-            border: 1px solid var(--border-color);
-        }
-
-        .admin-info-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-bottom: 5px;
-        }
-
-        .admin-info-item i {
-            width: 16px;
-            color: var(--accent);
-        }
-
-        /* Chat container styling */
-        #adminMessages {
-            overflow-y: auto;
-            padding: 16px;
+        .reset-modal, .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .reset-modal.show, .modal.show { display: flex; }
+        .reset-content, .modal-content { background: var(--bg-card); border-radius: 20px; width: 90%; max-width: 400px; padding: 25px; border: 1px solid var(--border-color); text-align: center; }
+        .quick-menu-panel { position: absolute; bottom: 60px; left: 0; width: 280px; background: var(--bg-card); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid var(--border-color); display: none; z-index: 100; }
+        .quick-menu-panel.show { display: block; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+        
+        .wallpaper-preview {
+            width: 100%;
+            height: 100px;
+            border-radius: 12px;
             background-size: cover;
             background-position: center;
-            background-repeat: repeat;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        /* User list item */
-        .user-item {
-            transition: background-color 0.2s;
-        }
-
-        .user-item:hover {
-            background-color: #202c33;
-        }
-
-        /* Header avatar */
-        #headerAvatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            text-transform: uppercase;
-            flex-shrink: 0;
-        }
-
-        /* Typing indicator */
-        #typingStatus {
-            min-height: 16px;
-            font-size: 11px;
-        }
-
-        /* Input area */
-        .input-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            width: 100%;
-        }
-
-        #adminInput {
-            flex: 1;
-            min-width: 0;
-        }
-
-        /* Message bubbles */
-        .chat-bubble-admin, .chat-bubble-user {
-            max-width: 85%;
-            word-wrap: break-word;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
         }
     </style>
 </head>
 <body class="sidebar-active" data-theme="dark">
 
-    <!-- Overlay untuk menutup panel saat klik di luar -->
-    <div id="overlay" class="overlay" onclick="toggleSidePanel()"></div>
-
-    <!-- Success Notification -->
-    <div id="resetSuccess" class="reset-success">
-        <i class="fas fa-check-circle"></i>
-        <span>Chat berhasil direset!</span>
+    <div id="loginSection">
+        <div class="login-card">
+            <i class="fas fa-shield-alt text-5xl text-[#00a884] mb-6"></i>
+            <h1 class="text-2xl font-bold mb-2">Admin Panel</h1>
+            <p class="text-gray-500 text-sm mb-8">Silakan masuk untuk melanjutkan</p>
+            <div id="loginError" class="text-red-500 text-xs mb-4 hidden"></div>
+            <input type="email" id="loginEmail" class="login-input" placeholder="Email Admin" value="admin@support.com">
+            <input type="password" id="loginPassword" class="login-input" placeholder="Password" value="123456">
+            <button class="login-btn" onclick="loginWithEmail()">Masuk</button>
+            <div class="mt-6 p-3 bg-white/5 rounded-lg text-left text-[11px] text-gray-500">
+                <p>Demo Credentials:</p>
+                <p>Email: admin@support.com</p>
+                <p>Password: 123456</p>
+            </div>
+        </div>
     </div>
 
-    <!-- Reset Chat Confirmation Modal -->
+    <div id="overlay" class="fixed inset-0 bg-black/50 z-[999] hidden" onclick="toggleSidePanel()"></div>
+
+    <div id="msgContextMenu" class="context-menu">
+        <button onclick="copyMsgText()">Salin Teks</button>
+        <button class="danger" onclick="confirmDeleteMsg('everyone')">Hapus untuk semua orang</button>
+    </div>
+
     <div id="resetChatModal" class="reset-modal">
         <div class="reset-content">
-            <div class="reset-icon">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <h3>Reset Chat?</h3>
-            <p>Anda akan menghapus seluruh riwayat percakapan dengan user <span id="resetUserName" class="font-bold text-[#00a884]"></span></p>
-            
-            <div class="reset-warning">
-                <i class="fas fa-info-circle"></i>
-                <strong>Perhatian:</strong> Tindakan ini akan menghapus semua pesan baik di sisi admin maupun konsumen secara permanen. Data yang sudah dihapus tidak dapat dikembalikan.
-            </div>
-
-            <div class="reset-actions">
-                <button class="btn-cancel-reset" onclick="closeResetModal()">Batal</button>
-                <button class="btn-reset" onclick="confirmResetChat()">
-                    <i class="fas fa-trash-alt mr-2"></i>Reset Chat
-                </button>
+            <h3 class="text-xl font-bold mb-4">Reset Percakapan?</h3>
+            <p class="text-gray-400 mb-6">Tindakan ini akan menghapus riwayat chat untuk Anda dan Konsumen, lalu menyisakan pesan sambutan dari Nita.</p>
+            <div class="flex gap-3">
+                <button class="flex-1 py-3 bg-gray-700 rounded-xl" onclick="closeResetModal()">Batal</button>
+                <button class="flex-1 py-3 bg-red-600 rounded-xl" onclick="confirmResetChat()">Hapus Semua</button>
             </div>
         </div>
     </div>
 
-    <!-- Panel samping (Pengaturan) -->
-    <div id="sidePanel">
-        <h2><i class="fas fa-cog mr-2"></i> Pengaturan</h2>
-        <div class="settings-menu">
-            <button onclick="showProfileModal()"><i class="fas fa-user-circle"></i> Profil Admin</button>
-            <button onclick="showNotificationModal()"><i class="fas fa-bell"></i> Notifikasi</button>
-            <button onclick="showThemeModal()"><i class="fas fa-palette"></i> Tema & Wallpaper</button>
-            <button onclick="showPrivacyModal()"><i class="fas fa-lock"></i> Privasi</button>
-            <button onclick="showQuickMessagesModal()"><i class="fas fa-bolt"></i> Pesan Cepat</button>
-            <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Keluar</button>
-        </div>
-        
-        <!-- Admin Info -->
-        <div class="admin-info">
-            <div class="admin-info-item">
-                <i class="fas fa-user"></i>
-                <span id="sidePanelAdminEmail">admin@support.com</span>
-            </div>
-            <div class="admin-info-item">
-                <i class="fas fa-shield-alt"></i>
-                <span id="sidePanelAdminRole">Administrator</span>
-            </div>
-        </div>
-        
-        <p class="text-xs text-center mt-4" style="color: var(--text-secondary);">Versi 1.0.0</p>
-    </div>
-
-    <!-- Modal Profil Admin -->
-    <div id="profileModal" class="modal" onclick="if(event.target === this) closeModal('profileModal')">
-        <div class="modal-content">
-            <h3><i class="fas fa-user-circle mr-2"></i>Profil Admin</h3>
-            <div class="info-item">
-                <div class="info-label">Email Admin</div>
-                <div class="info-value" id="adminEmail">-</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">UID Admin</div>
-                <div class="info-value" id="adminUID">-</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Terdaftar Sejak</div>
-                <div class="info-value" id="adminJoinDate">-</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Status</div>
-                <div class="info-value" id="adminStatus">Active</div>
-            </div>
-            <div class="modal-buttons">
-                <button class="btn-cancel" onclick="closeModal('profileModal')">Tutup</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Notifikasi -->
-    <div id="notificationModal" class="modal" onclick="if(event.target === this) closeModal('notificationModal')">
-        <div class="modal-content">
-            <h3><i class="fas fa-bell mr-2"></i>Pengaturan Notifikasi</h3>
-            
-            <label>Pilih Bunyi Notifikasi</label>
-            <div class="sound-option" onclick="selectSound('default')" id="soundDefault">
-                <i class="fas fa-bell"></i>
-                <div>
-                    <div>Default</div>
-                    <small style="color: var(--text-secondary);">Bunyi notifikasi standar</small>
-                </div>
-            </div>
-            
-            <div class="sound-option" onclick="selectSound('chime')" id="soundChime">
-                <i class="fas fa-music"></i>
-                <div>
-                    <div>Chime</div>
-                    <small style="color: var(--text-secondary);">Bunyi lembut</small>
-                </div>
-            </div>
-            
-            <div class="sound-option" onclick="selectSound('alert')" id="soundAlert">
-                <i class="fas fa-exclamation"></i>
-                <div>
-                    <div>Alert</div>
-                    <small style="color: var(--text-secondary);">Bunyi tegas</small>
-                </div>
-            </div>
-            
-            <div class="sound-option" onclick="selectSound('none')" id="soundNone">
-                <i class="fas fa-volume-mute"></i>
-                <div>
-                    <div>Senyap</div>
-                    <small style="color: var(--text-secondary);">Tidak ada bunyi</small>
-                </div>
-            </div>
-
-            <label class="mt-4">Volume Notifikasi</label>
-            <input type="range" id="notificationVolume" min="0" max="100" value="80" onchange="updateVolume(this.value)">
-            <span id="volumeValue" style="color: var(--text-secondary);">80%</span>
-
-            <div class="modal-buttons">
-                <button class="btn-save" onclick="saveNotificationSettings()">Simpan</button>
-                <button class="btn-cancel" onclick="closeModal('notificationModal')">Batal</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Tema & Wallpaper -->
-    <div id="themeModal" class="modal" onclick="if(event.target === this) closeModal('themeModal')">
-        <div class="modal-content">
-            <h3><i class="fas fa-palette mr-2"></i>Tema & Wallpaper</h3>
-            
-            <label>Mode Tema</label>
-            <select id="themeSelect" onchange="changeTheme(this.value)">
-                <option value="dark">Mode Gelap</option>
-                <option value="light">Mode Terang</option>
-            </select>
-
-            <label class="mt-4">Wallpaper Chat</label>
-            <div class="wallpaper-grid">
-                <div class="wallpaper-item" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')" onclick="selectWallpaper('default')" id="wallDefault"></div>
-                <div class="wallpaper-item" style="background-color: #0b141a;" onclick="selectWallpaper('dark')" id="wallDark"></div>
-                <div class="wallpaper-item" style="background-color: #e5ded8;" onclick="selectWallpaper('light')" id="wallLight"></div>
-                <div class="wallpaper-item" style="background-image: url('https://i.pinimg.com/736x/8c/98/99/8c98994518b575bfd8c949e91d20548b.jpg')" onclick="selectWallpaper('pattern1')" id="wall1"></div>
-                <div class="wallpaper-item" style="background-image: url('https://i.pinimg.com/736x/2a/2c/1a/2a2c1a1a1a1a1a1a1a1a1a1a1a1a1a1a.jpg')" onclick="selectWallpaper('pattern2')" id="wall2"></div>
-                <div class="wallpaper-item" style="background-image: url('https://i.pinimg.com/736x/3b/3c/1a/3b3c1a1a1a1a1a1a1a1a1a1a1a1a1a1a.jpg')" onclick="selectWallpaper('pattern3')" id="wall3"></div>
-            </div>
-
-            <div class="modal-buttons">
-                <button class="btn-save" onclick="saveThemeSettings()">Simpan</button>
-                <button class="btn-cancel" onclick="closeModal('themeModal')">Batal</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Privasi (Ganti Password) -->
-    <div id="privacyModal" class="modal" onclick="if(event.target === this) closeModal('privacyModal')">
-        <div class="modal-content">
-            <h3><i class="fas fa-lock mr-2"></i>Ganti Password</h3>
-            
-            <label>Password Lama</label>
-            <input type="password" id="oldPassword" placeholder="Masukkan password lama">
-            
-            <label>Password Baru</label>
-            <input type="password" id="newPassword" placeholder="Masukkan password baru (min. 6 karakter)">
-            
-            <label>Konfirmasi Password Baru</label>
-            <input type="password" id="confirmPassword" placeholder="Konfirmasi password baru">
-
-            <div id="passwordError" style="color: #ef4444; font-size: 0.8rem; margin-bottom: 10px; display: none;"></div>
-            
-            <div class="modal-buttons">
-                <button class="btn-save" onclick="changePassword()">Simpan</button>
-                <button class="btn-cancel" onclick="closeModal('privacyModal')">Batal</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Reset Password -->
-    <div id="resetPasswordModal" class="modal" onclick="if(event.target === this) closeModal('resetPasswordModal')">
-        <div class="modal-content">
-            <h3><i class="fas fa-key mr-2"></i>Reset Password</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 15px;">Masukkan email Anda untuk menerima link reset password.</p>
-            
-            <label>Email</label>
-            <input type="email" id="resetEmail" placeholder="email@example.com">
-            
-            <div id="resetMessage" style="margin-bottom: 10px; font-size: 0.9rem; display: none;"></div>
-            
-            <div class="modal-buttons">
-                <button class="btn-save" onclick="resetPassword()">Kirim Link Reset</button>
-                <button class="btn-cancel" onclick="closeModal('resetPasswordModal')">Batal</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Pesan Cepat -->
-    <div id="quickMessagesModal" class="modal" onclick="if(event.target === this) closeModal('quickMessagesModal')">
-        <div class="modal-content">
-            <h3><i class="fas fa-bolt mr-2"></i>Kelola Pesan Cepat</h3>
-            <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">Gunakan perintah / untuk mengakses pesan cepat</p>
-            
-            <div id="quickMessagesList" class="space-y-2 mb-4">
-                <!-- Akan diisi oleh JavaScript -->
-            </div>
-            
-            <div class="border-t border-gray-700 pt-4 mt-2">
-                <h4 class="text-sm font-bold mb-3">Tambah Pesan Baru</h4>
-                <input type="text" id="newQuickCommand" placeholder="Perintah (contoh: hello)" class="w-full bg-[#2a2a2a] border border-gray-700 rounded-lg px-4 py-2 mb-2 text-white">
-                <textarea id="newQuickMessage" placeholder="Isi pesan" rows="2" class="w-full bg-[#2a2a2a] border border-gray-700 rounded-lg px-4 py-2 mb-2 text-white"></textarea>
-                <button onclick="addQuickMessage()" class="w-full bg-[#00a884] text-white py-2 rounded-lg">Tambah Pesan</button>
-            </div>
-            
-            <div class="modal-buttons mt-4">
-                <button class="btn-cancel" onclick="closeModal('quickMessagesModal')">Tutup</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Edit User -->
-    <div id="editUserModal" class="modal" onclick="if(event.target === this) closeEditModal()">
-        <div class="modal-content">
-            <h3><i class="fas fa-edit mr-2"></i>Edit Nama User</h3>
-            <input type="text" id="editUserName" placeholder="Masukkan nama/email baru">
-            <div class="modal-buttons">
-                <button class="btn-save" onclick="saveUserEdit()">Simpan</button>
-                <button class="btn-cancel" onclick="closeEditModal()">Batal</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Login Section - Dark Theme, Only Login -->
-    <div id="loginSection">
-        <div class="login-container">
-            <div class="login-card">
-                <div class="login-header">
-                    <i class="fas fa-shield-alt"></i>
-                    <h1>Admin Panel</h1>
-                    <p>Masuk dengan akun admin Anda</p>
-                </div>
-
-                <!-- Login Form -->
-                <div id="loginForm">
-                    <div id="loginError" class="error-message" style="display: none;"></div>
-                    
-                    <div class="form-group">
-                        <label>Email</label>
-                        <div class="input-icon">
-                            <i class="fas fa-envelope"></i>
-                            <input type="email" id="loginEmail" placeholder="admin@example.com" value="admin@support.com">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Password</label>
-                        <div class="input-icon">
-                            <i class="fas fa-lock"></i>
-                            <input type="password" id="loginPassword" placeholder="••••••••" value="123456">
-                        </div>
-                    </div>
-
-                    <button class="login-button" onclick="loginWithEmail()" id="loginBtn">
-                        <span>Masuk</span>
-                    </button>
-
-                    <div class="forgot-password">
-                        <a href="#" onclick="showResetPasswordModal()">
-                            <i class="fas fa-key"></i>
-                            Lupa Password?
-                        </a>
-                    </div>
-
-                    <!-- Demo Credentials Info -->
-                    <div class="demo-credentials">
-                        <p><i class="fas fa-info-circle"></i> Demo Credentials:</p>
-                        <div class="cred-item">Email: admin@support.com</div>
-                        <div class="cred-item">Password: 123456</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Dashboard -->
-    <div id="mainDashboard" class="hidden">
-        
+    <div id="mainDashboard">
         <div id="userSidebar" class="flex-col border-r border-gray-800 bg-[#121212] w-full md:w-1/3">
-            <!-- Header dengan ikon garis tiga -->
-            <div class="p-4 bg-[#1e1e1e] flex justify-between items-center border-b border-gray-800">
-                <span class="font-bold">Daftar Chat</span>
-                <button onclick="toggleSidePanel()" class="text-gray-300 hover:text-white focus:outline-none">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
+            <div class="p-4 bg-[#1e1e1e] flex flex-col gap-2 border-b border-gray-800">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleSidePanel()" class="text-gray-300 hover:text-white">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <div>
+                            <h1 class="font-bold text-sm">Halo, <span id="adminDisplayName">Admin</span></h1>
+                            <p class="text-[10px] text-[#00a884] flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 bg-[#00a884] rounded-full"></span> Online
+                            </p>
+                        </div>
+                    </div>
+                    <button onclick="toggleSearch()" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
             </div>
-            <div id="userList" class="flex-1 overflow-y-auto divide-y divide-gray-800">
-                <!-- Daftar user akan diisi oleh JavaScript -->
+            <div id="searchContainer" class="search-container">
+                <input type="text" id="userSearchInput" oninput="filterUsers()" placeholder="Cari username atau pesan..." 
+                       class="w-full bg-[#2a3942] border-none rounded-lg px-4 py-2 text-sm focus:outline-none text-white">
             </div>
+            <div id="userList" class="flex-1 overflow-y-auto divide-y divide-gray-800"></div>
         </div>
 
         <div id="chatWindow" class="flex-col bg-[#0b141a] w-full md:w-2/3">
@@ -1303,67 +234,121 @@
                 <button onclick="backToList()" class="md:hidden text-gray-400 p-2">
                     <i class="fas fa-arrow-left"></i>
                 </button>
-                <div id="headerAvatar" class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white uppercase">?</div>
-                <div class="flex-1 overflow-hidden">
-                    <div class="flex items-center gap-2">
+                <div onclick="showConsumerDetail()" class="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-1 rounded-lg transition overflow-hidden flex-1">
+                    <div id="headerAvatar" class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white uppercase text-sm shrink-0">?</div>
+                    <div class="flex-1 overflow-hidden">
                         <h2 id="activeUserName" class="text-sm font-bold truncate">Pilih User</h2>
-                        <button id="editUserBtn" class="edit-user-btn hidden" onclick="showEditModal()">
-                            <i class="fas fa-pen text-xs"></i>
-                        </button>
+                        <p id="activeUserStatus" class="text-[11px] text-gray-400 truncate">offline</p>
                     </div>
-                    <p id="typingStatus" class="text-[11px] text-[#00a884] h-4 italic"></p>
                 </div>
-                <!-- Reset Chat Button -->
-                <button class="reset-chat-btn" onclick="openResetModal()" title="Reset Chat" id="resetChatBtn">
-                    <i class="fas fa-trash-alt"></i>
+                <button class="text-gray-400 hover:text-red-500 p-2" onclick="openResetModal()" title="Reset Chat Untuk Semua">
+                    <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
 
-            <div id="adminMessages" class="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col bg-repeat bg-contain">
-                <div class="m-auto text-gray-500 text-center">
-                    <i class="fas fa-lock text-xs mb-2 block"></i>
-                    <p class="text-xs">Pesan terenkripsi secara end-to-end</p>
+            <div id="adminMessages" class="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col bg-repeat bg-contain" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')">
+                <div class="m-auto text-gray-500 text-center bg-black/20 p-2 rounded-lg">
+                    <i class="fas fa-lock text-[10px] mb-1 block"></i>
+                    <p class="text-[10px]">Percakapan ini aman dan terenkripsi.</p>
                 </div>
             </div>
 
-            <div class="p-2 bg-[#202c33] flex items-center gap-2 pb-safe">
-                <!-- Quick Messages Menu -->
-                <div class="quick-messages-container">
-                    <button id="quickMenuBtn" class="quick-menu-btn" onclick="toggleQuickMenu()" title="Pesan Cepat (/)">
+            <div class="p-2 bg-[#202c33] flex items-center gap-2">
+                <div class="quick-messages-container relative">
+                    <button id="quickMenuBtn" class="w-10 h-10 rounded-full bg-[#2a3942] text-[#00a884] flex items-center justify-center" onclick="toggleQuickMenu()">
                         <i class="fas fa-bolt"></i>
                     </button>
-                    
-                    <!-- Quick Messages Panel -->
                     <div id="quickMenuPanel" class="quick-menu-panel">
-                        <div class="quick-menu-header">
-                            <span><i class="fas fa-bolt mr-1"></i> Pesan Cepat</span>
-                            <span>/command</span>
-                        </div>
-                        <div id="quickMenuList" class="quick-menu-list">
-                            <!-- Akan diisi oleh JavaScript -->
-                        </div>
-                        <div class="quick-menu-footer">
-                            <i class="fas fa-plus-circle"></i> Tambah di Pengaturan
-                        </div>
-                    </div>
-
-                    <!-- Command Suggestion -->
-                    <div id="commandSuggestion" class="command-suggestion">
-                        <i class="fas fa-info-circle"></i>
-                        <span>Ketik / untuk melihat pesan cepat</span>
+                        <div class="p-3 border-b border-gray-700 font-bold text-xs text-[#00a884]">PESAN CEPAT</div>
+                        <div id="quickMenuList" class="max-height-[200px] overflow-y-auto"></div>
                     </div>
                 </div>
-
-                <input type="text" id="adminInput" placeholder="Ketik pesan... (/) untuk pesan cepat" 
-                       class="flex-1 bg-[#2a3942] text-white border-none rounded-full px-4 py-2.5 focus:outline-none text-sm">
-                <button onclick="adminReply()" class="bg-[#00a884] text-white w-10 h-10 rounded-full flex items-center justify-center active:scale-90 transition">
+                <input type="text" id="adminInput" placeholder="Tulis pesan..." class="flex-1 bg-[#2a3942] text-white rounded-full px-4 py-2.5 focus:outline-none text-sm">
+                <button onclick="adminReply()" class="bg-[#00a884] text-white w-10 h-10 rounded-full flex items-center justify-center">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <audio id="notificationSound" preload="auto"></audio>
+    <div id="consumerDetailModal" class="modal">
+        <div class="modal-content text-left">
+            <div class="flex items-center gap-4 mb-6">
+                <div id="detailAvatar" class="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-2xl font-bold text-white uppercase">?</div>
+                <div>
+                    <h3 class="text-xl font-bold">Profil Konsumen</h3>
+                    <p id="detailUserStatus" class="text-sm text-[#00a884]">Offline</p>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Nama / Username</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="editConsumerName" class="flex-1 bg-gray-800 p-2 rounded-lg text-white border border-gray-700 focus:border-[#00a884] outline-none">
+                        <button onclick="saveConsumerName()" class="bg-[#00a884] px-4 rounded-lg text-xs font-bold">Ubah</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Email</label>
+                    <p id="detailEmail" class="text-sm text-gray-200">-</p>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">User ID (UID)</label>
+                    <p id="detailUID" class="text-xs text-gray-500 font-mono">-</p>
+                </div>
+            </div>
+            <div class="mt-8">
+                <button class="w-full py-2 bg-gray-700 rounded-lg text-sm font-bold" onclick="closeModal('consumerDetailModal')">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="themeModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-lg font-bold mb-4">Tema & Wallpaper</h3>
+            <div id="wallpaperPreview" class="wallpaper-preview" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')"></div>
+            <div class="flex flex-col gap-3">
+                <button onclick="applyWallpaper('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')" class="w-full py-2 bg-gray-800 rounded-lg text-xs hover:bg-gray-700">Wallpaper Default</button>
+                <button onclick="applyWallpaper('none')" class="w-full py-2 bg-gray-800 rounded-lg text-xs hover:bg-gray-700">Tanpa Wallpaper (Polos)</button>
+                <div class="relative">
+                    <input type="file" id="wallpaperInput" class="hidden" accept="image/*" onchange="handleWallpaperUpload(event)">
+                    <button onclick="document.getElementById('wallpaperInput').click()" class="w-full py-3 bg-[#00a884] rounded-lg text-sm font-bold flex items-center justify-center gap-2">
+                        <i class="fas fa-image"></i> Pilih dari Galeri
+                    </button>
+                </div>
+            </div>
+            <button class="mt-6 w-full py-2 bg-gray-700 rounded-lg text-sm" onclick="closeModal('themeModal')">Kembali</button>
+        </div>
+    </div>
+
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-lg font-bold mb-4">Pengaturan Profil Admin</h3>
+            <label class="block text-left text-xs text-gray-400 mb-1">Nama Tampilan Admin</label>
+            <input type="text" id="adminNameInput" class="w-full bg-gray-800 p-3 rounded-lg mb-4 text-white">
+            <div class="flex gap-2">
+                <button class="flex-1 py-2 bg-gray-700 rounded-lg" onclick="closeModal('profileModal')">Batal</button>
+                <button class="flex-1 py-2 bg-[#00a884] rounded-lg" onclick="saveAdminProfile()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sidePanel" class="fixed top-0 -left-[280px] w-[280px] h-full bg-[#1e1e1e] transition-all duration-300 z-[1000] border-r border-gray-800 p-4">
+        <h2 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fas fa-cog"></i> Menu</h2>
+        <div class="flex flex-col gap-2">
+            <button onclick="showProfileModal()" class="w-full text-left p-3 hover:bg-gray-800 rounded-lg flex items-center gap-3">
+                <i class="fas fa-user-circle text-[#00a884]"></i> Edit Profil Admin
+            </button>
+            <button onclick="document.getElementById('themeModal').classList.add('show'); toggleSidePanel();" class="w-full text-left p-3 hover:bg-gray-800 rounded-lg flex items-center gap-3">
+                <i class="fas fa-palette text-purple-500"></i> Tema & Wallpaper
+            </button>
+            <div class="border-t border-gray-800 my-2"></div>
+            <button onclick="logout()" class="w-full text-left p-3 hover:bg-gray-800 rounded-lg flex items-center gap-3 text-red-500">
+                <i class="fas fa-sign-out-alt"></i> Keluar
+            </button>
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -1379,646 +364,212 @@
             appId: "1:484815534171:web:a13bb73588bb8e764fe77e"
         };
         
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
         
         let currentUserId = null;
         let currentUserEmail = '';
-        let currentUser = null;
-        
-        // Settings storage
-        let notificationSound = 'default';
-        let notificationVolume = 80;
-        let currentTheme = 'dark';
-        let currentWallpaper = 'default';
-        
-        // Quick Messages storage
-        let quickMessages = [];
+        let selectedMsgId = null;
+        let usersData = [];
 
-        // Referensi ke user profiles
-        const userProfilesRef = db.ref('userProfiles');
-        
-        // Referensi ke quick messages
-        const quickMessagesRef = db.ref('quickMessages');
-
-        // Load quick messages from Firebase
-        function loadQuickMessages() {
-            quickMessagesRef.on('value', (snapshot) => {
-                quickMessages = [];
-                snapshot.forEach((child) => {
-                    quickMessages.push({
-                        id: child.key,
-                        command: child.val().command,
-                        message: child.val().message
-                    });
-                });
-                updateQuickMenu();
-                updateQuickMessagesList();
-            });
-        }
-
-        // Update quick menu display
-        function updateQuickMenu() {
-            const menuList = document.getElementById('quickMenuList');
-            if (!menuList) return;
-            
-            menuList.innerHTML = '';
-            if (quickMessages.length === 0) {
-                menuList.innerHTML = '<div class="text-center text-gray-500 p-4 text-sm">Belum ada pesan cepat</div>';
-                return;
-            }
-            
-            quickMessages.forEach(msg => {
-                const item = document.createElement('div');
-                item.className = 'quick-menu-item';
-                item.onclick = () => useQuickMessage(msg.message);
-                item.innerHTML = `
-                    <i class="fas fa-bolt"></i>
-                    <div class="content">${msg.message.substring(0, 30)}${msg.message.length > 30 ? '...' : ''}</div>
-                    <span class="command">/${msg.command}</span>
-                `;
-                menuList.appendChild(item);
-            });
-        }
-
-        // Update quick messages list in modal
-        function updateQuickMessagesList() {
-            const listDiv = document.getElementById('quickMessagesList');
-            if (!listDiv) return;
-            
-            listDiv.innerHTML = '';
-            if (quickMessages.length === 0) {
-                listDiv.innerHTML = '<div class="text-center text-gray-500 p-4">Belum ada pesan cepat</div>';
-                return;
-            }
-            
-            quickMessages.forEach(msg => {
-                const div = document.createElement('div');
-                div.className = 'bg-[#2a2a2a] p-3 rounded-lg mb-2';
-                div.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-[#00a884] font-mono text-sm">/${msg.command}</span>
-                        <button onclick="deleteQuickMessage('${msg.id}')" class="text-red-500 hover:text-red-400">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                    <p class="text-sm text-gray-300">${msg.message}</p>
-                `;
-                listDiv.appendChild(div);
-            });
-        }
-
-        // Toggle quick menu
-        function toggleQuickMenu() {
-            const panel = document.getElementById('quickMenuPanel');
-            const btn = document.getElementById('quickMenuBtn');
-            panel.classList.toggle('show');
-            btn.classList.toggle('active');
-        }
-
-        // Use quick message
-        function useQuickMessage(message) {
-            document.getElementById('adminInput').value = message;
-            toggleQuickMenu();
-            document.getElementById('adminInput').focus();
-        }
-
-        // Check for command in input
-        function checkCommand(input) {
-            const suggestion = document.getElementById('commandSuggestion');
-            if (input === '/') {
-                suggestion.classList.add('show');
-                toggleQuickMenu();
-            } else {
-                suggestion.classList.remove('show');
-            }
-        }
-
-        // Show quick messages modal
-        function showQuickMessagesModal() {
-            document.getElementById('quickMessagesModal').classList.add('show');
-            toggleSidePanel();
-            updateQuickMessagesList();
-        }
-
-        // Add new quick message
-        function addQuickMessage() {
-            const command = document.getElementById('newQuickCommand').value.trim().toLowerCase();
-            const message = document.getElementById('newQuickMessage').value.trim();
-            
-            if (!command || !message) {
-                alert('Perintah dan pesan harus diisi!');
-                return;
-            }
-            
-            // Check if command already exists
-            if (quickMessages.some(msg => msg.command === command)) {
-                alert('Perintah sudah ada!');
-                return;
-            }
-            
-            quickMessagesRef.push({
-                command: command,
-                message: message,
-                createdAt: new Date().toISOString()
-            }).then(() => {
-                document.getElementById('newQuickCommand').value = '';
-                document.getElementById('newQuickMessage').value = '';
-            });
-        }
-
-        // Delete quick message
-        function deleteQuickMessage(id) {
-            if (confirm('Hapus pesan cepat ini?')) {
-                quickMessagesRef.child(id).remove();
-            }
-        }
-
-        // Reset Chat Functions
-        function openResetModal() {
-            if (!currentUserId) {
-                alert('Pilih user terlebih dahulu!');
-                return;
-            }
-            
-            document.getElementById('resetUserName').textContent = currentUserEmail;
-            document.getElementById('resetChatModal').classList.add('show');
-            
-            // Change button color to danger
-            document.getElementById('resetChatBtn').classList.add('danger');
-        }
-
-        function closeResetModal() {
-            document.getElementById('resetChatModal').classList.remove('show');
-            document.getElementById('resetChatBtn').classList.remove('danger');
-        }
-
-        function confirmResetChat() {
-            if (!currentUserId) return;
-            
-            // Hapus semua pesan dari user ini
-            db.ref('messages/' + currentUserId).remove()
-                .then(() => {
-                    // Tampilkan notifikasi sukses
-                    const successNotif = document.getElementById('resetSuccess');
-                    successNotif.classList.add('show');
-                    
-                    // Sembunyikan notifikasi setelah 3 detik
-                    setTimeout(() => {
-                        successNotif.classList.remove('show');
-                    }, 3000);
-                    
-                    // Kosongkan tampilan chat
-                    document.getElementById('adminMessages').innerHTML = `
-                        <div class="m-auto text-gray-500 text-center">
-                            <i class="fas fa-lock text-xs mb-2 block"></i>
-                            <p class="text-xs">Pesan terenkripsi secara end-to-end</p>
-                        </div>
-                    `;
-                    
-                    // Tutup modal
-                    closeResetModal();
-                })
-                .catch((error) => {
-                    alert('Gagal mereset chat: ' + error.message);
-                });
-        }
-
-        // Check if user is already logged in
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                // User is signed in
-                currentUser = user;
-                document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('mainDashboard').classList.remove('hidden');
-                document.getElementById('mainDashboard').classList.add('flex');
-                
-                // Update admin info
-                document.getElementById('adminEmail').textContent = user.email;
-                document.getElementById('adminUID').textContent = user.uid.substring(0, 8) + '...';
-                document.getElementById('adminJoinDate').textContent = user.metadata.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString('id-ID') : '-';
-                document.getElementById('sidePanelAdminEmail').textContent = user.email;
-                
-                loadUserProfiles();
-                loadSettings();
-                loadQuickMessages();
-            } else {
-                // User is signed out
-                document.getElementById('loginSection').style.display = 'flex';
-                document.getElementById('mainDashboard').classList.add('hidden');
-                document.getElementById('mainDashboard').classList.remove('flex');
-            }
-        });
-
-        // Load settings from localStorage
-        function loadSettings() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            const savedWallpaper = localStorage.getItem('wallpaper') || 'default';
-            const savedSound = localStorage.getItem('notificationSound') || 'default';
-            const savedVolume = localStorage.getItem('notificationVolume') || 80;
-            
-            currentTheme = savedTheme;
-            currentWallpaper = savedWallpaper;
-            notificationSound = savedSound;
-            notificationVolume = savedVolume;
-            
-            document.documentElement.setAttribute('data-theme', currentTheme);
-            document.getElementById('themeSelect').value = currentTheme;
-            document.getElementById('notificationVolume').value = savedVolume;
-            document.getElementById('volumeValue').textContent = savedVolume + '%';
-            
-            // Set wallpaper
-            applyWallpaper(currentWallpaper);
-        }
-
-        function clearMessages() {
-            document.getElementById('loginError').style.display = 'none';
-        }
-
-        // Login with email/password
         function loginWithEmail() {
             const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const loginBtn = document.getElementById('loginBtn');
-            
-            if (!email || !password) {
-                showError('loginError', 'Email dan password harus diisi!');
-                return;
+            const pass = document.getElementById('loginPassword').value;
+            const error = document.getElementById('loginError');
+            error.classList.add('hidden');
+            auth.signInWithEmailAndPassword(email, pass).catch(err => {
+                error.textContent = "Login gagal: " + err.message;
+                error.classList.remove('hidden');
+            });
+        }
+
+        function loadAdminProfile() {
+            const name = localStorage.getItem('adminName') || 'Administrator';
+            document.getElementById('adminDisplayName').textContent = name;
+            document.getElementById('adminNameInput').value = name;
+            const savedWall = localStorage.getItem('chatWallpaper');
+            if(savedWall) applyWallpaper(savedWall, false);
+        }
+
+        function saveAdminProfile() {
+            const newName = document.getElementById('adminNameInput').value.trim();
+            if(newName) {
+                localStorage.setItem('adminName', newName);
+                document.getElementById('adminDisplayName').textContent = newName;
+                closeModal('profileModal');
             }
-
-            // Show loading
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<span class="loading-spinner"></span> Loading...';
-
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    // Login successful
-                    clearMessages();
-                })
-                .catch((error) => {
-                    // Handle errors
-                    let errorMessage = 'Login gagal: ';
-                    switch (error.code) {
-                        case 'auth/user-not-found':
-                            errorMessage += 'Email tidak terdaftar';
-                            break;
-                        case 'auth/wrong-password':
-                            errorMessage += 'Password salah';
-                            break;
-                        case 'auth/invalid-email':
-                            errorMessage += 'Email tidak valid';
-                            break;
-                        case 'auth/too-many-requests':
-                            errorMessage += 'Terlalu banyak percobaan. Coba lagi nanti';
-                            break;
-                        default:
-                            errorMessage += error.message;
-                    }
-                    showError('loginError', errorMessage);
-                })
-                .finally(() => {
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '<span>Masuk</span>';
-                });
         }
 
-        // Show reset password modal
-        function showResetPasswordModal() {
-            event.preventDefault();
-            document.getElementById('resetPasswordModal').classList.add('show');
-            document.getElementById('resetEmail').value = '';
-            document.getElementById('resetMessage').style.display = 'none';
-        }
-
-        // Reset password
-        function resetPassword() {
-            const email = document.getElementById('resetEmail').value;
-            const resetMessage = document.getElementById('resetMessage');
-            
-            if (!email) {
-                resetMessage.style.display = 'block';
-                resetMessage.style.color = '#ef4444';
-                resetMessage.textContent = 'Email harus diisi!';
-                return;
-            }
-
-            auth.sendPasswordResetEmail(email)
-                .then(() => {
-                    resetMessage.style.display = 'block';
-                    resetMessage.style.color = '#10b981';
-                    resetMessage.textContent = 'Link reset password telah dikirim ke email Anda!';
-                    
-                    setTimeout(() => {
-                        closeModal('resetPasswordModal');
-                    }, 3000);
-                })
-                .catch((error) => {
-                    resetMessage.style.display = 'block';
-                    resetMessage.style.color = '#ef4444';
-                    resetMessage.textContent = 'Gagal: ' + error.message;
-                });
-        }
-
-        function showError(elementId, message) {
-            const errorEl = document.getElementById(elementId);
-            errorEl.textContent = message;
-            errorEl.style.display = 'block';
-        }
-
-        // Profile Modal
         function showProfileModal() {
             document.getElementById('profileModal').classList.add('show');
-            toggleSidePanel(); // Close side panel
-        }
-
-        // Notification Modal
-        function showNotificationModal() {
-            document.getElementById('notificationModal').classList.add('show');
             toggleSidePanel();
-            // Highlight selected sound
-            document.querySelectorAll('.sound-option').forEach(opt => opt.classList.remove('selected'));
-            const soundId = 'sound' + notificationSound.charAt(0).toUpperCase() + notificationSound.slice(1);
-            const soundEl = document.getElementById(soundId);
-            if (soundEl) soundEl.classList.add('selected');
         }
 
-        function selectSound(sound) {
-            notificationSound = sound;
-            document.querySelectorAll('.sound-option').forEach(opt => opt.classList.remove('selected'));
-            const soundId = 'sound' + sound.charAt(0).toUpperCase() + sound.slice(1);
-            const soundEl = document.getElementById(soundId);
-            if (soundEl) soundEl.classList.add('selected');
-            
-            // Preview sound
-            if (sound !== 'none') {
-                playNotificationSound(sound);
+        function applyWallpaper(url, save = true) {
+            const chatBg = document.getElementById('adminMessages');
+            const preview = document.getElementById('wallpaperPreview');
+            if(url === 'none') {
+                chatBg.style.backgroundImage = 'none';
+                if(preview) {
+                    preview.style.backgroundImage = 'none';
+                    preview.style.backgroundColor = '#0b141a';
+                }
+            } else {
+                chatBg.style.backgroundImage = `url('${url}')`;
+                if(preview) preview.style.backgroundImage = `url('${url}')`;
             }
+            if(save) localStorage.setItem('chatWallpaper', url);
         }
 
-        function updateVolume(value) {
-            notificationVolume = value;
-            document.getElementById('volumeValue').textContent = value + '%';
+        function handleWallpaperUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) { applyWallpaper(e.target.result); };
+            reader.readAsDataURL(file);
         }
 
-        function saveNotificationSettings() {
-            localStorage.setItem('notificationSound', notificationSound);
-            localStorage.setItem('notificationVolume', notificationVolume);
-            closeModal('notificationModal');
-        }
-
-        // Theme Modal
-        function showThemeModal() {
-            document.getElementById('themeModal').classList.add('show');
-            toggleSidePanel();
-            
-            // Highlight selected wallpaper
-            document.querySelectorAll('.wallpaper-item').forEach(item => item.classList.remove('selected'));
-            const wallId = 'wall' + currentWallpaper.charAt(0).toUpperCase() + currentWallpaper.slice(1);
-            const wallEl = document.getElementById(wallId);
-            if (wallEl) wallEl.classList.add('selected');
-        }
-
-        function changeTheme(theme) {
-            currentTheme = theme;
-            document.documentElement.setAttribute('data-theme', theme);
-        }
-
-        function selectWallpaper(wallpaper) {
-            currentWallpaper = wallpaper;
-            document.querySelectorAll('.wallpaper-item').forEach(item => item.classList.remove('selected'));
-            const wallId = 'wall' + wallpaper.charAt(0).toUpperCase() + wallpaper.slice(1);
-            const wallEl = document.getElementById(wallId);
-            if (wallEl) wallEl.classList.add('selected');
-        }
-
-        function applyWallpaper(wallpaper) {
-            const chatContainer = document.getElementById('adminMessages');
-            switch(wallpaper) {
-                case 'default':
-                    chatContainer.style.backgroundImage = "url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')";
-                    break;
-                case 'dark':
-                    chatContainer.style.backgroundImage = 'none';
-                    chatContainer.style.backgroundColor = '#0b141a';
-                    break;
-                case 'light':
-                    chatContainer.style.backgroundImage = 'none';
-                    chatContainer.style.backgroundColor = '#e5ded8';
-                    break;
-                case 'pattern1':
-                    chatContainer.style.backgroundImage = "url('https://i.pinimg.com/736x/8c/98/99/8c98994518b575bfd8c949e91d20548b.jpg')";
-                    break;
-                case 'pattern2':
-                    chatContainer.style.backgroundImage = "url('https://i.pinimg.com/736x/2a/2c/1a/2a2c1a1a1a1a1a1a1a1a1a1a1a1a1a1a.jpg')";
-                    break;
-                case 'pattern3':
-                    chatContainer.style.backgroundImage = "url('https://i.pinimg.com/736x/3b/3c/1a/3b3c1a1a1a1a1a1a1a1a1a1a1a1a1a1a.jpg')";
-                    break;
-                default:
-                    chatContainer.style.backgroundImage = "url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')";
-            }
-        }
-
-        function saveThemeSettings() {
-            localStorage.setItem('theme', currentTheme);
-            localStorage.setItem('wallpaper', currentWallpaper);
-            applyWallpaper(currentWallpaper);
-            closeModal('themeModal');
-        }
-
-        // Privacy Modal (Change Password)
-        function showPrivacyModal() {
-            document.getElementById('privacyModal').classList.add('show');
-            toggleSidePanel();
-            // Clear inputs
-            document.getElementById('oldPassword').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmPassword').value = '';
-            document.getElementById('passwordError').style.display = 'none';
-        }
-
-        function changePassword() {
-            const oldPass = document.getElementById('oldPassword').value;
-            const newPass = document.getElementById('newPassword').value;
-            const confirmPass = document.getElementById('confirmPassword').value;
-            const errorDiv = document.getElementById('passwordError');
-
-            if (!currentUser) {
-                errorDiv.textContent = 'Anda harus login terlebih dahulu!';
-                errorDiv.style.display = 'block';
-                return;
-            }
-
-            if (newPass.length < 6) {
-                errorDiv.textContent = 'Password baru minimal 6 karakter!';
-                errorDiv.style.display = 'block';
-                return;
-            }
-
-            if (newPass !== confirmPass) {
-                errorDiv.textContent = 'Konfirmasi password tidak cocok!';
-                errorDiv.style.display = 'block';
-                return;
-            }
-
-            // Re-authenticate user
-            const credential = firebase.auth.EmailAuthProvider.credential(
-                currentUser.email, 
-                oldPass
-            );
-
-            currentUser.reauthenticateWithCredential(credential)
-                .then(() => {
-                    // Update password
-                    return currentUser.updatePassword(newPass);
-                })
-                .then(() => {
-                    errorDiv.style.color = '#10b981';
-                    errorDiv.textContent = 'Password berhasil diubah!';
-                    errorDiv.style.display = 'block';
-                    
-                    setTimeout(() => {
-                        closeModal('privacyModal');
-                    }, 1500);
-                })
-                .catch((error) => {
-                    if (error.code === 'auth/wrong-password') {
-                        errorDiv.textContent = 'Password lama salah!';
-                    } else {
-                        errorDiv.textContent = 'Gagal: ' + error.message;
-                    }
-                    errorDiv.style.color = '#ef4444';
-                    errorDiv.style.display = 'block';
-                });
-        }
-
-        // Logout
-        function logout() {
-            if (confirm('Yakin ingin keluar?')) {
-                auth.signOut().then(() => {
-                    // Sign-out successful
-                    toggleSidePanel(); // Close side panel
-                    currentUserId = null;
-                    currentUser = null;
-                }).catch((error) => {
-                    alert('Gagal logout: ' + error.message);
-                });
-            }
-        }
-
-        // Play notification sound
-        function playNotificationSound(sound = notificationSound) {
-            if (sound === 'none') return;
-            
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(sound === 'chime' ? 800 : 440, audioContext.currentTime);
-                gainNode.gain.setValueAtTime(notificationVolume / 100, audioContext.currentTime);
-                
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.2);
-            } catch (e) {
-                console.log('Audio preview error:', e);
-            }
-        }
-
-        // Close modal function
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('show');
-        }
-
-        // Back to list
-        function backToList() {
-            document.body.classList.replace('chat-active', 'sidebar-active');
-            document.getElementById('editUserBtn').classList.add('hidden');
-        }
-
-        // Toggle side panel
-        function toggleSidePanel() {
-            const panel = document.getElementById('sidePanel');
-            const overlay = document.getElementById('overlay');
-            panel.classList.toggle('open');
-            overlay.classList.toggle('show');
-        }
-
-        // Load user profiles
-        function loadUserProfiles() {
-            userProfilesRef.on('value', (snapshot) => {
-                // Data will be loaded through messages listener
+        function showConsumerDetail() {
+            if(!currentUserId) return;
+            document.getElementById('detailEmail').textContent = currentUserEmail;
+            document.getElementById('detailUID').textContent = currentUserId;
+            document.getElementById('editConsumerName').value = currentUserEmail;
+            document.getElementById('detailAvatar').textContent = currentUserEmail.charAt(0).toUpperCase();
+            db.ref('userProfiles/' + currentUserId).once('value', snapshot => {
+                if(snapshot.exists()) {
+                    const data = snapshot.val();
+                    document.getElementById('editConsumerName').value = data.email || currentUserEmail;
+                }
             });
+            document.getElementById('consumerDetailModal').classList.add('show');
         }
 
-        // List Users dengan email dari userProfiles
-        db.ref('messages').on('value', (snapshot) => {
+        function saveConsumerName() {
+            const newName = document.getElementById('editConsumerName').value.trim();
+            if(newName && currentUserId) {
+                db.ref('userProfiles/' + currentUserId).update({ email: newName }).then(() => {
+                    currentUserEmail = newName;
+                    document.getElementById('activeUserName').textContent = newName;
+                    document.getElementById('headerAvatar').textContent = newName.charAt(0).toUpperCase();
+                    closeModal('consumerDetailModal');
+                });
+            }
+        }
+
+        function toggleSearch() {
+            document.getElementById('searchContainer').classList.toggle('active');
+            if(document.getElementById('searchContainer').classList.contains('active')) {
+                document.getElementById('userSearchInput').focus();
+            }
+        }
+
+        function filterUsers() { renderUserList(document.getElementById('userSearchInput').value.toLowerCase()); }
+
+        function renderUserList(query = '') {
             const listDiv = document.getElementById('userList');
+            if (!listDiv) return;
             listDiv.innerHTML = '';
-            
-            snapshot.forEach((userSnap) => {
-                const userId = userSnap.key;
-                
-                userProfilesRef.child(userId).once('value', (profileSnap) => {
-                    let displayEmail = userId;
-                    if (profileSnap.exists() && profileSnap.val().email) {
-                        displayEmail = profileSnap.val().email;
-                    }
-                    
+            const sortedUsers = [...usersData].sort((a, b) => b.lastTime - a.lastTime);
+            sortedUsers.forEach(user => {
+                if(user.email.toLowerCase().includes(query) || user.lastMsg.toLowerCase().includes(query)) {
                     const div = document.createElement('div');
-                    div.className = "p-4 flex items-center gap-3 hover:bg-[#202c33] cursor-pointer border-b border-gray-800 user-item";
+                    div.className = `p-4 flex items-center gap-3 hover:bg-[#202c33] cursor-pointer border-b border-gray-800 ${currentUserId === user.id ? 'bg-[#2b3942]' : ''}`;
+                    const timeStr = new Date(user.lastTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     div.innerHTML = `
-                        <div class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center font-bold text-blue-500 border border-gray-700">${displayEmail.charAt(0).toUpperCase()}</div>
+                        <div class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center font-bold text-[#tg-blue] border border-gray-700 text-sm">${user.email.charAt(0).toUpperCase()}</div>
                         <div class="flex-1 overflow-hidden">
-                            <h3 class="font-medium text-white text-sm truncate">${displayEmail}</h3>
-                            <p class="user-email text-xs text-gray-500 truncate">${displayEmail}</p>
-                            <span class="user-id hidden">${userId}</span>
+                            <div class="flex justify-between items-center mb-0.5">
+                                <h3 class="font-bold text-white text-sm truncate">${user.email}</h3>
+                                <span class="text-[10px] text-gray-500">${timeStr}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <p class="text-xs text-gray-400 truncate w-4/5">${user.lastMsg}</p>
+                                ${user.unread > 0 ? `<span class="unread-badge">${user.unread}</span>` : ''}
+                            </div>
                         </div>
                     `;
-                    div.onclick = () => selectUser(userId, displayEmail);
+                    div.onclick = () => selectUser(user.id, user.email);
                     listDiv.appendChild(div);
+                }
+            });
+        }
+
+        function startSync() {
+            db.ref('messages').on('value', (snapshot) => {
+                const tempUsers = [];
+                const promises = [];
+                snapshot.forEach((userSnap) => {
+                    const userId = userSnap.key;
+                    const messages = Object.values(userSnap.val());
+                    const lastMsgObj = messages[messages.length - 1];
+                    const unreadCount = messages.filter(m => m.sender !== 'admin' && !m.read).length;
+                    const p = db.ref('userProfiles/' + userId).once('value').then(profileSnap => {
+                        tempUsers.push({
+                            id: userId,
+                            email: profileSnap.val()?.email || userId,
+                            lastMsg: lastMsgObj.text,
+                            lastTime: new Date(lastMsgObj.timestamp).getTime(),
+                            unread: unreadCount
+                        });
+                    });
+                    promises.push(p);
+                });
+                Promise.all(promises).then(() => {
+                    usersData = tempUsers;
+                    renderUserList();
                 });
             });
-        });
+        }
 
-        function selectUser(userId, userEmail) {
+        function selectUser(userId, email) {
             currentUserId = userId;
-            currentUserEmail = userEmail;
-            
+            currentUserEmail = email;
+            db.ref('messages/' + userId).once('value', snapshot => {
+                snapshot.forEach(child => { if(child.val().sender !== 'admin') child.ref.update({read: true}); });
+            });
             document.body.classList.replace('sidebar-active', 'chat-active');
-            document.getElementById('activeUserName').innerText = userEmail;
-            document.getElementById('headerAvatar').innerText = userEmail.charAt(0).toUpperCase();
-            document.getElementById('editUserBtn').classList.remove('hidden');
-
-            // Typing listener
-            db.ref('typing/' + userId).on('value', (snap) => {
-                document.getElementById('typingStatus').innerText = snap.val() ? 'sedang mengetik...' : '';
+            document.getElementById('activeUserName').textContent = email;
+            document.getElementById('headerAvatar').textContent = email.charAt(0).toUpperCase();
+            
+            db.ref('typing/' + userId).on('value', snap => {
+                const statusEl = document.getElementById('activeUserStatus');
+                const detailStatus = document.getElementById('detailUserStatus');
+                if(snap.val()) {
+                    statusEl.textContent = 'sedang mengetik...';
+                    statusEl.classList.add('text-[#00a884]');
+                    if(detailStatus) detailStatus.textContent = 'sedang mengetik...';
+                } else {
+                    db.ref('presence/' + userId).on('value', pSnap => {
+                        const isOnline = pSnap.val();
+                        statusEl.textContent = isOnline ? 'online' : 'offline';
+                        statusEl.classList.remove('text-[#00a884]');
+                        if(detailStatus) {
+                            detailStatus.textContent = isOnline ? 'Online' : 'Offline';
+                            detailStatus.style.color = isOnline ? '#00a884' : '#9ca3af';
+                        }
+                    });
+                }
             });
 
-            // Messages listener
             db.ref('messages/' + userId).on('value', (snapshot) => {
                 const container = document.getElementById('adminMessages');
                 container.innerHTML = '';
                 snapshot.forEach((msgSnap) => {
                     const data = msgSnap.val();
+                    const msgId = msgSnap.key;
                     const isAdmin = data.sender === 'admin';
                     const wrap = document.createElement('div');
                     wrap.className = `flex w-full ${isAdmin ? 'justify-end' : 'justify-start'}`;
-                    
                     const bubble = document.createElement('div');
-                    bubble.className = `max-w-[85%] px-3 py-2 rounded-xl text-[14px] shadow-sm ${
-                        isAdmin ? 'chat-bubble-admin rounded-tr-none' : 'chat-bubble-user rounded-tl-none'
-                    }`;
+                    bubble.className = `max-w-[85%] px-3 py-2 rounded-xl text-sm shadow-sm relative group cursor-pointer ${isAdmin ? 'chat-bubble-admin rounded-tr-none' : 'chat-bubble-user rounded-tl-none'}`;
                     bubble.innerHTML = `
                         <p>${data.text}</p>
-                        <span class="text-[10px] opacity-50 block text-right mt-1">${new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                    `;
+                        <div class="flex items-center justify-end gap-1 mt-1 opacity-50">
+                            <span class="text-[9px]">${new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            ${isAdmin ? `<i class="fas fa-check-double text-[8px] ${data.read ? 'text-blue-400' : ''}"></i>` : ''}
+                        </div>`;
+                    bubble.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e, msgId, data.text); });
                     wrap.appendChild(bubble);
                     container.appendChild(wrap);
                 });
@@ -2026,123 +577,79 @@
             });
         }
 
-        // Edit user functions
-        function showEditModal() {
-            if (currentUserId) {
-                document.getElementById('editUserName').value = currentUserEmail;
-                document.getElementById('editUserModal').classList.add('show');
-            }
+        function showContextMenu(e, msgId, text) {
+            selectedMsgId = msgId;
+            selectedMsgText = text;
+            const menu = document.getElementById('msgContextMenu');
+            menu.style.display = 'flex';
+            let x = e.pageX || (e.touches ? e.touches[0].pageX : 0);
+            let y = e.pageY || (e.touches ? e.touches[0].pageY : 0);
+            if(x + 160 > window.innerWidth) x -= 160;
+            if(y + 100 > window.innerHeight) y -= 100;
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
         }
 
-        function closeEditModal() {
-            document.getElementById('editUserModal').classList.remove('show');
+        function copyMsgText() { navigator.clipboard.writeText(selectedMsgText); hideContextMenu(); }
+        function hideContextMenu() { document.getElementById('msgContextMenu').style.display = 'none'; }
+        
+        // Hapus Pesan Tunggal Untuk Semua Orang
+        function confirmDeleteMsg(mode) {
+            if(!currentUserId || !selectedMsgId) return;
+            // Menghapus node pesan dari database menghapus pesan di sisi admin dan konsumen
+            db.ref(`messages/${currentUserId}/${selectedMsgId}`).remove()
+              .then(() => hideContextMenu());
         }
 
-        function saveUserEdit() {
-            const newEmail = document.getElementById('editUserName').value.trim();
-            if (newEmail && currentUserId) {
-                userProfilesRef.child(currentUserId).set({
-                    email: newEmail,
-                    lastUpdated: new Date().toISOString()
-                }).then(() => {
-                    currentUserEmail = newEmail;
-                    updateUserDisplay(currentUserId, newEmail);
-                    closeEditModal();
-                });
-            }
-        }
-
-        function updateUserDisplay(userId, email) {
-            const userDivs = document.querySelectorAll('#userList > div');
-            userDivs.forEach(div => {
-                const userIdElement = div.querySelector('.user-id');
-                if (userIdElement && userIdElement.textContent === userId) {
-                    const emailElement = div.querySelector('.user-email');
-                    const nameElement = div.querySelector('h3');
-                    if (emailElement) emailElement.textContent = email;
-                    if (nameElement) nameElement.textContent = email.substring(0, 20);
-                    
-                    // Update avatar
-                    const avatar = div.querySelector('.w-12.h-12');
-                    if (avatar) {
-                        avatar.textContent = email.charAt(0).toUpperCase();
-                    }
-                }
+        // Reset Chat Untuk Semua Orang
+        function confirmResetChat() {
+            if(!currentUserId) return;
+            const welcomeMsg = {
+                sender: 'admin',
+                text: "Hello player, I'm Nita I'll be helping you today.\n\nAre you having trouble with your account? What's the problem? Please answer before we help you with the problem.",
+                timestamp: new Date().toISOString(),
+                read: true
+            };
+            // Menggunakan .set() pada path messages/USER_ID akan menghapus seluruh isi percakapan
+            // dan menggantinya dengan pesan sambutan saja di kedua belah pihak.
+            db.ref('messages/' + currentUserId).set({ 'initial_welcome': welcomeMsg }).then(() => {
+                closeResetModal();
             });
-
-            if (currentUserId === userId) {
-                document.getElementById('activeUserName').innerText = email;
-                document.getElementById('headerAvatar').innerText = email.charAt(0).toUpperCase();
-            }
         }
 
         function adminReply() {
             const input = document.getElementById('adminInput');
             const text = input.value.trim();
             if (!text || !currentUserId) return;
-
-            db.ref('messages/' + currentUserId).push({
-                sender: 'admin',
-                text: text,
-                timestamp: new Date().toISOString()
-            }).then(() => {
-                input.value = '';
-                const container = document.getElementById('adminMessages');
-                container.scrollTop = container.scrollHeight;
-            });
+            db.ref('messages/' + currentUserId).push({ sender: 'admin', text: text, timestamp: new Date().toISOString(), read: false });
+            input.value = '';
         }
 
-        // Input handler for quick messages
-        document.getElementById('adminInput').addEventListener('input', (e) => {
-            checkCommand(e.target.value);
-        });
+        function logout() { if(confirm('Keluar dari panel?')) auth.signOut(); }
+        function toggleSidePanel() {
+            document.getElementById('sidePanel').classList.toggle('left-0');
+            document.getElementById('sidePanel').classList.toggle('-left-[280px]');
+            document.getElementById('overlay').classList.toggle('hidden');
+        }
+        function backToList() { document.body.classList.replace('chat-active', 'sidebar-active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+        function openResetModal() { document.getElementById('resetChatModal').classList.add('show'); }
+        function closeResetModal() { document.getElementById('resetChatModal').classList.remove('show'); }
+        function toggleQuickMenu() { document.getElementById('quickMenuPanel').classList.toggle('show'); }
 
-        document.getElementById('adminInput').addEventListener('keydown', (e) => {
-            // Close quick menu on escape
-            if (e.key === 'Escape') {
-                document.getElementById('quickMenuPanel').classList.remove('show');
-                document.getElementById('quickMenuBtn').classList.remove('active');
-                document.getElementById('commandSuggestion').classList.remove('show');
-            }
-            
-            // Enter untuk kirim
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                adminReply();
-            }
-        });
+        window.onclick = (e) => { if(!e.target.closest('.chat-bubble-admin') && !e.target.closest('.chat-bubble-user')) hideContextMenu(); };
 
-        // Close quick menu when clicking outside
-        document.addEventListener('click', (e) => {
-            const menu = document.getElementById('quickMenuPanel');
-            const btn = document.getElementById('quickMenuBtn');
-            if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
-                menu.classList.remove('show');
-                btn.classList.remove('active');
-            }
-        });
-
-        // Fix Scroll saat Keyboard Muncul di Android
-        window.addEventListener('resize', () => {
-            if (currentUserId) {
-                const container = document.getElementById('adminMessages');
-                container.scrollTop = container.scrollHeight;
-            }
-            if (window.innerWidth > 768) {
-                document.getElementById('sidePanel').classList.remove('open');
-                document.getElementById('overlay').classList.remove('show');
-            }
-        });
-
-        // Load settings on start
-        loadSettings();
-
-        // Ensure proper layout on desktop
-        window.addEventListener('load', function() {
-            // Force desktop layout
-            if (window.innerWidth > 768) {
-                document.body.classList.remove('sidebar-active', 'chat-active');
-                document.body.classList.add('sidebar-active');
+        auth.onAuthStateChanged(user => {
+            const login = document.getElementById('loginSection');
+            const dash = document.getElementById('mainDashboard');
+            if(user) {
+                login.style.display = 'none';
+                dash.classList.add('flex-mode');
+                loadAdminProfile();
+                startSync();
+            } else {
+                login.style.display = 'flex';
+                dash.classList.remove('flex-mode');
             }
         });
     </script>
